@@ -1,5 +1,6 @@
 import { Icons } from './Icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getAllSequences, deleteSequence, bulkDeleteSequences } from '../utils/api';
 import type { ViewType } from '../types';
 
 interface RecentUploadsProps {
@@ -8,50 +9,61 @@ interface RecentUploadsProps {
 }
 
 export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProps) {
-  const [files, setFiles] = useState<any[]>([
-    {
-      id: '1',
-      name: 'genome_sequence_01.fasta',
-      sequences: 245,
-      date: 'Nov 27, 2024 14:32',
-      size: '2.4 MB',
-    },
-    {
-      id: '2',
-      name: 'protein_coding_regions.fa',
-      sequences: 128,
-      date: 'Nov 27, 2024 09:15',
-      size: '1.8 MB',
-    },
-    {
-      id: '3',
-      name: 'mitochondrial_dna_analysis.fasta',
-      sequences: 89,
-      date: 'Nov 26, 2024 16:45',
-      size: '956 KB',
-    },
-    {
-      id: '4',
-      name: 'viral_genome_complete.fa',
-      sequences: 412,
-      date: 'Nov 26, 2024 11:20',
-      size: '3.7 MB',
-    },
-    {
-      id: '5',
-      name: 'bacterial_plasmid_seq.fasta',
-      sequences: 167,
-      date: 'Nov 25, 2024 13:08',
-      size: '1.5 MB',
-    },
-    {
-      id: '6',
-      name: 'chromosomal_region_22.fa',
-      sequences: 534,
-      date: 'Nov 25, 2024 08:55',
-      size: '5.2 MB',
-    },
-  ]);
+  const [files, setFiles] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch sequences from backend
+  useEffect(() => {
+    const fetchSequences = async () => {
+      try {
+        const response = await getAllSequences(1, 20, '-createdAt');
+        
+        // Transform backend data to component format
+        const transformedFiles = response.sequences.map((seq: any) => ({
+          id: seq._id,
+          name: seq.filename || seq.name,
+          sequences: 1, // Each file is one sequence
+          date: new Date(seq.createdAt).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          size: seq.length ? `${(seq.length / 1024).toFixed(2)} KB` : 'N/A',
+          data: seq,
+        }));
+        
+        setFiles(transformedFiles);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch sequences:', err);
+        setError('Could not connect to backend');
+        // Keep mock data as fallback
+        setFiles([
+          {
+            id: '1',
+            name: 'genome_sequence_01.fasta',
+            sequences: 245,
+            date: 'Nov 27, 2024 14:32',
+            size: '2.4 MB',
+          },
+          {
+            id: '2',
+            name: 'protein_coding_regions.fa',
+            sequences: 128,
+            date: 'Nov 27, 2024 09:15',
+            size: '1.8 MB',
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSequences();
+  }, []);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
@@ -64,15 +76,21 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
     setActiveView('report');
   };
 
-  const handleDelete = (file: any, e: React.MouseEvent) => {
+  const handleDelete = async (file: any, e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
       return;
     }
     
-    // Remove from local state
-    setFiles(files.filter(f => f.id !== file.id));
+    try {
+      await deleteSequence(file.id);
+      // Remove from local state
+      setFiles(files.filter(f => f.id !== file.id));
+    } catch (err) {
+      console.error('Failed to delete sequence:', err);
+      alert('Failed to delete sequence from backend');
+    }
   };
 
   const handleDownload = (file: any, e: React.MouseEvent) => {

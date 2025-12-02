@@ -1,7 +1,8 @@
-import { Icons } from './Icons';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Icons } from './Icons';
 import { parseFastaFile, calculateAggregateStats } from '../utils/fastaParser';
+import { uploadFastaFile } from '../utils/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { animeAnimations } from '../utils/animations';
 import type { SequenceMetadata } from '../types';
@@ -30,7 +31,7 @@ export function UploadSection({ onUploadComplete }: UploadSectionProps) {
     }
   }, [error]);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: any) => {
     e.preventDefault();
     setIsDragging(true);
   };
@@ -39,7 +40,7 @@ export function UploadSection({ onUploadComplete }: UploadSectionProps) {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: any) => {
     e.preventDefault();
     setIsDragging(false);
     
@@ -51,7 +52,7 @@ export function UploadSection({ onUploadComplete }: UploadSectionProps) {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
       processFile(file);
@@ -63,7 +64,49 @@ export function UploadSection({ onUploadComplete }: UploadSectionProps) {
     setIsUploading(true);
     
     try {
-      // Read file content
+      // Try to upload to backend first
+      try {
+        const response = await uploadFastaFile(file);
+        
+        setIsUploading(false);
+        setIsParsing(false);
+        
+        // Convert backend response to local format (partial data from upload)
+        const sequences: any = [{ 
+          id: response.id,
+          name: response.name || response.header,
+          length: response.length,
+          gcContent: response.gcPercent,
+          nucleotideCounts: response.nucleotideCounts,
+          createdAt: response.createdAt,
+          orfs: [], // Not included in upload response
+          sequence: '', // Not included in upload response
+        }];
+        
+        setUploadedFile({
+          name: file.name,
+          size: (file.size / 1024).toFixed(2) + ' KB',
+          sizeBytes: file.size,
+          sequences: 1,
+          stats: {
+            totalORFs: response.orfCount || 0,
+            avgGC: response.gcPercent,
+          },
+        });
+        
+        setParsedData(sequences as any);
+        
+        // Notify parent component
+        if (onUploadComplete) {
+          onUploadComplete(sequences as any);
+        }
+        
+        return;
+      } catch (apiError) {
+        console.warn('Backend upload failed, falling back to local parsing:', apiError);
+      }
+      
+      // Fallback: Parse locally if backend fails
       const text = await file.text();
       
       setIsUploading(false);

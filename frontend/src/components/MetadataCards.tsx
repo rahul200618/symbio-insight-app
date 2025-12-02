@@ -1,6 +1,8 @@
 import { Icons } from './Icons';
 import { BarChart, PieChart } from './Charts';
 import { calculateAggregateStats } from '../utils/fastaParser';
+import { getStatistics } from '../utils/api';
+import { useState, useEffect } from 'react';
 import type { SequenceMetadata } from '../types';
 
 interface MetadataCardsProps {
@@ -8,10 +10,29 @@ interface MetadataCardsProps {
 }
 
 export function MetadataCards({ parsedSequences = [] }: MetadataCardsProps) {
-  // Use actual parsed data if available, otherwise use mock data
+  const [backendStats, setBackendStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch from backend if no local data
+  useEffect(() => {
+    if (parsedSequences.length === 0) {
+      setIsLoading(true);
+      getStatistics()
+        .then(data => {
+          setBackendStats(data);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          console.warn('Could not fetch backend stats:', err);
+          setIsLoading(false);
+        });
+    }
+  }, [parsedSequences.length]);
+
+  // Use actual parsed data if available, otherwise use backend or mock data
   const stats = parsedSequences.length > 0 
     ? calculateAggregateStats(parsedSequences)
-    : null;
+    : backendStats;
 
   // Default mock data for display
   const nucleotideData = stats 
