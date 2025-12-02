@@ -71,6 +71,7 @@ December 2, 2025
   - Updated `tailwind-merge` to `^2.5.5`
   - Added `framer-motion` package
 - **Result**: Successfully installed 254 packages
+- **Notes**: Both `motion` and `framer-motion` packages are required - different components use different import paths (`motion/react` vs `framer-motion`)
 
 ### 2. Build Process
 - **Status**: ✅ PASSED
