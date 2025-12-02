@@ -89,3 +89,4 @@ filesToUpdate.forEach(file => {
 });
 
 console.log('\n✨ Color scheme update complete!');
+
