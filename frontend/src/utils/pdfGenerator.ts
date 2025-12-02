@@ -1,7 +1,7 @@
 // PDF Report Generation with Charts
 // Uses jsPDF for PDF generation and html2canvas for chart rendering
 
-import type { SequenceMetadata } from './fastaParser';
+import type { SequenceMetadata } from '../types';
 import { calculateAggregateStats } from './fastaParser';
 
 export interface ReportConfig {
@@ -364,10 +364,10 @@ function generateReportHTML(
     <div class="sequence-list">
       ${sequences.slice(0, 10).map((seq, index) => `
         <div class="sequence-item">
-          <div class="sequence-name">${index + 1}. ${seq.sequenceName}</div>
+          <div class="sequence-name">${index + 1}. ${seq.name}</div>
           <div class="sequence-details">
-            <div><strong>Length:</strong> ${seq.sequenceLength} bp</div>
-            <div><strong>GC Content:</strong> ${seq.gcPercentage}%</div>
+            <div><strong>Length:</strong> ${seq.length} bp</div>
+            <div><strong>GC Content:</strong> ${seq.gcContent}%</div>
             <div><strong>ORFs Found:</strong> ${seq.orfs.length}</div>
           </div>
           ${config.includeORFDetails && seq.orfs.length > 0 ? `

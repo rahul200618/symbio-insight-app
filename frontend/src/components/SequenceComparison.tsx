@@ -32,11 +32,11 @@ export function SequenceComparison({ sequences, onClose }: SequenceComparisonPro
   };
 
   const calculateSimilarity = (seq1: SequenceMetadata, seq2: SequenceMetadata): number => {
-    const minLength = Math.min(seq1.rawSequence.length, seq2.rawSequence.length);
+    const minLength = Math.min(seq1.sequence.length, seq2.sequence.length);
     let matches = 0;
     
     for (let i = 0; i < minLength; i++) {
-      if (seq1.rawSequence[i] === seq2.rawSequence[i]) {
+      if (seq1.sequence[i] === seq2.sequence[i]) {
         matches++;
       }
     }
@@ -49,8 +49,8 @@ export function SequenceComparison({ sequences, onClose }: SequenceComparisonPro
     if (!seq1 || !seq2) return null;
 
     const similarity = calculateSimilarity(seq1, seq2);
-    const lengthDiff = Math.abs(seq1.sequenceLength - seq2.sequenceLength);
-    const gcDiff = Math.abs(seq1.gcPercentage - seq2.gcPercentage);
+    const lengthDiff = Math.abs(seq1.length - seq2.length);
+    const gcDiff = Math.abs(seq1.gcContent - seq2.gcContent);
 
     return {
       similarity,
@@ -100,10 +100,10 @@ export function SequenceComparison({ sequences, onClose }: SequenceComparisonPro
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-900 dark:text-white truncate">
-                          {seq.sequenceName.substring(0, 30)}...
+                          {seq.name.substring(0, 30)}...
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {seq.sequenceLength} bp • GC: {seq.gcPercentage}%
+                          {seq.length} bp • GC: {seq.gcContent}%
                         </p>
                       </div>
                     </div>
@@ -142,16 +142,16 @@ export function SequenceComparison({ sequences, onClose }: SequenceComparisonPro
                       </div>
                       <div className="space-y-2">
                         <p className="text-sm text-gray-900 dark:text-white">
-                          {selectedSequences[0].sequenceName}
+                          {selectedSequences[0].name}
                         </p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="p-2 bg-white dark:bg-gray-900 rounded">
                             <span className="text-gray-500 dark:text-gray-400">Length:</span>{' '}
-                            <span className="text-gray-900 dark:text-white">{selectedSequences[0].sequenceLength} bp</span>
+                            <span className="text-gray-900 dark:text-white">{selectedSequences[0].length} bp</span>
                           </div>
                           <div className="p-2 bg-white dark:bg-gray-900 rounded">
                             <span className="text-gray-500 dark:text-gray-400">GC:</span>{' '}
-                            <span className="text-gray-900 dark:text-white">{selectedSequences[0].gcPercentage}%</span>
+                            <span className="text-gray-900 dark:text-white">{selectedSequences[0].gcContent}%</span>
                           </div>
                           <div className="p-2 bg-white dark:bg-gray-900 rounded">
                             <span className="text-gray-500 dark:text-gray-400">ORFs:</span>{' '}
@@ -201,16 +201,16 @@ export function SequenceComparison({ sequences, onClose }: SequenceComparisonPro
                       </div>
                       <div className="space-y-2">
                         <p className="text-sm text-gray-900 dark:text-white">
-                          {selectedSequences[1].sequenceName}
+                          {selectedSequences[1].name}
                         </p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="p-2 bg-white dark:bg-gray-900 rounded">
                             <span className="text-gray-500 dark:text-gray-400">Length:</span>{' '}
-                            <span className="text-gray-900 dark:text-white">{selectedSequences[1].sequenceLength} bp</span>
+                            <span className="text-gray-900 dark:text-white">{selectedSequences[1].length} bp</span>
                           </div>
                           <div className="p-2 bg-white dark:bg-gray-900 rounded">
                             <span className="text-gray-500 dark:text-gray-400">GC:</span>{' '}
-                            <span className="text-gray-900 dark:text-white">{selectedSequences[1].gcPercentage}%</span>
+                            <span className="text-gray-900 dark:text-white">{selectedSequences[1].gcContent}%</span>
                           </div>
                           <div className="p-2 bg-white dark:bg-gray-900 rounded">
                             <span className="text-gray-500 dark:text-gray-400">ORFs:</span>{' '}

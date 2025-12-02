@@ -83,8 +83,8 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
     
     if (file.data && file.data.length > 0) {
       file.data.forEach((seq: any) => {
-        fastaContent += `>${seq.sequenceName}\n`;
-        fastaContent += `${seq.rawSequence}\n\n`;
+        fastaContent += `>${seq.name}\n`;
+        fastaContent += `${seq.sequence}\n\n`;
       });
     } else {
       fastaContent = `>Sample sequence\nATGCGATCGATCGATCG\n`;

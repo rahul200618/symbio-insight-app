@@ -278,9 +278,9 @@ export function UploadSection({ onUploadComplete }: UploadSectionProps) {
                     <div className="mt-3 p-3 bg-white/80 dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700">
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Sample Sequence (first):</p>
                       <div className="space-y-1 text-xs">
-                        <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">Name:</span> {parsedData[0].sequenceName.substring(0, 50)}...</div>
-                        <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">Length:</span> {parsedData[0].sequenceLength} bp</div>
-                        <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">GC%:</span> {parsedData[0].gcPercentage}%</div>
+                        <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">Name:</span> {parsedData[0].name.substring(0, 50)}...</div>
+                        <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">Length:</span> {parsedData[0].length} bp</div>
+                        <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">GC%:</span> {parsedData[0].gcContent}%</div>
                         <div className="text-gray-700 dark:text-gray-300"><span className="text-gray-500 dark:text-gray-400">ORFs:</span> {parsedData[0].orfs.length} found</div>
                       </div>
                     </div>

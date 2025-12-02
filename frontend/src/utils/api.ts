@@ -8,23 +8,13 @@ const API_BASE_URL = 'http://localhost:3001/api';
 
 export interface SequenceData {
   id?: string;
-  sequenceName: string;
-  sequenceLength: number;
-  gcPercentage: number;
-  nucleotideCounts: {
-    A: number;
-    T: number;
-    G: number;
-    C: number;
-  };
-  orfs: Array<{
-    start: number;
-    end: number;
-    length: number;
-    sequence: string;
-  }>;
-  rawSequence: string;
-  timestamp: string;
+  name: string;
+  length: number;
+  gcContent: number;
+  sequence: string;
+  nucleotideCounts: { A: number; T: number; G: number; C: number };
+  orfs: Array<{ start: number; end: number; length: number; sequence: string }>;
+  createdAt: string;
   fileName?: string;
   fileSize?: number;
   userId?: string;

@@ -1,7 +1,7 @@
 // AI Service Integration
 // Supports OpenAI GPT-4, Anthropic Claude, and other AI models
 
-import type { SequenceMetadata } from './fastaParser';
+import type { SequenceMetadata } from '../types';
 
 const AI_API_URL = 'http://localhost:3001/api/ai'; // Backend AI endpoint
 
@@ -58,10 +58,10 @@ export async function generateAIAnnotation(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sequenceName: sequence.sequenceName,
-        sequence: sequence.rawSequence,
-        length: sequence.sequenceLength,
-        gcContent: sequence.gcPercentage,
+        sequenceName: sequence.name,
+        sequence: sequence.sequence,
+        length: sequence.length,
+        gcContent: sequence.gcContent,
         orfs: sequence.orfs.length,
       }),
     });
@@ -88,10 +88,10 @@ export async function predictSequenceQuality(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sequence: sequence.rawSequence,
+        sequence: sequence.sequence,
         nucleotideCounts: sequence.nucleotideCounts,
-        gcContent: sequence.gcPercentage,
-        length: sequence.sequenceLength,
+        gcContent: sequence.gcContent,
+        length: sequence.length,
       }),
     });
 
@@ -164,7 +164,7 @@ export async function chatWithAI(
 // ============================================================================
 
 function generateMockAnnotation(sequence: SequenceMetadata): AIAnnotation {
-  const gcContent = sequence.gcPercentage;
+  const gcContent = sequence.gcContent;
   const hasORFs = sequence.orfs.length > 0;
   
   let predictedFunction = 'Unknown function';
@@ -179,7 +179,7 @@ function generateMockAnnotation(sequence: SequenceMetadata): AIAnnotation {
   }
 
   return {
-    sequenceName: sequence.sequenceName,
+    sequenceName: sequence.name,
     predictedFunction,
     confidence: 0.65,
     proteinFamily,
@@ -209,7 +209,7 @@ function generateRuleBasedQuality(sequence: SequenceMetadata): QualityPrediction
 
   // Check AT content
   const atContent = sequence.nucleotideCounts.A + sequence.nucleotideCounts.T;
-  const total = sequence.sequenceLength;
+  const total = sequence.length;
   const atPercent = (atContent / total) * 100;
 
   if (atPercent > 70) {
@@ -224,24 +224,24 @@ function generateRuleBasedQuality(sequence: SequenceMetadata): QualityPrediction
   }
 
   // Check GC content extremes
-  if (sequence.gcPercentage > 70 || sequence.gcPercentage < 25) {
+  if (sequence.gcContent > 70 || sequence.gcContent < 25) {
     score -= 10;
     issues.push({
       type: 'contamination',
       severity: 'low',
-      location: { start: 0, end: sequence.sequenceLength },
-      description: `Unusual GC content (${sequence.gcPercentage}%)`,
+      location: { start: 0, end: sequence.length },
+      description: `Unusual GC content (${sequence.gcContent}%)`,
       suggestion: 'Consider checking for contamination from high/low GC organisms.',
     });
   }
 
   // Check sequence length
-  if (sequence.sequenceLength < 100) {
+  if (sequence.length < 100) {
     score -= 20;
     issues.push({
       type: 'sequencing_error',
       severity: 'high',
-      location: { start: 0, end: sequence.sequenceLength },
+      location: { start: 0, end: sequence.length },
       description: 'Very short sequence detected',
       suggestion: 'Short sequences may be artifacts. Verify sequencing quality.',
     });
@@ -259,8 +259,8 @@ function generateRuleBasedQuality(sequence: SequenceMetadata): QualityPrediction
 }
 
 function generateTemplateReport(sequences: SequenceMetadata[]): IntelligentReport {
-  const totalLength = sequences.reduce((sum, s) => sum + s.sequenceLength, 0);
-  const avgGC = sequences.reduce((sum, s) => sum + s.gcPercentage, 0) / sequences.length;
+  const totalLength = sequences.reduce((sum, s) => sum + s.length, 0);
+  const avgGC = sequences.reduce((sum, s) => sum + s.gcContent, 0) / sequences.length;
   const totalORFs = sequences.reduce((sum, s) => sum + s.orfs.length, 0);
 
   return {
@@ -301,7 +301,7 @@ function getRuleBasedResponse(message: string, context: any): string {
   }
 
   if (lowerMessage.includes('gc content') || lowerMessage.includes('gc%')) {
-    return `GC content refers to the percentage of guanine (G) and cytosine (C) bases in a DNA sequence. It's an important indicator of genome characteristics. Different organisms have characteristic GC contents - for example, humans have ~41%, E. coli has ~51%, and some bacteria can have >70%. ${context.sequences ? `Your sequences have an average GC content of ${(context.sequences.reduce((sum: number, s: SequenceMetadata) => sum + s.gcPercentage, 0) / context.sequences.length).toFixed(1)}%.` : ''}`;
+    return `GC content refers to the percentage of guanine (G) and cytosine (C) bases in a DNA sequence. It's an important indicator of genome characteristics. Different organisms have characteristic GC contents - for example, humans have ~41%, E. coli has ~51%, and some bacteria can have >70%. ${context.sequences ? `Your sequences have an average GC content of ${(context.sequences.reduce((sum: number, s: SequenceMetadata) => sum + s.gcContent, 0) / context.sequences.length).toFixed(1)}%.` : ''}`;
   }
 
   if (lowerMessage.includes('quality') || lowerMessage.includes('good') || lowerMessage.includes('bad')) {

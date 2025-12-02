@@ -1,25 +1,6 @@
 // FASTA File Parser and Metadata Extractor
-
-export interface SequenceMetadata {
-  id: string;
-  sequenceName: string;
-  sequenceLength: number;
-  gcPercentage: number;
-  nucleotideCounts: {
-    A: number;
-    T: number;
-    G: number;
-    C: number;
-  };
-  orfs: Array<{
-    start: number;
-    end: number;
-    length: number;
-    sequence: string;
-  }>;
-  rawSequence: string;
-  timestamp: string;
-}
+import type { SequenceMetadata } from '../types';
+export type { SequenceMetadata } from '../types';
 
 /**
  * Parse FASTA file and extract metadata
@@ -60,20 +41,19 @@ export function parseFastaFile(fileContent: string): SequenceMetadata[] {
 /**
  * Extract all metadata from a single sequence
  */
-function extractMetadata(header: string, sequence: string): SequenceMetadata {
-  const nucleotideCounts = countNucleotides(sequence);
-  const gcPercentage = calculateGCPercentage(nucleotideCounts, sequence.length);
-  const orfs = detectORFs(sequence);
-  
+function extractMetadata(header: string, seq: string): SequenceMetadata {
+  const nucleotideCounts = countNucleotides(seq);
+  const gcContent = calculateGCPercentage(nucleotideCounts, seq.length);
+  const orfs = detectORFs(seq);
   return {
     id: generateUniqueId(),
-    sequenceName: header,
-    sequenceLength: sequence.length,
-    gcPercentage,
+    name: header,
+    sequence: seq,
+    length: seq.length,
+    gcContent,
     nucleotideCounts,
     orfs,
-    rawSequence: sequence,
-    timestamp: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -157,44 +137,31 @@ function generateUniqueId(): string {
  * Calculate aggregate statistics from multiple sequences
  */
 export function calculateAggregateStats(sequences: SequenceMetadata[]) {
-  if (sequences.length === 0) {
-    return null;
-  }
-  
+  if (!sequences.length) return null;
   const totalSequences = sequences.length;
-  const totalLength = sequences.reduce((sum, seq) => sum + seq.sequenceLength, 0);
+  const totalLength = sequences.reduce((sum, s) => sum + s.length, 0);
   const avgLength = Math.round(totalLength / totalSequences);
-  
-  const avgGC = sequences.reduce((sum, seq) => sum + seq.gcPercentage, 0) / totalSequences;
-  
-  const longestSeq = sequences.reduce((max, seq) => 
-    seq.sequenceLength > max.sequenceLength ? seq : max
+  const avgGC = sequences.reduce((sum, s) => sum + s.gcContent, 0) / totalSequences;
+  const longestSeq = sequences.reduce((max, s) => (s.length > max.length ? s : max));
+  const shortestSeq = sequences.reduce((min, s) => (s.length < min.length ? s : min));
+  const totalORFs = sequences.reduce((sum, s) => sum + s.orfs.length, 0);
+  const totalNucleotides = sequences.reduce(
+    (acc, s) => ({
+      A: acc.A + s.nucleotideCounts.A,
+      T: acc.T + s.nucleotideCounts.T,
+      G: acc.G + s.nucleotideCounts.G,
+      C: acc.C + s.nucleotideCounts.C,
+    }),
+    { A: 0, T: 0, G: 0, C: 0 }
   );
-  
-  const shortestSeq = sequences.reduce((min, seq) => 
-    seq.sequenceLength < min.sequenceLength ? seq : min
-  );
-  
-  const totalORFs = sequences.reduce((sum, seq) => sum + seq.orfs.length, 0);
-  
-  // Aggregate nucleotide counts
-  const totalNucleotides = sequences.reduce((acc, seq) => {
-    acc.A += seq.nucleotideCounts.A;
-    acc.T += seq.nucleotideCounts.T;
-    acc.G += seq.nucleotideCounts.G;
-    acc.C += seq.nucleotideCounts.C;
-    return acc;
-  }, { A: 0, T: 0, G: 0, C: 0 });
-  
   const total = totalNucleotides.A + totalNucleotides.T + totalNucleotides.G + totalNucleotides.C;
-  
   return {
     totalSequences,
     totalLength,
     avgLength,
     avgGC: Number(avgGC.toFixed(2)),
-    longestSequence: longestSeq.sequenceLength,
-    shortestSequence: shortestSeq.sequenceLength,
+    longestSequence: longestSeq.length,
+    shortestSequence: shortestSeq.length,
     totalORFs,
     nucleotideDistribution: {
       A: Number(((totalNucleotides.A / total) * 100).toFixed(2)),
