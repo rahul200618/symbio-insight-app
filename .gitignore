@@ -1,0 +1,20 @@
+# Dependencies
+**/node_modules/
+
+# Builds
+**/dist/
+**/build/
+**/.vite/
+**/.cache/
+coverage/
+
+# Env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Editors/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    // ...existing code...
+    "jsx": "react-jsx" // for React 17+ (Vite default)
+  }
+}

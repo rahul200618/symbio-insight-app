@@ -1,0 +1,32 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Vite/React caches
+.vite/
+vite.svg
+.cache/
+
+# Test
+.junit/
+jest-results/
+coverage/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
