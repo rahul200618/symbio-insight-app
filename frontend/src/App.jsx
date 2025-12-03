@@ -14,12 +14,16 @@ import { AnimatedPage } from "./components/AnimatedPage";
 import { Icons } from "./components/Icons";
 import { initAnimeJS } from "./utils/animations";
 import { useScrollProgress } from "./hooks/useScrollAnimation";
+import type { SequenceMetadata, ViewType } from "./types";
 
 export default function App() {
-  const [activeView, setActiveView] = useState("upload");
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [activeView, setActiveView] =
+    useState<ViewType>("upload");
+  const [selectedFile, setSelectedFile] = useState<any>(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
-  const [parsedSequences, setParsedSequences] = useState([]);
+  const [parsedSequences, setParsedSequences] = useState<
+    SequenceMetadata[]
+  >([]);
   const [showComparison, setShowComparison] = useState(false);
   const scrollProgress = useScrollProgress();
 
@@ -27,7 +31,9 @@ export default function App() {
     initAnimeJS();
   }, []);
 
-  const handleUploadComplete = (sequences) => {
+  const handleUploadComplete = (
+    sequences: SequenceMetadata[],
+  ) => {
     setParsedSequences(sequences);
     // Auto-navigate to metadata view after successful parse
     setTimeout(() => {

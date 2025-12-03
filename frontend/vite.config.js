@@ -1,14 +1,12 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  import { defineConfig } from 'vite';
+  import react from '@vitejs/plugin-react-swc';
+  import * as path from 'path';
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    extensions: ['.js', '.jsx', '.json'],
+  export default defineConfig({
+    plugins: [react()],
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
         'vaul@1.1.2': 'vaul',
         'sonner@2.0.3': 'sonner',

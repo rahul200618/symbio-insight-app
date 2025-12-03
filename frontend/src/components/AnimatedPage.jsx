@@ -10,32 +10,27 @@ export function AnimatedPage({ children, animation = 'fade' }) {
   }, []);
 
   const variants = {
-    fade: {
-      initial,
+    fade,
       animate,
       exit,
       transition,
     },
-    'slide-up': {
-      initial,
+    'slide-up',
       animate,
       exit,
       transition,
     },
-    'slide-left': {
-      initial,
+    'slide-left',
       animate,
       exit,
       transition,
     },
-    scale: {
-      initial,
+    scale,
       animate,
       exit,
       transition,
     },
-    blur: {
-      initial,
+    blur,
       animate,
       exit,
       transition,
@@ -102,7 +97,8 @@ export function AnimatedList({ children, className = '', staggerDelay = 0.1 }) {
       initial="hidden"
       animate="visible"
       variants={{
-        visible
+        visible,
+        },
       }}
     >
       {children}
