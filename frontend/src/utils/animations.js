@@ -8,10 +8,10 @@ export const animeAnimations = {
   /**
    * Fade in animation
    */
-  fadeIn: (targets , delay = 0) => {
+  fadeIn: (targets | HTMLElement, delay = 0) => {
     if (typeof window === 'undefined') return;
     
-    const anime = (window).anime;
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -27,8 +27,8 @@ export const animeAnimations = {
   /**
    * Slide in from left
    */
-  slideInLeft: (targets , delay = 0) => {
-    const anime = (window).anime;
+  slideInLeft: (targets | HTMLElement, delay = 0) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -44,8 +44,8 @@ export const animeAnimations = {
   /**
    * Slide in from right
    */
-  slideInRight: (targets , delay = 0) => {
-    const anime = (window).anime;
+  slideInRight: (targets | HTMLElement, delay = 0) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -61,8 +61,8 @@ export const animeAnimations = {
   /**
    * Scale up animation
    */
-  scaleUp: (targets , delay = 0) => {
-    const anime = (window).anime;
+  scaleUp: (targets | HTMLElement, delay = 0) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -79,7 +79,7 @@ export const animeAnimations = {
    * Stagger animation for multiple elements
    */
   stagger: (targets, delay = 0) => {
-    const anime = (window).anime;
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -95,8 +95,8 @@ export const animeAnimations = {
   /**
    * Bounce animation
    */
-  bounce: (targets ) => {
-    const anime = (window).anime;
+  bounce: (targets | HTMLElement) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -114,8 +114,8 @@ export const animeAnimations = {
   /**
    * Pulse animation
    */
-  pulse: (targets , loop = true) => {
-    const anime = (window).anime;
+  pulse: (targets | HTMLElement, loop = true) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -130,8 +130,8 @@ export const animeAnimations = {
   /**
    * Rotate animation
    */
-  rotate: (targets , degrees = 360) => {
-    const anime = (window).anime;
+  rotate: (targets | HTMLElement, degrees = 360) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -145,8 +145,8 @@ export const animeAnimations = {
   /**
    * Float animation (continuous)
    */
-  float: (targets ) => {
-    const anime = (window).anime;
+  float: (targets | HTMLElement) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -162,8 +162,8 @@ export const animeAnimations = {
   /**
    * Progress bar animation
    */
-  progressBar: (targets , percentage) => {
-    const anime = (window).anime;
+  progressBar: (targets | HTMLElement, percentage) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -178,7 +178,7 @@ export const animeAnimations = {
    * Number counter animation
    */
   counter: (element, from, to, duration = 2000) => {
-    const anime = (window).anime;
+    const anime = (window as any).anime;
     if (!anime) return;
 
     const obj = { value: from };
@@ -196,8 +196,8 @@ export const animeAnimations = {
   /**
    * Card flip animation
    */
-  flip: (targets ) => {
-    const anime = (window).anime;
+  flip: (targets | HTMLElement) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -211,8 +211,8 @@ export const animeAnimations = {
   /**
    * Shake animation (for errors)
    */
-  shake: (targets ) => {
-    const anime = (window).anime;
+  shake: (targets | HTMLElement) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -231,8 +231,8 @@ export const animeAnimations = {
   /**
    * Loading spinner
    */
-  spinner: (targets ) => {
-    const anime = (window).anime;
+  spinner: (targets | HTMLElement) => {
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -248,7 +248,7 @@ export const animeAnimations = {
    * Wave animation for text
    */
   wave: (targets) => {
-    const anime = (window).anime;
+    const anime = (window as any).anime;
     if (!anime) return;
 
     return anime({
@@ -268,8 +268,8 @@ export const animeAnimations = {
  * Scroll animation observer
  */
 export class ScrollAnimationObserver {
-  observer = null;
-  animatedElements = new Set();
+  private observer: IntersectionObserver | null = null;
+  private animatedElements = new Set();
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -308,13 +308,13 @@ export class ScrollAnimationObserver {
     }
   }
 
-  observe(element) {
+  observe(element: Element) {
     if (this.observer) {
       this.observer.observe(element);
     }
   }
 
-  unobserve(element) {
+  unobserve(element: Element) {
     if (this.observer) {
       this.observer.unobserve(element);
     }
@@ -331,27 +331,31 @@ export class ScrollAnimationObserver {
  * Page transition animations
  */
 export const pageTransitions = {
-  fadeIn: {
+  fadeIn,
     animate,
     exit,
     transition,
   },
-  slideUp: {
+
+  slideUp,
     animate,
     exit,
     transition,
   },
-  slideLeft: {
+
+  slideLeft,
     animate,
     exit,
     transition,
   },
-  scale: {
+
+  scale,
     animate,
     exit,
     transition,
   },
-  blur: {
+
+  blur,
     animate,
     exit,
     transition,
@@ -362,25 +366,24 @@ export const pageTransitions = {
  * Hover animations (for Framer Motion)
  */
 export const hoverEffects = {
-  lift: {
-    whileHover,
+  lift },
     whileTap,
   },
-  grow: {
-    whileHover,
+
+  grow },
     whileTap,
   },
-  glow: {
-    whileHover,
+
+  glow,
+    },
+  },
+
+  rotate },
     whileTap,
   },
-  rotate: {
-    whileHover,
-    whileTap,
-  },
-  pulse: {
-    whileHover,
-    whileTap,
+
+  pulse,
+    },
   },
 };
 
@@ -388,16 +391,15 @@ export const hoverEffects = {
  * Loading animations
  */
 export const loadingAnimations = {
-  spinner: {
-    animate,
+  spinner,
     transition,
   },
-  dots: {
-    animate,
+
+  dots,
     transition,
   },
-  pulse: {
-    animate,
+
+  pulse,
     transition,
   },
 };
@@ -409,7 +411,7 @@ export function initAnimeJS() {
   if (typeof window === 'undefined') return;
   
   // Check if already loaded
-  if ((window).anime) return;
+  if ((window as any).anime) return;
 
   // Load anime.js from CDN
   const script = document.createElement('script');
@@ -417,5 +419,4 @@ export function initAnimeJS() {
   script.async = true;
   document.head.appendChild(script);
 }
-
 

@@ -15,7 +15,7 @@ const AI_API_URL = 'http://localhost:3001/api/ai'; // Backend AI endpoint
  * Generate AI-powered sequence annotation
  */
 export async function generateAIAnnotation(
-  sequence
+  sequence: SequenceMetadata
 ): Promise {
   try {
     const response = await fetch(`${AI_API_URL}/annotate`, {
@@ -45,7 +45,7 @@ export async function generateAIAnnotation(
  * Predict sequence quality using AI
  */
 export async function predictSequenceQuality(
-  sequence
+  sequence: SequenceMetadata
 ): Promise {
   try {
     const response = await fetch(`${AI_API_URL}/quality`, {
@@ -124,7 +124,7 @@ export async function chatWithAI(
 // MOCK/FALLBACK FUNCTIONS (used when AI backend is not available)
 // ============================================================================
 
-function generateMockAnnotation(sequence): AIAnnotation {
+function generateMockAnnotation(sequence: SequenceMetadata): AIAnnotation {
   const gcContent = sequence.gcContent;
   const hasORFs = sequence.orfs.length > 0;
   
@@ -164,7 +164,7 @@ function generateMockAnnotation(sequence): AIAnnotation {
   };
 }
 
-function generateRuleBasedQuality(sequence): QualityPrediction {
+function generateRuleBasedQuality(sequence: SequenceMetadata): QualityPrediction {
   const issues: QualityPrediction['issues'] = [];
   let score = 100;
 
@@ -258,11 +258,11 @@ function getRuleBasedResponse(message, context) {
   const lowerMessage = message.toLowerCase();
 
   if (lowerMessage.includes('orf') || lowerMessage.includes('open reading frame')) {
-    return `An Open Reading Frame (ORF) is a continuous stretch of DNA codons that begins with a start codon (ATG) and ends with a stop codon (TAA, TAG, or TGA). ORFs are potential protein-coding regions. ${context.sequences ? `Your sequences contain ${context.sequences.reduce((sum, s) => sum + s.orfs.length, 0)} total ORFs.` : ''}`;
+    return `An Open Reading Frame (ORF) is a continuous stretch of DNA codons that begins with a start codon (ATG) and ends with a stop codon (TAA, TAG, or TGA). ORFs are potential protein-coding regions. ${context.sequences ? `Your sequences contain ${context.sequences.reduce((sum, s: SequenceMetadata) => sum + s.orfs.length, 0)} total ORFs.` : ''}`;
   }
 
   if (lowerMessage.includes('gc content') || lowerMessage.includes('gc%')) {
-    return `GC content refers to the percentage of guanine (G) and cytosine (C) bases in a DNA sequence. It's an important indicator of genome characteristics. Different organisms have characteristic GC contents - for example, humans have ~41%, E. coli has ~51%, and some bacteria can have >70%. ${context.sequences ? `Your sequences have an average GC content of ${(context.sequences.reduce((sum, s) => sum + s.gcContent, 0) / context.sequences.length).toFixed(1)}%.` : ''}`;
+    return `GC content refers to the percentage of guanine (G) and cytosine (C) bases in a DNA sequence. It's an important indicator of genome characteristics. Different organisms have characteristic GC contents - for example, humans have ~41%, E. coli has ~51%, and some bacteria can have >70%. ${context.sequences ? `Your sequences have an average GC content of ${(context.sequences.reduce((sum, s: SequenceMetadata) => sum + s.gcContent, 0) / context.sequences.length).toFixed(1)}%.` : ''}`;
   }
 
   if (lowerMessage.includes('quality') || lowerMessage.includes('good') || lowerMessage.includes('bad')) {

@@ -5,7 +5,7 @@ import { animeAnimations } from '../utils/animations';
  * Hook for scroll-triggered animations
  */
 export function useScrollAnimation(
-  animationType = 'fade-in',
+  animationType: 'fade-in' | 'slide-left' | 'slide-right' | 'scale-up' = 'fade-in',
   delay = 0
 ) {
   const elementRef = useRef(null);
@@ -68,7 +68,7 @@ export function useStaggerAnimation(delay = 0) {
         if (entry.isIntersecting) {
           setHasAnimated(true);
           const children = container.querySelectorAll('[data-stagger]');
-          animeAnimations.stagger(children, delay);
+          animeAnimations.stagger(children as any, delay);
           observer.unobserve(container);
         }
       },
@@ -211,7 +211,7 @@ export function useMouseParallax(intensity = 20) {
     const element = elementRef.current;
     if (!element) return;
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       const rect = element.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;

@@ -43,7 +43,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between">
-          <div>
+          
             <h3 className="text-gray-900 dark:text-white">File Information</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Recent activity and details</p>
           </div>
@@ -57,7 +57,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
 
         {/* Tabs */}
         <div className="flex border-b border-gray-100 dark:border-gray-800">
-          {(['recent', 'activity', 'details']).map((tab) => (
+          {(['recent', 'activity', 'details'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}

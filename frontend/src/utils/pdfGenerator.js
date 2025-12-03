@@ -47,7 +47,7 @@ export async function generatePDFReport(
     // Wait for content to load
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Trigger print dialog (user can save)
+    // Trigger print dialog (user can save as PDF)
     iframe.contentWindow?.print();
     
     // Clean up after print dialog closes
@@ -427,7 +427,7 @@ function generateAIInsights(stats, sequences) {
 }
 
 /**
- * Download report file
+ * Download report as HTML file
  */
 export function downloadHTMLReport(
   sequences,

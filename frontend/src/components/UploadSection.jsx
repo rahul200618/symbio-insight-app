@@ -82,18 +82,18 @@ export function UploadSection({ onUploadComplete }) {
         }];
         
         setUploadedFile({
-          name: file.name,
+          name.name,
           size: (file.size / 1024).toFixed(2) + ' KB',
-          sizeBytes: file.size,
+          sizeBytes.size,
           sequences: 1,
           stats,
         });
         
-        setParsedData(sequences);
+        setParsedData(sequences as any);
         
         // Notify parent component
         if (onUploadComplete) {
-          onUploadComplete(sequences);
+          onUploadComplete(sequences as any);
         }
         
         return;
@@ -118,9 +118,9 @@ export function UploadSection({ onUploadComplete }) {
       const stats = calculateAggregateStats(sequences);
       
       setUploadedFile({
-        name: file.name,
+        name.name,
         size: (file.size / 1024).toFixed(2) + ' KB',
-        sizeBytes: file.size,
+        sizeBytes.size,
         sequences: sequences.length,
         stats,
       });
@@ -301,13 +301,13 @@ export function UploadSection({ onUploadComplete }) {
                   <div className="mt-3 p-3 bg-white/80 dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">📊 Extracted Metadata:</p>
                     <div className="space-y-1 text-xs text-gray-700 dark:text-gray-300 font-mono">
-                      <div>✓ Sequence names extracted</div>
-                      <div>✓ Sequence lengths calculated</div>
-                      <div>✓ GC percentages computed</div>
-                      <div>✓ Nucleotide counts (A, T, G, C)</div>
-                      <div>✓ ORF detection completed</div>
-                      <div>✓ Unique IDs generated</div>
-                      <div>✓ Timestamps recorded</div>
+                      ✓ Sequence names extracted</div>
+                      ✓ Sequence lengths calculated</div>
+                      ✓ GC percentages computed</div>
+                      ✓ Nucleotide counts (A, T, G, C)</div>
+                      ✓ ORF detection completed</div>
+                      ✓ Unique IDs generated</div>
+                      ✓ Timestamps recorded</div>
                     </div>
                   </div>
 
@@ -333,7 +333,7 @@ export function UploadSection({ onUploadComplete }) {
               className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-md transition-all flex items-center justify-center gap-2"
             >
               <Icons.Activity className="w-5 h-5" />
-              <span>View Analysis Dashboard</span>
+              View Analysis Dashboard</span>
             </button>
           </div>
         )}

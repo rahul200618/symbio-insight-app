@@ -1,12 +1,12 @@
 "use client";
 
-import * from "react";
-import * from "recharts@2.15.2";
+import * as React from "react";
+import * as RechartsPrimitive from "recharts@2.15.2";
 
 import { cn } from "./utils";
 
 // Format
-const THEMES = { light: "", dark: ".dark" };
+const THEMES = { light: "", dark: ".dark" } as const;
 
 export type ChartConfig = {
   [k in string] & (
@@ -212,7 +212,7 @@ function ChartTooltipContent({
                           {
                             "--color-bg": indicatorColor,
                             "--color-border": indicatorColor,
-                          }.CSSProperties
+                          } as React.CSSProperties
                         }
                       />
                     )
@@ -324,7 +324,7 @@ function getPayloadConfigFromPayload(
     key in payload &&
     typeof payload[key] === "string"
   ) {
-    configLabelKey = payload[key];
+    configLabelKey = payload[key] as string;
   } else if (
     payloadPayload &&
     key in payloadPayload &&
@@ -332,7 +332,7 @@ function getPayloadConfigFromPayload(
   ) {
     configLabelKey = payloadPayload[
       key
-    ];
+    ] as string;
   }
 
   return configLabelKey in config

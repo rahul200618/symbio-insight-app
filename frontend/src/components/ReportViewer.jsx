@@ -39,7 +39,7 @@ export function ReportViewer({ parsedSequences = [] }) {
         transition={{ delay: 0.1 }}
         className="flex items-start justify-between"
       >
-        <div>
+        
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Sequence Analysis Report</h1>
           <p className="text-gray-600 dark:text-gray-400">
             {parsedSequences.length > 0 
@@ -154,7 +154,7 @@ export function ReportViewer({ parsedSequences = [] }) {
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
             <Icons.FileText className="w-6 h-6 text-white" />
           </div>
-          <div>
+          
             <h3 className="text-gray-900 dark:text-white">AI-Generated Summary</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">Automated analysis and insights</p>
           </div>
@@ -164,7 +164,7 @@ export function ReportViewer({ parsedSequences = [] }) {
           <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
             <div className="flex items-start gap-3">
               <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
+              
                 <p className="text-sm text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   The uploaded FASTA file contains {totalSequences} high-quality sequences with an average length of {avgLength} base pairs. 
