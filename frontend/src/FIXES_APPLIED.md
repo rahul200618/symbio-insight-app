@@ -63,7 +63,7 @@ Added dark mode classes to all animation states:
 
 ## File Structure Verified
 
-### UploadSection.tsx JSX Structure:
+### UploadSection.jsx JSX Structure:
 ```
 <div className="bg-white...">
   <div className="p-8">

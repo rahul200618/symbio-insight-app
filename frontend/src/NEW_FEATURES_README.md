@@ -123,7 +123,7 @@ const quality = await predictSequenceQuality(sequence);
 
 Interactive help system for DNA analysis.
 
-**Location:** `/components/ChatbotAssistant.tsx`
+**Location:** `/components/ChatbotAssistant.jsx`
 
 **Features:**
 - ✅ Real-time Q&A about sequences
@@ -170,7 +170,7 @@ Would you like me to analyze further?"
 
 Professional dark theme for long work sessions.
 
-**Location:** `/components/DarkModeToggle.tsx`
+**Location:** `/components/DarkModeToggle.jsx`
 
 **Features:**
 - ✅ Toggle between light/dark modes
@@ -207,7 +207,7 @@ import { DarkModeToggle } from './components/DarkModeToggle';
 
 Interactive visual comparison tool.
 
-**Location:** `/components/SequenceComparison.tsx`
+**Location:** `/components/SequenceComparison.jsx`
 
 **Features:**
 - ✅ Drag sequences from list to comparison slots
@@ -469,7 +469,7 @@ const customHTML = generateReportHTML(sequences, stats, {
 ### Custom Comparison Metric
 
 ```typescript
-// Add to SequenceComparison.tsx
+// Add to SequenceComparison.jsx
 const calculateCustomMetric = (seq1, seq2) => {
   // Your custom calculation
   return result;
@@ -492,9 +492,9 @@ const calculateCustomMetric = (seq1, seq2) => {
 **Files Created: 5**
 - `/utils/pdfGenerator.ts`
 - `/utils/aiService.ts`
-- `/components/ChatbotAssistant.tsx`
-- `/components/DarkModeToggle.tsx`
-- `/components/SequenceComparison.tsx`
+- `/components/ChatbotAssistant.jsx`
+- `/components/DarkModeToggle.jsx`
+- `/components/SequenceComparison.jsx`
 
 **Total Lines of Code: ~2,500+**
 

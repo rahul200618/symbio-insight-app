@@ -69,7 +69,7 @@ npm install firebase
 
 ### 6. Enable Firebase Storage in Code
 
-Open `/components/UploadSection.tsx` and uncomment lines 75-79:
+Open `/components/UploadSection.jsx` and uncomment lines 75-79:
 
 ```typescript
 // Uncomment these lines:
