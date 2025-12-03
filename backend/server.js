@@ -6,7 +6,9 @@ const mongoose = require('mongoose');
 dotenv.config();
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+// Allow configuring frontend origin via env for dev (fallbacks to common dev ports)
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -18,6 +20,18 @@ mongoose
 
 const sequencesRouter = require('./routes/sequences');
 app.use('/api/sequences', sequencesRouter);
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Symbio-NLM Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      sequences: '/api/sequences'
+    }
+  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
