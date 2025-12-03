@@ -7,7 +7,7 @@ dotenv.config();
 const app = express();
 
 // Allow configuring frontend origin via env for dev (fallbacks to common dev ports)
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

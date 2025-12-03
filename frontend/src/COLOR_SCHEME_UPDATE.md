@@ -49,14 +49,14 @@ New: purple-900, indigo-900
 
 ## Files to Update
 
-1. `/components/Sidebar.jsx`
-2. `/components/UploadSection.jsx`
-3. `/components/RecentUploads.jsx`
-4. `/components/MetadataCards.jsx`
-5. `/components/ReportViewer.jsx`
-6. `/components/QuickAccess.jsx`
-7. `/components/Charts.jsx`
-8. `/components/BackendStatus.jsx`
-9. `/components/ChatbotAssistant.jsx`
-10. `/components/SequenceComparison.jsx`
-11. `/components/RightPanel.jsx`
+1. `/components/Sidebar.tsx`
+2. `/components/UploadSection.tsx`
+3. `/components/RecentUploads.tsx`
+4. `/components/MetadataCards.tsx`
+5. `/components/ReportViewer.tsx`
+6. `/components/QuickAccess.tsx`
+7. `/components/Charts.tsx`
+8. `/components/BackendStatus.tsx`
+9. `/components/ChatbotAssistant.tsx`
+10. `/components/SequenceComparison.tsx`
+11. `/components/RightPanel.tsx`

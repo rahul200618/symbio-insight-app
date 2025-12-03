@@ -61,17 +61,17 @@ border-purple-200
 ## 📁 Files Created/Updated
 
 ### **New Files:**
-1. `/components/LoginPage.jsx` - Complete login/signup page
+1. `/components/LoginPage.tsx` - Complete login/signup page
 2. `/utils/auth.ts` - Authentication utilities
 3. `/scripts/updateColors.js` - Bulk color update script
 4. `/LOGIN_AND_COLOR_UPDATE.md` - This documentation
 
 ### **Updated Files:**
-1. `/App.jsx` - Added authentication check & login routing
-2. `/components/TopBar.jsx` - Added user profile dropdown & logout
-3. `/components/Sidebar.jsx` - Updated to purple/indigo colors
-4. `/components/ChatbotAssistant.jsx` - Updated to purple/indigo colors
-5. `/components/SequenceComparison.jsx` - Updated to purple/indigo colors
+1. `/App.tsx` - Added authentication check & login routing
+2. `/components/TopBar.tsx` - Added user profile dropdown & logout
+3. `/components/Sidebar.tsx` - Updated to purple/indigo colors
+4. `/components/ChatbotAssistant.tsx` - Updated to purple/indigo colors
+5. `/components/SequenceComparison.tsx` - Updated to purple/indigo colors
 
 ---
 

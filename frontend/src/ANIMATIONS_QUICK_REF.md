@@ -307,7 +307,7 @@ transition={{ duration: 0.3, ease: 'easeOut' }}
 
 | Component | Animations |
 |-----------|-----------|
-| App.jsx | Scroll progress, sidebar slide |
+| App.tsx | Scroll progress, sidebar slide |
 | LoginPage | Background blobs, form fields |
 | UploadSection | Float icon, drag state, shake |
 | Sidebar | Slide in, hover lift |
@@ -386,7 +386,7 @@ const ref = useScrollAnimation('fade-in', 100);
 - **Implementation:** `/ANIMATIONS_IMPLEMENTATION.md`
 - **Code:** `/utils/animations.ts`
 - **Hooks:** `/hooks/useScrollAnimation.ts`
-- **Components:** `/components/AnimatedPage.jsx`
+- **Components:** `/components/AnimatedPage.tsx`
 
 ---
 

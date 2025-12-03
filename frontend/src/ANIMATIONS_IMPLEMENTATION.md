@@ -17,7 +17,7 @@
 ```
 /utils/animations.ts              - Anime.js wrapper & utilities
 /hooks/useScrollAnimation.ts      - Scroll animation hooks
-/components/AnimatedPage.jsx      - Animated React components
+/components/AnimatedPage.tsx      - Animated React components
 /ANIMATIONS_GUIDE.md              - Complete documentation
 /ANIMATIONS_IMPLEMENTATION.md     - This file
 ```
@@ -30,10 +30,10 @@
 
 #### **Components with Animations:**
 ```
-/App.jsx                    - Page transitions, scroll progress
-/components/UploadSection.jsx  - Drag & drop animations
-/components/Sidebar.jsx        - Slide-in animation
-/components/TopBar.jsx         - Fade-in elements
+/App.tsx                    - Page transitions, scroll progress
+/components/UploadSection.tsx  - Drag & drop animations
+/components/Sidebar.tsx        - Slide-in animation
+/components/TopBar.tsx         - Fade-in elements
 ```
 
 #### **Total Updated Files:** 4
@@ -190,7 +190,7 @@
 
 ## 🎨 Where Animations Are Applied
 
-### **1. App Level** (`/App.jsx`)
+### **1. App Level** (`/App.tsx`)
 
 **✅ Scroll Progress Bar:**
 - Purple gradient bar at top
@@ -228,7 +228,7 @@
 
 ---
 
-### **2. Upload Section** (`/components/UploadSection.jsx`)
+### **2. Upload Section** (`/components/UploadSection.tsx`)
 
 **✅ Upload Box:**
 - Scale-up on scroll into view
@@ -275,7 +275,7 @@
 
 ---
 
-### **3. Login Page** (`/components/LoginPage.jsx`)
+### **3. Login Page** (`/components/LoginPage.tsx`)
 
 **✅ Background Blobs:**
 - 3 gradient circles
@@ -610,7 +610,7 @@ Look for:
 - `/ANIMATIONS_GUIDE.md` - Complete guide
 - `/utils/animations.ts` - Animation utilities
 - `/hooks/useScrollAnimation.ts` - React hooks
-- `/components/AnimatedPage.jsx` - Components
+- `/components/AnimatedPage.tsx` - Components
 
 ### **External:**
 - Anime.js Docs: https://animejs.com
@@ -653,7 +653,7 @@ Look for:
 - [x] ScrollProgressBar
 
 ### **Applied To:**
-- [x] App.jsx
+- [x] App.tsx
 - [x] Login page
 - [x] Sidebar
 - [x] Upload section

@@ -112,10 +112,10 @@ Improved dark mode experience:
 ```
 symbio-nlm/
 ├── components/
-│   ├── LoginPage.jsx          ← NEW: Login interface
-│   ├── DarkModeToggle.jsx     (enhanced)
-│   ├── TopBar.jsx             (updated: profile dropdown)
-│   ├── Sidebar.jsx            (updated: purple theme)
+│   ├── LoginPage.tsx          ← NEW: Login interface
+│   ├── DarkModeToggle.tsx     (enhanced)
+│   ├── TopBar.tsx             (updated: profile dropdown)
+│   ├── Sidebar.tsx            (updated: purple theme)
 │   └── ... (all components updated)
 ├── utils/
 │   ├── auth.ts                ← NEW: Authentication
@@ -130,7 +130,7 @@ symbio-nlm/
 │   ├── VISUAL_CHANGES_GUIDE.md     ← NEW: Visual guide
 │   ├── IMPLEMENTATION_SUMMARY.md   ← NEW: Summary
 │   └── COLOR_SCHEME_UPDATE.md      ← NEW: Color reference
-└── App.jsx                    (updated: auth routing)
+└── App.tsx                    (updated: auth routing)
 ```
 
 ---
@@ -295,7 +295,7 @@ logout();
 ## 🎯 Common Tasks
 
 ### **Customize Login Page**
-Edit `/components/LoginPage.jsx`:
+Edit `/components/LoginPage.tsx`:
 ```typescript
 // Change colors
 className="bg-gradient-to-r from-purple-500 to-indigo-600"
@@ -395,7 +395,7 @@ const YOUR_DURATION = 48 * 60 * 60 * 1000; // 48 hours
 ### **For Developers**
 - Review `/LOGIN_AND_COLOR_UPDATE.md` - Technical details
 - Check `/utils/auth.ts` - Authentication implementation
-- See `/components/LoginPage.jsx` - UI components
+- See `/components/LoginPage.tsx` - UI components
 - Study `/VISUAL_CHANGES_GUIDE.md` - Before/after comparisons
 
 ### **For Designers**

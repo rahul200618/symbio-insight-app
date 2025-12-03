@@ -289,9 +289,9 @@ Ctrl+L      - Logout (coming soon)
 
 Edit these files:
 ```
-/components/LoginPage.jsx   - Login colors
-/components/Sidebar.jsx     - Navigation colors
-/components/TopBar.jsx      - Header colors
+/components/LoginPage.tsx   - Login colors
+/components/Sidebar.tsx     - Navigation colors
+/components/TopBar.tsx      - Header colors
 ```
 
 Search for:
@@ -309,8 +309,8 @@ from-[your-color] to-[your-color]
 Edit:
 ```
 /utils/auth.ts              - Authentication logic
-/components/LoginPage.jsx   - UI components
-/App.jsx                    - Route protection
+/components/LoginPage.tsx   - UI components
+/App.tsx                    - Route protection
 ```
 
 ---
@@ -352,7 +352,7 @@ Edit:
 
 ### **For Developers:**
 1. ✅ Review `/utils/auth.ts` for auth logic
-2. ✅ Check `/components/LoginPage.jsx` for UI
+2. ✅ Check `/components/LoginPage.tsx` for UI
 3. ✅ Read `/LOGIN_AND_COLOR_UPDATE.md` for details
 4. ✅ See `/VISUAL_CHANGES_GUIDE.md` for before/after
 5. ✅ Integrate with real backend API
