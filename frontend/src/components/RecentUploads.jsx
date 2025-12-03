@@ -37,7 +37,7 @@ export function RecentUploads({ onSelectFile, setActiveView }) {
       } catch (err) {
         console.error('Failed to fetch sequences:', err);
         setError('Could not connect to backend');
-        // Keep mock data as fallback
+        // Keep mock data
         setFiles([
           {
             id: '1',
@@ -73,7 +73,7 @@ export function RecentUploads({ onSelectFile, setActiveView }) {
     setActiveView('report');
   };
 
-  const handleDelete = async (file, e: React.MouseEvent) => {
+  const handleDelete = async (file, e) => {
     e.stopPropagation();
     
     if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
@@ -90,7 +90,7 @@ export function RecentUploads({ onSelectFile, setActiveView }) {
     }
   };
 
-  const handleDownload = (file, e: React.MouseEvent) => {
+  const handleDownload = (file, e) => {
     e.stopPropagation();
     
     // Generate FASTA content
@@ -121,7 +121,7 @@ export function RecentUploads({ onSelectFile, setActiveView }) {
     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
       {/* Header */}
       <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        
+        <div>
           <h3 className="text-gray-900 dark:text-white">Your Files</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {files.length} total uploads
@@ -140,7 +140,7 @@ export function RecentUploads({ onSelectFile, setActiveView }) {
       {files.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
-            
+            <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <th className="px-6 py-4 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   File Name
@@ -171,7 +171,7 @@ export function RecentUploads({ onSelectFile, setActiveView }) {
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm">
                         <Icons.DNA className="w-5 h-5 text-white" />
                       </div>
-                      
+                      <div>
                         <p className="text-sm text-gray-900 dark:text-white">{file.name}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">FASTA file</p>
                       </div>

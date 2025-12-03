@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
-import * as LabelPrimitive from "@radix-ui/react-label@2.1.2";
+import * from "react";
+import * from "@radix-ui/react-label@2.1.2";
 import { Slot } from "@radix-ui/react-slot@1.1.2";
 import {
   Controller,
@@ -26,7 +26,7 @@ type FormFieldContextValue<
 };
 
 const FormFieldContext = React.createContext(
-  {} as FormFieldContextValue,
+  {},
 );
 
 const FormField = <
@@ -70,7 +70,7 @@ type FormItemContextValue = {
 };
 
 const FormItemContext = React.createContext(
-  {} as FormItemContextValue,
+  {},
 );
 
 function FormItem({ className, ...props }: React.ComponentProps<"div">) {

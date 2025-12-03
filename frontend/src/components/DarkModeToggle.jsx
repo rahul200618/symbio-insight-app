@@ -19,7 +19,7 @@ export function DarkModeToggle() {
   useEffect(() => {
     // Check localStorage and system preference
     const stored = localStorage.getItem('darkMode');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDark = window.matchMedia('(prefers-color-scheme)').matches;
     
     const shouldBeDark = stored ? stored === 'true' : prefersDark;
     setIsDark(shouldBeDark);

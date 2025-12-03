@@ -41,7 +41,7 @@ export function parseFastaFile(fileContent) {
 /**
  * Extract all metadata from a single sequence
  */
-function extractMetadata(header, seq): SequenceMetadata {
+function extractMetadata(header, seq) {
   const nucleotideCounts = countNucleotides(seq);
   const gcContent = calculateGCPercentage(nucleotideCounts, seq.length);
   const orfs = detectORFs(seq);
@@ -142,8 +142,8 @@ export function calculateAggregateStats(sequences) {
   const totalLength = sequences.reduce((sum, s) => sum + s.length, 0);
   const avgLength = Math.round(totalLength / totalSequences);
   const avgGC = sequences.reduce((sum, s) => sum + s.gcContent, 0) / totalSequences;
-  const longestSeq = sequences.reduce((max, s) => (s.length > max.length ? s : max));
-  const shortestSeq = sequences.reduce((min, s) => (s.length < min.length ? s : min));
+  const longestSeq = sequences.reduce((max, s) => (s.length > max.length ? s ));
+  const shortestSeq = sequences.reduce((min, s) => (s.length < min.length ? s ));
   const totalORFs = sequences.reduce((sum, s) => sum + s.orfs.length, 0);
   const totalNucleotides = sequences.reduce(
     (acc, s) => ({

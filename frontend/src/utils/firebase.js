@@ -44,7 +44,7 @@ const SEQUENCES_COLLECTION = 'sequences';
 /**
  * Store sequence metadata in Firebase
  */
-export async function storeSequence(metadata: SequenceMetadata): Promise {
+export async function storeSequence(metadata): Promise {
   try {
     const docRef = await addDoc(collection(db, SEQUENCES_COLLECTION), {
       ...metadata,
@@ -84,7 +84,7 @@ export async function getAllSequences(): Promise {
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })) as SequenceMetadata[];
+    }))[];
   } catch (error) {
     console.error('Error getting sequences:', error);
     throw error;
@@ -106,7 +106,7 @@ export async function getRecentSequences(limitCount = 10): Promise {
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })) as SequenceMetadata[];
+    }))[];
   } catch (error) {
     console.error('Error getting recent sequences:', error);
     throw error;
@@ -125,7 +125,7 @@ export async function getSequenceById(id): Promise {
       return {
         id: docSnap.id,
         ...docSnap.data()
-      } as SequenceMetadata;
+      };
     }
     return null;
   } catch (error) {

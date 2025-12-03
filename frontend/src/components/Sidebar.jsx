@@ -18,7 +18,7 @@ export function Sidebar({ activeView, setActiveView }) {
       <div className="p-6 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-3">
           <Logo size="md" />
-          
+          <div>
             <h2 className="text-gray-900 dark:text-white">Symbio-NLM</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">DNA Insight Platform</p>
           </div>
@@ -54,7 +54,7 @@ export function Sidebar({ activeView, setActiveView }) {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
             <Icons.BarChart className="w-4 h-4 text-white" />
           </div>
-          
+          <div>
             <p className="text-sm text-gray-700 dark:text-gray-300">Storage Used</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">2.4 GB of 50 GB</p>
           </div>

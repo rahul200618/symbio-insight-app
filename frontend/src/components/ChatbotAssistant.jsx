@@ -40,7 +40,7 @@ export function ChatbotAssistant({ sequences, currentView }) {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = {
+    const userMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: input,
@@ -54,7 +54,7 @@ export function ChatbotAssistant({ sequences, currentView }) {
     try {
       const response = await chatWithAI(input, { sequences, currentView });
       
-      const aiMessage: Message = {
+      const aiMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response,
@@ -63,7 +63,7 @@ export function ChatbotAssistant({ sequences, currentView }) {
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      const errorMessage: Message = {
+      const errorMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: "I'm having trouble connecting right now. Please try again in a moment.",
@@ -75,7 +75,7 @@ export function ChatbotAssistant({ sequences, currentView }) {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -159,7 +159,7 @@ export function ChatbotAssistant({ sequences, currentView }) {
                   <circle cx="20" cy="30" r="1.5" fill="white" />
                 </svg>
               </div>
-              
+              <div>
                 <h3 className="text-white">DNA Assistant</h3>
                 <p className="text-xs text-white/80 flex items-center gap-1">
                   <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>

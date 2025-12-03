@@ -8,27 +8,27 @@ export function SequenceComparison({ sequences, onClose }) {
   const [selectedSequences, setSelectedSequences] = useState([null, null]);
   const [draggedItem, setDraggedItem] = useState(null);
 
-  const handleDragStart = (e: React.DragEvent, sequence: SequenceMetadata) => {
+  const handleDragStart = (e, sequence) => {
     setDraggedItem(sequence);
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, slot: 0 | 1) => {
+  const handleDrop = (e, slot) => {
     e.preventDefault();
     if (draggedItem) {
-      const newSelected: [SequenceMetadata | null, SequenceMetadata | null] = [...selectedSequences];
+      const newSelected = [...selectedSequences];
       newSelected[slot] = draggedItem;
       setSelectedSequences(newSelected);
       setDraggedItem(null);
     }
   };
 
-  const calculateSimilarity = (seq1: SequenceMetadata, seq2: SequenceMetadata) => {
+  const calculateSimilarity = (seq1, seq2) => {
     const minLength = Math.min(seq1.sequence.length, seq2.sequence.length);
     let matches = 0;
     
@@ -123,12 +123,12 @@ export function SequenceComparison({ sequences, onClose }) {
                   }`}
                 >
                   {selectedSequences[0] ? (
-                    
+                    <div>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-sm text-gray-700 dark:text-gray-300">Sequence A</h4>
                         <button
                           onClick={() => {
-                            const newSelected: [SequenceMetadata | null, SequenceMetadata | null] = [...selectedSequences];
+                            const newSelected = [...selectedSequences];
                             newSelected[0] = null;
                             setSelectedSequences(newSelected);
                           }}
@@ -182,12 +182,12 @@ export function SequenceComparison({ sequences, onClose }) {
                   }`}
                 >
                   {selectedSequences[1] ? (
-                    
+                    <div>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-sm text-gray-700 dark:text-gray-300">Sequence B</h4>
                         <button
                           onClick={() => {
-                            const newSelected: [SequenceMetadata | null, SequenceMetadata | null] = [...selectedSequences];
+                            const newSelected = [...selectedSequences];
                             newSelected[1] = null;
                             setSelectedSequences(newSelected);
                           }}

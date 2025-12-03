@@ -6,28 +6,28 @@ import { Icons } from './Icons';
 export function QuickAccess({ setActiveView }) {
   const quickLinks = [
     {
-      id: 'recent' as const,
+      id: 'recent',
       icon: 'Clock',
       label: 'Recent Files',
       description: '24 sequences',
       gradient: 'from-purple-500 to-indigo-600',
     },
     {
-      id: 'metadata' as const,
+      id: 'metadata',
       icon: 'BarChart',
       label: 'Metadata',
       description: 'View analytics',
       gradient: 'from-indigo-500 to-purple-600',
     },
     {
-      id: 'report' as const,
+      id: 'report',
       icon: 'FileText',
       label: 'Reports',
       description: 'Generate new',
       gradient: 'from-purple-600 to-indigo-700',
     },
     {
-      id: 'upload' as const,
+      id: 'upload',
       icon: 'DNA',
       label: 'DNA Analysis',
       description: 'Quick tools',

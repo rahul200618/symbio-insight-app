@@ -112,7 +112,7 @@ export function Logo({ size = 'md', animate = false }) {
       />
       
       {/* Gradients */}
-      
+      <defs>
         <linearGradient id="gradient1" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="rgba(255, 255, 255, 1)" />
           <stop offset="100%" stopColor="rgba(255, 255, 255, 0.6)" />
@@ -140,7 +140,7 @@ export function Logo({ size = 'md', animate = false }) {
         whileHover={{ 
           scale: 1.05,
           rotate: [0, -5, 5, -5, 0],
-          transition
+          transition: { duration: 0.4 }
         }}
       >
         <LogoContent />
