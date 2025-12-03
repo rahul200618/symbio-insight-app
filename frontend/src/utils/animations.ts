@@ -162,7 +162,7 @@ export const animeAnimations = {
   /**
    * Progress bar animation
    */
-  progressBar: (targets: any, percentage) => {
+  progressBar: (targets: any, percentage: number) => {
     const anime = (window as any).anime;
     if (!anime) return;
 
@@ -177,7 +177,7 @@ export const animeAnimations = {
   /**
    * Number counter animation
    */
-  counter: (element, from, to, duration = 2000) => {
+  counter: (element: HTMLElement, from: number, to: number, duration: number = 2000) => {
     const anime = (window as any).anime;
     if (!anime) return;
 
@@ -247,7 +247,7 @@ export const animeAnimations = {
   /**
    * Wave animation for text
    */
-  wave: (targets) => {
+  wave: (targets: any) => {
     const anime = (window as any).anime;
     if (!anime) return;
 
