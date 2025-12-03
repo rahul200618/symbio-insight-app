@@ -13,31 +13,11 @@ export function AnimatedPage({ children, animation = 'fade' }: AnimatedPageProps
   }, []);
 
   const variants = {
-    fade,
-      animate,
-      exit,
-      transition,
-    },
-    'slide-up',
-      animate,
-      exit,
-      transition,
-    },
-    'slide-left',
-      animate,
-      exit,
-      transition,
-    },
-    scale,
-      animate,
-      exit,
-      transition,
-    },
-    blur,
-      animate,
-      exit,
-      transition,
-    },
+    fade: { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.3 } },
+    'slide-up': { initial: { y: 20, opacity: 0 }, animate: { y: 0, opacity: 1 }, exit: { y: -20, opacity: 0 }, transition: { duration: 0.3 } },
+    'slide-left': { initial: { x: 20, opacity: 0 }, animate: { x: 0, opacity: 1 }, exit: { x: -20, opacity: 0 }, transition: { duration: 0.3 } },
+    scale: { initial: { scale: 0.9, opacity: 0 }, animate: { scale: 1, opacity: 1 }, exit: { scale: 0.9, opacity: 0 }, transition: { duration: 0.3 } },
+    blur: { initial: { filter: 'blur(10px)', opacity: 0 }, animate: { filter: 'blur(0px)', opacity: 1 }, exit: { filter: 'blur(10px)', opacity: 0 }, transition: { duration: 0.3 } },
   };
 
   const selectedVariants = variants[animation];
@@ -68,7 +48,7 @@ export function AnimatedCard({ children, delay = 0, className = '', hover = true
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      whileHover={hover ? { y: -5, transition } : undefined}
+      whileHover={hover ? { y: -5, transition: { duration: 0.3 } } : undefined}
       className={className}
     >
       {children}
@@ -115,8 +95,8 @@ export function AnimatedList({ children, className = '', staggerDelay = 0.1 }: A
       initial="hidden"
       animate="visible"
       variants={{
-        visible,
-        },
+        visible: { opacity: 1, transition: { staggerChildren: staggerDelay } },
+        hidden: { opacity: 0 },
       }}
     >
       {children}
@@ -134,8 +114,8 @@ export function AnimatedListItem({ children, className = '' }: AnimatedListItemP
     <motion.div
       className={className}
       variants={{
-        hidden,
-        visible,
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 },
       }}
       transition={{ duration: 0.4 }}
     >

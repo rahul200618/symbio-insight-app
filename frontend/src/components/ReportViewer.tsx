@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Icons } from './Icons';
 import { calculateAggregateStats, SequenceMetadata } from '../utils/fastaParser';
@@ -8,7 +7,7 @@ interface ReportViewerProps {
 }
 
 export function ReportViewer({ parsedSequences = [] }: ReportViewerProps) {
-  const stats = parsedSequences.length > 0 
+  const stats = parsedSequences.length > 0
     ? calculateAggregateStats(parsedSequences)
     : null;
 
@@ -40,24 +39,23 @@ export function ReportViewer({ parsedSequences = [] }: ReportViewerProps) {
         transition={{ delay: 0.1 }}
         className="flex items-start justify-between"
       >
-        
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Sequence Analysis Report</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {parsedSequences.length > 0 
-              ? `${parsedSequences.length} sequences analyzed` 
-              : 'No sequences uploaded yet'
-            }
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Generated on {new Date().toLocaleDateString('en-US', { 
-              month: 'short', 
-              day: 'numeric', 
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </p>
-        </div>
+
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Sequence Analysis Report</h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          {parsedSequences.length > 0
+            ? `${parsedSequences.length} sequences analyzed`
+            : 'No sequences uploaded yet'
+          }
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Generated on {new Date().toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </p>
       </motion.div>
 
       {/* Data Source Indicator */}
@@ -155,65 +153,60 @@ export function ReportViewer({ parsedSequences = [] }: ReportViewerProps) {
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
             <Icons.FileText className="w-6 h-6 text-white" />
           </div>
-          
-            <h3 className="text-gray-900 dark:text-white">AI-Generated Summary</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Automated analysis and insights</p>
-          </div>
+
+          <h3 className="text-gray-900 dark:text-white">AI-Generated Summary</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Automated analysis and insights</p>
         </div>
 
         <div className="space-y-4">
           <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
             <div className="flex items-start gap-3">
               <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              
-                <p className="text-sm text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  The uploaded FASTA file contains {totalSequences} high-quality sequences with an average length of {avgLength} base pairs. 
-                  The GC content of {gcPercentage.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.
-                </p>
-              </div>
+
+              <p className="text-sm text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                The uploaded FASTA file contains {totalSequences} high-quality sequences with an average length of {avgLength} base pairs.
+                The GC content of {gcPercentage.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.
+              </p>
             </div>
           </div>
 
           <div className="p-4 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100/50 dark:border-indigo-800/50">
             <div className="flex items-start gap-3">
               <Icons.Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-              
-                <p className="text-sm text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  The nucleotide distribution shows balanced representation across all bases: Adenine ({nucleotideDistribution.A.toFixed(1)}%), 
-                  Thymine ({nucleotideDistribution.T.toFixed(1)}%), Guanine ({nucleotideDistribution.G.toFixed(1)}%), 
-                  and Cytosine ({nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.
-                </p>
-              </div>
+
+              <p className="text-sm text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                The nucleotide distribution shows balanced representation across all bases: Adenine ({nucleotideDistribution.A.toFixed(1)}%),
+                Thymine ({nucleotideDistribution.T.toFixed(1)}%), Guanine ({nucleotideDistribution.G.toFixed(1)}%),
+                and Cytosine ({nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.
+              </p>
             </div>
           </div>
 
           <div className="p-4 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
             <div className="flex items-start gap-3">
               <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              
-                <p className="text-sm text-gray-900 dark:text-white mb-1">Open Reading Frame Analysis</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions. 
-                  The longest ORF spans {longestSeq.toLocaleString()} base pairs, which may represent a significant functional gene. Further analysis is recommended 
-                  to identify potential gene functions and protein products.
-                </p>
-              </div>
+
+              <p className="text-sm text-gray-900 dark:text-white mb-1">Open Reading Frame Analysis</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions.
+                The longest ORF spans {longestSeq.toLocaleString()} base pairs, which may represent a significant functional gene. Further analysis is recommended
+                to identify potential gene functions and protein products.
+              </p>
             </div>
           </div>
 
           <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
             <div className="flex items-start gap-3">
               <Icons.AlertCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-              
-                <p className="text-sm text-gray-900 dark:text-white mb-1">Recommendations</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  All sequences have been successfully parsed and analyzed. The metadata includes sequence names, lengths, GC percentages, 
-                  nucleotide counts (A, T, G, C), and ORF detection. For more detailed analysis, we recommend performing BLAST searches 
-                  against reference databases and conducting phylogenetic analysis to determine evolutionary relationships.
-                </p>
-              </div>
+
+              <p className="text-sm text-gray-900 dark:text-white mb-1">Recommendations</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                All sequences have been successfully parsed and analyzed. The metadata includes sequence names, lengths, GC percentages,
+                nucleotide counts (A, T, G, C), and ORF detection. For more detailed analysis, we recommend performing BLAST searches
+                against reference databases and conducting phylogenetic analysis to determine evolutionary relationships.
+              </p>
             </div>
           </div>
         </div>
@@ -230,10 +223,9 @@ export function ReportViewer({ parsedSequences = [] }: ReportViewerProps) {
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
             <Icons.BarChart className="w-6 h-6 text-white" />
           </div>
-          
-            <h3 className="text-gray-900 dark:text-white">Detailed Metrics</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Complete statistical breakdown</p>
-          </div>
+
+          <h3 className="text-gray-900 dark:text-white">Detailed Metrics</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Complete statistical breakdown</p>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
