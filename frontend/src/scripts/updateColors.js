@@ -44,15 +44,15 @@ const replacements = [
 ];
 
 const filesToUpdate = [
-  'components/UploadSection.tsx',
-  'components/RecentUploads.tsx',
-  'components/MetadataCards.tsx',
-  'components/ReportViewer.tsx',
-  'components/ChatbotAssistant.tsx',
-  'components/SequenceComparison.tsx',
-  'components/RightPanel.tsx',
-  'components/QuickAccess.tsx',
-  'App.tsx',
+  'components/UploadSection.jsx',
+  'components/RecentUploads.jsx',
+  'components/MetadataCards.jsx',
+  'components/ReportViewer.jsx',
+  'components/ChatbotAssistant.jsx',
+  'components/SequenceComparison.jsx',
+  'components/RightPanel.jsx',
+  'components/QuickAccess.jsx',
+  'App.jsx',
 ];
 
 console.log('🎨 Updating color scheme from sky-blue/cyan to purple/indigo...\n');

@@ -63,24 +63,24 @@ Application will run on http://localhost:3000
 ```
 src/
 ├── components/
-│   ├── Sidebar.tsx              # Left navigation
-│   ├── TopBar.tsx               # Top navigation bar
-│   ├── RightPanel.tsx           # Slide-in info panel
-│   ├── UploadSection.tsx        # File upload component
-│   ├── RecentUploads.tsx        # File list table
-│   ├── MetadataCards.tsx        # Dashboard with charts
-│   ├── ReportViewer.tsx         # Report generation
-│   ├── QuickAccess.tsx          # Quick action cards
-│   ├── Icons.tsx                # Custom SVG icons
-│   └── Charts.tsx               # Custom chart components
+│   ├── Sidebar.jsx              # Left navigation
+│   ├── TopBar.jsx               # Top navigation bar
+│   ├── RightPanel.jsx           # Slide-in info panel
+│   ├── UploadSection.jsx        # File upload component
+│   ├── RecentUploads.jsx        # File list table
+│   ├── MetadataCards.jsx        # Dashboard with charts
+│   ├── ReportViewer.jsx         # Report generation
+│   ├── QuickAccess.jsx          # Quick action cards
+│   ├── Icons.jsx                # Custom SVG icons
+│   └── Charts.jsx               # Custom chart components
 ├── utils/
 │   ├── fastaParser.ts           # FASTA parsing logic
 │   ├── api.ts                   # Backend API client
 │   └── firebase.ts              # Firebase config (optional)
 ├── styles/
 │   └── globals.css              # Tailwind + custom styles
-├── App.tsx                      # Main app component
-└── index.tsx                    # Entry point
+├── App.jsx                      # Main app component
+└── index.jsx                    # Entry point
 ```
 
 ## 🎯 How It Works
@@ -181,7 +181,7 @@ Edit `/styles/globals.css`:
 
 ### Charts
 
-Edit `/components/Charts.tsx`:
+Edit `/components/Charts.jsx`:
 
 ```typescript
 export function BarChart({ data }: ChartProps) {
@@ -191,7 +191,7 @@ export function BarChart({ data }: ChartProps) {
 
 ### Icons
 
-Edit `/components/Icons.tsx`:
+Edit `/components/Icons.jsx`:
 
 ```typescript
 export const Icons = {
