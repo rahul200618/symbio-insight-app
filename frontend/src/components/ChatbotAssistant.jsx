@@ -47,6 +47,8 @@ export function ChatbotAssistant({ sequences, currentView }) {
     setIsLoading(true);
 
     try {
+      // Use the backend chat API
+      const { chatWithAI } = await import('../utils/aiService');
       const response = await chatWithAI(input, { sequences, currentView });
 
       const aiMessage = {
@@ -179,8 +181,8 @@ export function ChatbotAssistant({ sequences, currentView }) {
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                     }`}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -254,4 +256,4 @@ export function ChatbotAssistant({ sequences, currentView }) {
     </>
   );
 }
- 
+

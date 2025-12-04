@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useEffect } from 'react';
-import { initAnimeJS } from '../utils/animations';
+import { initAnimeJS } from '../utils/animations.js';
 
 export function AnimatedPage({ children, animation = 'fade' }) {
   useEffect(() => {

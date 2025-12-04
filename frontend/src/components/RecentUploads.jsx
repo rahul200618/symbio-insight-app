@@ -1,51 +1,34 @@
 import { Icons } from './Icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function RecentUploads({ onFileSelect }) {
-  const [files, setFiles] = useState([
-    {
-      id: '1',
-      name: 'genome_sequence_01.fasta',
-      sequences: 245,
-      date: 'Nov 27, 2024 14:32',
-      size: '2.4 MB',
-    },
-    {
-      id: '2',
-      name: 'protein_coding_regions.fa',
-      sequences: 189,
-      date: 'Nov 27, 2024 09:15',
-      size: '1.8 MB',
-    },
-    {
-      id: '3',
-      name: 'mitochondrial_dna_analysis.fasta',
-      sequences: 156,
-      date: 'Nov 26, 2024 16:45',
-      size: '956 KB',
-    },
-    {
-      id: '4',
-      name: 'viral_genome_complete.fa',
-      sequences: 312,
-      date: 'Nov 26, 2024 11:20',
-      size: '3.7 MB',
-    },
-    {
-      id: '5',
-      name: 'bacterial_plasmid_seq.fasta',
-      sequences: 98,
-      date: 'Nov 25, 2024 13:08',
-      size: '1.5 MB',
-    },
-    {
-      id: '6',
-      name: 'chromosomal_region_22.fa',
-      sequences: 421,
-      date: 'Nov 25, 2024 08:55',
-      size: '5.2 MB',
-    },
-  ]);
+  const [files, setFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSequences = async () => {
+      try {
+        const { getAllSequences } = await import('../utils/api.js');
+        const response = await getAllSequences(10, 0);
+        // Transform backend data to match component state structure
+        const mappedFiles = response.data.map(seq => ({
+          id: seq.id,
+          name: seq.filename || seq.name,
+          sequences: 1, // Backend returns individual sequences, grouping logic might be needed if we want 'files'
+          date: new Date(seq.createdAt).toLocaleString(),
+          size: seq.length + ' bp', // Using length as proxy for size
+          data: [seq] // Store full sequence data for download/view
+        }));
+        setFiles(mappedFiles);
+      } catch (err) {
+        console.error('Failed to fetch sequences:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSequences();
+  }, []);
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return bytes + ' B';
@@ -59,15 +42,23 @@ export function RecentUploads({ onFileSelect }) {
     }
   };
 
-  const handleDelete = (file, e) => {
+  const handleDelete = async (file, e) => {
     e.stopPropagation();
 
     if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
       return;
     }
 
-    // Remove from local state
-    setFiles(files.filter(f => f.id !== file.id));
+    try {
+      const { deleteSequence } = await import('../utils/api.js');
+      await deleteSequence(file.id);
+
+      // Remove from local state
+      setFiles(files.filter(f => f.id !== file.id));
+    } catch (err) {
+      console.error('Failed to delete sequence:', err);
+      alert('Failed to delete sequence. Please try again.');
+    }
   };
 
   const handleDownload = (file, e) => {
@@ -117,7 +108,14 @@ export function RecentUploads({ onFileSelect }) {
           </button>
         </div>
 
-        {files.length > 0 && (
+        {isLoading ? (
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 mx-auto mb-4 text-purple-600 animate-spin">
+              <Icons.Loader className="w-full h-full" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400">Loading recent uploads...</p>
+          </div>
+        ) : files.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
@@ -195,7 +193,7 @@ export function RecentUploads({ onFileSelect }) {
         )}
 
         {/* Empty State */}
-        {files.length === 0 && (
+        {!isLoading && files.length === 0 && (
           <div className="p-12 text-center">
             <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-gray-100 dark:bg-gray-800 flex items-center justify-center">
               <Icons.File className="w-10 h-10 text-gray-400" />

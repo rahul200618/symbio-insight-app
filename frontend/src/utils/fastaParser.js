@@ -133,27 +133,35 @@ export function calculateAggregateStats(sequences) {
     }
 
     const totalSequences = sequences.length;
-    const totalLength = sequences.reduce((sum, seq) => sum + seq.sequenceLength, 0);
+
+    // Handle both frontend (sequenceLength) and backend (length) field names
+    const getLength = (seq) => seq.sequenceLength || seq.length || 0;
+    const getGC = (seq) => seq.gcPercentage || seq.gcPercent || seq.gcContent || 0;
+    const getORFCount = (seq) => (seq.orfs ? seq.orfs.length : (seq.orfCount || 0));
+    const getNucleotides = (seq) => seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
+
+    const totalLength = sequences.reduce((sum, seq) => sum + getLength(seq), 0);
     const avgLength = Math.round(totalLength / totalSequences);
 
-    const avgGC = sequences.reduce((sum, seq) => sum + seq.gcPercentage, 0) / totalSequences;
+    const avgGC = sequences.reduce((sum, seq) => sum + getGC(seq), 0) / totalSequences;
 
     const longestSeq = sequences.reduce((max, seq) =>
-        seq.sequenceLength > max.sequenceLength ? seq : max
+        getLength(seq) > getLength(max) ? seq : max
     );
 
     const shortestSeq = sequences.reduce((min, seq) =>
-        seq.sequenceLength < min.sequenceLength ? seq : min
+        getLength(seq) < getLength(min) ? seq : min
     );
 
-    const totalORFs = sequences.reduce((sum, seq) => sum + seq.orfs.length, 0);
+    const totalORFs = sequences.reduce((sum, seq) => sum + getORFCount(seq), 0);
 
     // Aggregate nucleotide counts
     const totalNucleotides = sequences.reduce((acc, seq) => {
-        acc.A += seq.nucleotideCounts.A;
-        acc.T += seq.nucleotideCounts.T;
-        acc.G += seq.nucleotideCounts.G;
-        acc.C += seq.nucleotideCounts.C;
+        const counts = getNucleotides(seq);
+        acc.A += counts.A || 0;
+        acc.T += counts.T || 0;
+        acc.G += counts.G || 0;
+        acc.C += counts.C || 0;
         return acc;
     }, { A: 0, T: 0, G: 0, C: 0 });
 
@@ -164,14 +172,14 @@ export function calculateAggregateStats(sequences) {
         totalLength,
         avgLength,
         avgGC: Number(avgGC.toFixed(2)),
-        longestSequence: longestSeq.sequenceLength,
-        shortestSequence: shortestSeq.sequenceLength,
+        longestSequence: getLength(longestSeq),
+        shortestSequence: getLength(shortestSeq),
         totalORFs,
         nucleotideDistribution: {
-            A: Number(((totalNucleotides.A / total) * 100).toFixed(2)),
-            T: Number(((totalNucleotides.T / total) * 100).toFixed(2)),
-            G: Number(((totalNucleotides.G / total) * 100).toFixed(2)),
-            C: Number(((totalNucleotides.C / total) * 100).toFixed(2)),
+            A: total > 0 ? Number(((totalNucleotides.A / total) * 100).toFixed(2)) : 0,
+            T: total > 0 ? Number(((totalNucleotides.T / total) * 100).toFixed(2)) : 0,
+            G: total > 0 ? Number(((totalNucleotides.G / total) * 100).toFixed(2)) : 0,
+            C: total > 0 ? Number(((totalNucleotides.C / total) * 100).toFixed(2)) : 0,
         },
     };
 }

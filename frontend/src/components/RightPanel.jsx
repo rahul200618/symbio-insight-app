@@ -1,5 +1,5 @@
 import { Icons } from './Icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const XIcon = ({ className = "w-6 h-6" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -10,12 +10,26 @@ const XIcon = ({ className = "w-6 h-6" }) => (
 export function RightPanel({ selectedFile, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('recent');
 
-  const recentFiles = [
-    { name: 'genome_seq_01.fasta', sequences: 245, time: '2 hours ago' },
-    { name: 'protein_analysis.fa', sequences: 189, time: '5 hours ago' },
-    { name: 'mitochondrial_dna.fasta', sequences: 156, time: '1 day ago' },
-    { name: 'viral_genome.fa', sequences: 312, time: '2 days ago' },
-  ];
+  const [recentFiles, setRecentFiles] = useState([]);
+
+  useEffect(() => {
+    if (isOpen && activeTab === 'recent') {
+      const fetchRecent = async () => {
+        try {
+          const { getAllSequences } = await import('../utils/api.js');
+          const response = await getAllSequences(5, 0);
+          setRecentFiles(response.data.map(seq => ({
+            name: seq.filename || seq.name,
+            sequences: 1,
+            time: new Date(seq.createdAt).toLocaleString()
+          })));
+        } catch (err) {
+          console.error('Failed to fetch recent files:', err);
+        }
+      };
+      fetchRecent();
+    }
+  }, [isOpen, activeTab]);
 
   const activities = [
     { action: 'Report generated', file: 'genome_seq_01.fasta', time: '1 hour ago' },
@@ -27,17 +41,16 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
     <>
       {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/20 z-40 transition-opacity"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar Panel */}
-      <div 
-        className={`fixed right-0 top-0 h-full w-80 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden z-50 transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <div
+        className={`fixed right-0 top-0 h-full w-80 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between">
@@ -45,7 +58,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
             <h3 className="text-gray-900 dark:text-white">File Information</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Recent activity and details</p>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-all"
           >
@@ -59,11 +72,10 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 text-sm capitalize transition-all ${
-                activeTab === tab
-                  ? 'text-purple-500 dark:text-purple-400 border-b-2 border-purple-400 dark:border-purple-500'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
+              className={`flex-1 py-3 text-sm capitalize transition-all ${activeTab === tab
+                ? 'text-purple-500 dark:text-purple-400 border-b-2 border-purple-400 dark:border-purple-500'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
             >
               {tab}
             </button>

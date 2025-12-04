@@ -61,21 +61,42 @@ export async function predictSequenceQuality(sequence) {
 /**
  * Generate intelligent report with AI insights
  */
+/**
+ * Generate intelligent report with AI insights
+ */
 export async function generateIntelligentReport(sequences) {
     try {
-        const response = await fetch(`${AI_API_URL}/report`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sequences }),
-        });
+        // If we have sequences with IDs, try to fetch a report from the backend for the first one
+        // This is a simplified integration. Ideally, we'd generate reports for all or the selected one.
+        if (sequences.length > 0 && sequences[0].id) {
+            const { generateAIReport } = await import('./api.js');
+            // Try to generate report for the first sequence as a demo
+            const report = await generateAIReport(sequences[0].id);
 
-        if (!response.ok) {
-            throw new Error('Report generation failed');
+            // Map backend response to expected format
+            return {
+                summary: report.aiSummary,
+                keyFindings: [
+                    `Analysis of ${sequences[0].name}`,
+                    `GC Quality: ${report.analysis.gcQuality}`,
+                    `Length Category: ${report.analysis.lengthCategory}`,
+                    `Quality Score: ${report.analysis.qualityScore}`
+                ],
+                biologicalSignificance: report.interpretation,
+                recommendations: [
+                    'Review detailed metrics',
+                    'Compare with other sequences',
+                    'Export findings'
+                ],
+                comparisonToKnown: 'Automated comparison pending.',
+                experimentalSuggestions: ['Verify with wet lab experiments']
+            };
         }
 
-        return await response.json();
+        // Fallback to mock/template if no ID or backend fails
+        return generateTemplateReport(sequences);
     } catch (error) {
-        console.log('AI service not available, using template report');
+        console.log('AI service not available, using template report', error);
         return generateTemplateReport(sequences);
     }
 }
@@ -83,12 +104,29 @@ export async function generateIntelligentReport(sequences) {
 /**
  * Chat with AI assistant about sequences
  */
+/**
+ * Chat with AI assistant about sequences
+ */
 export async function chatWithAI(message, context) {
     try {
+        // Construct context string or object to send to backend
+        // The backend expects { message, context }
         const response = await fetch(`${AI_API_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, context }),
+            body: JSON.stringify({
+                message,
+                context: {
+                    // Simplify context to avoid sending too much data if sequences are large
+                    sequences: context.sequences?.map(s => ({
+                        name: s.sequenceName,
+                        length: s.sequenceLength,
+                        gcPercentage: s.gcPercentage,
+                        orfs: s.orfs?.length || 0
+                    })),
+                    currentView: context.currentView
+                }
+            }),
         });
 
         if (!response.ok) {
@@ -98,7 +136,7 @@ export async function chatWithAI(message, context) {
         const data = await response.json();
         return data.response;
     } catch (error) {
-        console.log('AI service not available');
+        console.log('AI service not available', error);
         return getRuleBasedResponse(message, context);
     }
 }
