@@ -105,9 +105,9 @@ export function UploadSection({ onUploadComplete }) {
       </div>
 
       {/* Upload Box - EXACT SIZE */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10" ref={uploadBoxRef}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-12" ref={uploadBoxRef}>
         <div
-          className={`relative border-2 border-dashed rounded-xl py-24 px-20 transition-all duration-300 ${isDragging
+          className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
             ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
             : 'border-gray-300 dark:border-gray-600 hover:border-purple-400'
             }`}
@@ -124,24 +124,24 @@ export function UploadSection({ onUploadComplete }) {
 
           <div className="pointer-events-none flex flex-col items-center">
             <motion.div
-              className="w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg"
+              className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg"
               animate={{ y: isDragging ? -5 : [0, -8, 0] }}
               transition={{ y: { duration: 2, repeat: Infinity, ease: 'easeInOut' } }}
             >
-              <Icons.Upload className="w-8 h-8 text-white" />
+              <Icons.Upload className="w-10 h-10 text-white" />
             </motion.div>
 
-            <h3 className="text-gray-900 dark:text-white text-base font-semibold text-center mb-2">
+            <h3 className="text-gray-900 dark:text-white text-xl font-semibold text-center mb-3">
               Drag & drop your FASTA file
             </h3>
 
-            <p className="text-gray-500 dark:text-gray-400 text-center text-sm mb-4">
+            <p className="text-gray-500 dark:text-gray-400 text-center text-base mb-6">
               or click to browse
             </p>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-md">
-              <Icons.File className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-              <span className="text-xs text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <Icons.File className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 Accepts .fasta or .fa files
               </span>
             </div>
