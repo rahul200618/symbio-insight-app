@@ -99,88 +99,91 @@ export function RecentUploads({ onFileSelect }) {
 
   return (
     <div className="space-y-6">
-      {/* Outer Header */}
+      {/* Main Header */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Recent Uploads</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">View and manage your uploaded sequences</p>
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Files</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{files.length} total uploads</p>
-            </div>
-            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors">
-              Export All
-            </button>
+        {/* Card Header */}
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Files</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{files.length} total uploads</p>
           </div>
+          <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all">
+            Export All
+          </button>
         </div>
 
         {files.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">FILE NAME</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">ITEMS / SEQUENCES</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">UPLOAD DATE</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">FILE SIZE</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">ACTIONS</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">File Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sequences</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Size</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {files.map((file, index) => (
                   <tr
                     key={index}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                    onClick={() => handleViewReport(file)}
                   >
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <Icons.Hash className="w-6 h-6 text-white" />
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <Icons.DNA className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white mb-0.5">{file.name}</p>
+                          <p className="text-sm text-gray-900 dark:text-white">{file.name}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">FASTA file</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
-                        <div className="px-3 py-1 bg-gray-50 dark:bg-gray-800 rounded-md">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{file.sequences}</span>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="px-3 py-1 bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100/50 dark:border-purple-800/50 rounded-lg">
+                          <span className="text-sm text-gray-900 dark:text-white">{file.sequences}</span>
                         </div>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">sequences</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">sequences</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">{file.date.split(' ')[0]} {file.date.split(' ')[1]} {file.date.split(' ')[2]}</span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">{file.date.split(' ')[3]}</span>
-                      </div>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{file.date}</p>
                     </td>
-                    <td className="px-6 py-5">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{file.size}</p>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{file.size}</p>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleViewReport(file);
                           }}
-                          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm shadow-purple-200 dark:shadow-none"
+                          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-2"
                         >
-                          <Icons.Eye className="w-4 h-4" />
+                          <Icons.Eye className="w-3 h-3 text-white" />
                           View Report
                         </button>
                         <button
                           onClick={(e) => handleDownload(file, e)}
-                          className="w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center transition-colors text-gray-500 dark:text-gray-400"
+                          className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-all"
                         >
-                          <Icons.Download className="w-4 h-4" />
+                          <Icons.Download className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(file, e)}
+                          className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 flex items-center justify-center transition-all"
+                        >
+                          <Icons.Trash className="w-4 h-4 text-red-600 dark:text-red-400" />
                         </button>
                       </div>
                     </td>
