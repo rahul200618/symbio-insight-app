@@ -78,41 +78,11 @@ export function UploadSection({ onUploadComplete }) {
         stats,
       });
 
-      // Upload to backend
-      let backendSequences = [];
-      try {
-        const { uploadSequences } = await import('../utils/api.js');
-        // Send raw text to backend
-        backendSequences = await uploadSequences(text, file.name);
-        console.log('Sequences uploaded to backend:', backendSequences);
-      } catch (backendErr) {
-        console.warn('Failed to upload to backend:', backendErr);
-      }
-
-      // Merge backend IDs into local parsed sequences if possible
-      // Assuming order is preserved (which it should be for a single file parse)
-      const mergedSequences = sequences.map((seq, index) => {
-        const backendSeq = backendSequences[index];
-        return {
-          ...seq,
-          id: backendSeq ? backendSeq.id : seq.id, // Use backend ID if available
-          // We keep local full details (orfs array, rawSequence) for immediate display
-        };
-      });
-
-      setUploadedFile({
-        name: file.name,
-        size: (file.size / 1024).toFixed(2) + ' KB',
-        sizeBytes: file.size,
-        sequences: mergedSequences.length,
-        stats,
-      });
-
-      setParsedData(mergedSequences);
+      setParsedData(sequences);
       setIsParsing(false);
 
       if (onUploadComplete) {
-        onUploadComplete(mergedSequences);
+        onUploadComplete(sequences);
       }
 
     } catch (err) {

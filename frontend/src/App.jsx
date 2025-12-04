@@ -11,42 +11,17 @@ import { QuickAccess } from './components/QuickAccess';
 import { ChatbotAssistant } from './components/ChatbotAssistant';
 import { SequenceComparison } from './components/SequenceComparison';
 import { AnimatedPage, ScrollProgressBar } from './components/AnimatedPage';
-import { LoginPage } from './components/LoginPage';
 import { Icons } from './components/Icons';
 import { initAnimeJS } from './utils/animations.js';
 import { useScrollProgress } from './hooks/useScrollAnimation.js';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
   const [activeView, setActiveView] = useState('upload');
   const [selectedFile, setSelectedFile] = useState(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [parsedSequences, setParsedSequences] = useState([]);
   const [showComparison, setShowComparison] = useState(false);
   const scrollProgress = useScrollProgress();
-
-  // Handle file selection from RecentUploads
-  const handleFileSelect = (file) => {
-    console.log('App - Selected file:', file);
-    setSelectedFile(file);
-
-    // If the file object has data (sequences), update parsedSequences
-    if (file.data && Array.isArray(file.data)) {
-      // Ensure data structure matches what components expect
-      const sequences = file.data.map(seq => ({
-        ...seq,
-        // Map backend fields to frontend expected fields if necessary
-        sequenceName: seq.name || seq.sequenceName,
-        sequenceLength: seq.length || seq.sequenceLength,
-        gcPercentage: seq.gcContent || seq.gcPercentage,
-        rawSequence: seq.sequence || seq.rawSequence,
-        orfs: seq.orfs || []
-      }));
-      setParsedSequences(sequences);
-      setActiveView('report'); // Or 'metadata'
-    }
-  };
 
   useEffect(() => {
     initAnimeJS();
@@ -56,17 +31,6 @@ export default function App() {
   useEffect(() => {
     console.log('App - parsedSequences updated:', parsedSequences.length, parsedSequences);
   }, [parsedSequences]);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    setActiveView('upload');
-  };
 
   const handleUploadComplete = (sequences) => {
     console.log('App - handleUploadComplete called with:', sequences.length, 'sequences');
@@ -80,10 +44,6 @@ export default function App() {
     }, 800);
   };
 
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <ScrollProgressBar progress={scrollProgress} />
@@ -92,7 +52,6 @@ export default function App() {
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
-        onLogout={handleLogout}
       />
 
       {/* Top Bar */}
@@ -100,7 +59,6 @@ export default function App() {
         <TopBar
           selectedFile={selectedFile}
           onInfoClick={() => setShowRightPanel(!showRightPanel)}
-          user={user}
         />
 
         <div className="flex-1 overflow-auto p-8">
@@ -125,7 +83,7 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <RecentUploads onFileSelect={handleFileSelect} />
+                    <RecentUploads onFileSelect={setSelectedFile} />
                   </motion.div>
                 </AnimatedPage>
               )}

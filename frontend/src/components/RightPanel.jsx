@@ -1,5 +1,5 @@
 import { Icons } from './Icons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const XIcon = ({ className = "w-6 h-6" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -10,26 +10,12 @@ const XIcon = ({ className = "w-6 h-6" }) => (
 export function RightPanel({ selectedFile, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('recent');
 
-  const [recentFiles, setRecentFiles] = useState([]);
-
-  useEffect(() => {
-    if (isOpen && activeTab === 'recent') {
-      const fetchRecent = async () => {
-        try {
-          const { getAllSequences } = await import('../utils/api.js');
-          const response = await getAllSequences(5, 0);
-          setRecentFiles(response.data.map(seq => ({
-            name: seq.filename || seq.name,
-            sequences: 1,
-            time: new Date(seq.createdAt).toLocaleString()
-          })));
-        } catch (err) {
-          console.error('Failed to fetch recent files:', err);
-        }
-      };
-      fetchRecent();
-    }
-  }, [isOpen, activeTab]);
+  const recentFiles = [
+    { name: 'genome_seq_01.fasta', sequences: 245, time: '2 hours ago' },
+    { name: 'protein_analysis.fa', sequences: 189, time: '5 hours ago' },
+    { name: 'mitochondrial_dna.fasta', sequences: 156, time: '1 day ago' },
+    { name: 'viral_genome.fa', sequences: 312, time: '2 days ago' },
+  ];
 
   const activities = [
     { action: 'Report generated', file: 'genome_seq_01.fasta', time: '1 hour ago' },
@@ -73,8 +59,8 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 py-3 text-sm capitalize transition-all ${activeTab === tab
-                ? 'text-purple-500 dark:text-purple-400 border-b-2 border-purple-400 dark:border-purple-500'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'text-purple-500 dark:text-purple-400 border-b-2 border-purple-400 dark:border-purple-500'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
             >
               {tab}

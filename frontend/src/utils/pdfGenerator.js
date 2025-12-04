@@ -1,7 +1,7 @@
 // PDF Report Generation with Charts
 // Uses jsPDF for PDF generation and html2canvas for chart rendering
 
-import { calculateAggregateStats } from './fastaParser';
+import { calculateAggregateStats } from './fastaParser.js';
 
 /**
  * Generate PDF report from sequence data
@@ -9,66 +9,66 @@ import { calculateAggregateStats } from './fastaParser';
  * For now, this creates a downloadable HTML-based report
  */
 export async function generatePDFReport(
-    sequences,
-    config = {
-        includeCharts: true,
-        includeRawSequence: false,
-        includeORFDetails: true,
-        includeAIAnalysis: true,
-    }
+  sequences,
+  config = {
+    includeCharts: true,
+    includeRawSequence: false,
+    includeORFDetails: true,
+    includeAIAnalysis: true,
+  }
 ) {
-    const stats = calculateAggregateStats(sequences);
+  const stats = calculateAggregateStats(sequences);
 
-    if (!stats) {
-        throw new Error('No sequences to generate report');
-    }
+  if (!stats) {
+    throw new Error('No sequences to generate report');
+  }
 
-    // Create HTML content for the report
-    const htmlContent = generateReportHTML(sequences, stats, config);
+  // Create HTML content for the report
+  const htmlContent = generateReportHTML(sequences, stats, config);
 
-    // Create a temporary iframe to render and print
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'absolute';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
+  // Create a temporary iframe to render and print
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
 
-    document.body.appendChild(iframe);
+  document.body.appendChild(iframe);
 
-    const iframeDoc = iframe.contentWindow?.document;
-    if (iframeDoc) {
-        iframeDoc.open();
-        iframeDoc.write(htmlContent);
-        iframeDoc.close();
+  const iframeDoc = iframe.contentWindow?.document;
+  if (iframeDoc) {
+    iframeDoc.open();
+    iframeDoc.write(htmlContent);
+    iframeDoc.close();
 
-        // Wait for content to load
-        await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for content to load
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Trigger print dialog (user can save as PDF)
-        iframe.contentWindow?.print();
+    // Trigger print dialog (user can save as PDF)
+    iframe.contentWindow?.print();
 
-        // Clean up after print dialog closes
-        setTimeout(() => {
-            document.body.removeChild(iframe);
-        }, 1000);
-    }
+    // Clean up after print dialog closes
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  }
 }
 
 /**
  * Generate HTML content for the report
  */
 function generateReportHTML(
-    sequences,
-    stats,
-    config
+  sequences,
+  stats,
+  config
 ) {
-    const date = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-    return `
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -385,7 +385,7 @@ function generateReportHTML(
  * Generate AI insights section
  */
 function generateAIInsights(stats, sequences) {
-    return `
+  return `
   <div class="section">
     <h2 class="section-title">AI-Generated Insights</h2>
     
@@ -427,29 +427,29 @@ function generateAIInsights(stats, sequences) {
  * Download report as HTML file
  */
 export function downloadHTMLReport(
-    sequences,
-    config = {
-        includeCharts: true,
-        includeRawSequence: false,
-        includeORFDetails: true,
-        includeAIAnalysis: true,
-    }
+  sequences,
+  config = {
+    includeCharts: true,
+    includeRawSequence: false,
+    includeORFDetails: true,
+    includeAIAnalysis: true,
+  }
 ) {
-    const stats = calculateAggregateStats(sequences);
+  const stats = calculateAggregateStats(sequences);
 
-    if (!stats) {
-        throw new Error('No sequences to generate report');
-    }
+  if (!stats) {
+    throw new Error('No sequences to generate report');
+  }
 
-    const htmlContent = generateReportHTML(sequences, stats, config);
+  const htmlContent = generateReportHTML(sequences, stats, config);
 
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `symbio-nlm-report-${new Date().getTime()}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `symbio-nlm-report-${new Date().getTime()}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

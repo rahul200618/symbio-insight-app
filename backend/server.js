@@ -25,9 +25,6 @@ mongoose
 
 const sequencesRouter = require('./routes/sequences');
 app.use('/api/sequences', sequencesRouter);
-app.use('/api/sequences', sequencesRouter);
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/ai', require('./routes/ai'));
 
 // Root endpoint
 app.get('/', (req, res) => {

@@ -1,53 +1,23 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Icons } from './Icons';
 import { BarChart, PieChart } from './Charts';
-import { calculateAggregateStats } from '../utils/fastaParser';
+import { calculateAggregateStats } from '../utils/fastaParser.js';
 
 export function MetadataCards({ parsedSequences = [] }) {
-  const [backendStats, setBackendStats] = useState(null);
-
-  useEffect(() => {
-    if (parsedSequences.length === 0) {
-      const fetchStats = async () => {
-        try {
-          const { getStatistics } = await import('../utils/api.js');
-          const data = await getStatistics();
-          setBackendStats(data);
-        } catch (err) {
-          console.error('Failed to fetch stats:', err);
-        }
-      };
-      fetchStats();
-    }
-  }, [parsedSequences]);
-
   const stats = parsedSequences.length > 0
     ? calculateAggregateStats(parsedSequences)
     : null;
-
-  // Use backend stats if available and no local parsed data
-  const displayStats = stats || (backendStats ? {
-    nucleotideDistribution: { A: 0, T: 0, G: 0, C: 0 }, // Backend aggregate might not return this detail yet
-    avgGC: backendStats.avgGC,
-    totalSequences: backendStats.total,
-    totalLength: backendStats.totalBases,
-    totalORFs: backendStats.totalORFs,
-    avgLength: backendStats.avgLength,
-    longestSequence: backendStats.longestSequence,
-    shortestSequence: backendStats.shortestSequence
-  } : null);
 
   // Debug logging
   console.log('MetadataCards - parsedSequences:', parsedSequences.length);
   console.log('MetadataCards - stats:', stats);
 
-  const nucleotideData = displayStats && displayStats.nucleotideDistribution
+  const nucleotideData = stats
     ? [
-      { name: 'A', value: displayStats.nucleotideDistribution.A || 25, color: '#38bdf8' },
-      { name: 'T', value: displayStats.nucleotideDistribution.T || 25, color: '#22d3ee' },
-      { name: 'G', value: displayStats.nucleotideDistribution.G || 25, color: '#06b6d4' },
-      { name: 'C', value: displayStats.nucleotideDistribution.C || 25, color: '#0ea5e9' },
+      { name: 'A', value: stats.nucleotideDistribution.A, color: '#38bdf8' },
+      { name: 'T', value: stats.nucleotideDistribution.T, color: '#22d3ee' },
+      { name: 'G', value: stats.nucleotideDistribution.G, color: '#06b6d4' },
+      { name: 'C', value: stats.nucleotideDistribution.C, color: '#0ea5e9' },
     ]
     : [
       { name: 'A', value: 28.5, color: '#38bdf8' },
@@ -58,20 +28,20 @@ export function MetadataCards({ parsedSequences = [] }) {
 
   console.log('MetadataCards - nucleotideData:', nucleotideData);
 
-  const gcPercentage = displayStats ? displayStats.avgGC : 43.7;
-  const atPercentage = displayStats ? (100 - (displayStats.avgGC || 0)) : 56.3;
+  const gcPercentage = stats ? stats.avgGC : 43.7;
+  const atPercentage = stats ? (100 - stats.avgGC) : 56.3;
 
   const gcData = [
     { name: 'GC', value: Number(gcPercentage.toFixed(1)), color: '#22d3ee' },
     { name: 'AT', value: Number(atPercentage.toFixed(1)), color: '#38bdf8' },
   ];
 
-  const totalSequences = displayStats?.totalSequences || 0;
-  const totalLength = displayStats?.totalLength || 0;
-  const totalORFs = displayStats?.totalORFs || 0;
-  const avgLength = displayStats?.avgLength || 0;
-  const longestSeq = displayStats?.longestSequence || 0;
-  const shortestSeq = displayStats?.shortestSequence || 0;
+  const totalSequences = stats?.totalSequences || 245;
+  const totalLength = stats?.totalLength || 124460;
+  const totalORFs = stats?.totalORFs || 34;
+  const avgLength = stats?.avgLength || 508;
+  const longestSeq = stats?.longestSequence || 2845;
+  const shortestSeq = stats?.shortestSequence || 89;
 
   return (
     <div className="space-y-6">

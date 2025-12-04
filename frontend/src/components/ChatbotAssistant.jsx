@@ -1,7 +1,7 @@
 import { Icons } from './Icons';
 import { Logo } from './Logo';
 import { useState, useRef, useEffect } from 'react';
-import { chatWithAI } from '../utils/aiService';
+import { chatWithAI } from '../utils/aiService.js';
 
 export function ChatbotAssistant({ sequences, currentView }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,8 +47,6 @@ export function ChatbotAssistant({ sequences, currentView }) {
     setIsLoading(true);
 
     try {
-      // Use the backend chat API
-      const { chatWithAI } = await import('../utils/aiService');
       const response = await chatWithAI(input, { sequences, currentView });
 
       const aiMessage = {
