@@ -1,8 +1,8 @@
 "use client";
 
-import * from "react";
-import { Command } from "cmdk@1.1.1";
-import { SearchIcon } from "lucide-react@0.487.0";
+import * as React from "react";
+import { Command } from "cmdk";
+import { SearchIcon } from "lucide-react";
 
 import { cn } from "./utils";
 import {

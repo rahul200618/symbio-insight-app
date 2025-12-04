@@ -1,7 +1,7 @@
 "use client";
 
-import * from "react";
-import { Drawer } from "vaul@1.1.2";
+import * as React from "react";
+import { Drawer } from "vaul";
 
 import { cn } from "./utils";
 

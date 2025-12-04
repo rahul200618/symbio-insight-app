@@ -1,6 +1,6 @@
 import { Icons } from './Icons';
 
-export function QuickAccess({ setActiveView }: QuickAccessProps) {
+export function QuickAccess({ setActiveView }) {
   const quickLinks = [
     {
       id: 'recent',
@@ -35,7 +35,7 @@ export function QuickAccess({ setActiveView }: QuickAccessProps) {
   return (
     <div className="grid grid-cols-4 gap-4">
       {quickLinks.map((link) => {
-        const Icon = Icons[link.icon typeof Icons];
+        const Icon = Icons[link.icon] || Icons.File;
         return (
           <button
             key={link.id}

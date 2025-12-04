@@ -1,61 +1,62 @@
 import { Icons } from './Icons';
 import { useState } from 'react';
 
-export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProps) {
+export function RecentUploads({ onFileSelect }) {
   const [files, setFiles] = useState([
     {
-      id,
-      name,
-      sequences,
-      date, 2024 14,
-      size,
+      id: '1',
+      name: 'genome_sequence_01.fasta',
+      sequences: 245,
+      date: 'Nov 27, 2024 14:32',
+      size: '2.4 MB',
     },
     {
-      id,
-      name,
-      sequences,
-      date, 2024 09,
-      size,
+      id: '2',
+      name: 'protein_coding_regions.fa',
+      sequences: 189,
+      date: 'Nov 27, 2024 09:15',
+      size: '1.8 MB',
     },
     {
-      id,
-      name,
-      sequences,
-      date, 2024 16,
-      size,
+      id: '3',
+      name: 'mitochondrial_dna_analysis.fasta',
+      sequences: 156,
+      date: 'Nov 26, 2024 16:45',
+      size: '956 KB',
     },
     {
-      id,
-      name,
-      sequences,
-      date, 2024 11,
-      size,
+      id: '4',
+      name: 'viral_genome_complete.fa',
+      sequences: 312,
+      date: 'Nov 26, 2024 11:20',
+      size: '3.7 MB',
     },
     {
-      id,
-      name,
-      sequences,
-      date, 2024 13,
-      size,
+      id: '5',
+      name: 'bacterial_plasmid_seq.fasta',
+      sequences: 98,
+      date: 'Nov 25, 2024 13:08',
+      size: '1.5 MB',
     },
     {
-      id,
-      name,
-      sequences,
-      date, 2024 08,
-      size,
+      id: '6',
+      name: 'chromosomal_region_22.fa',
+      sequences: 421,
+      date: 'Nov 25, 2024 08:55',
+      size: '5.2 MB',
     },
   ]);
 
-  const formatFileSize = (bytes)=> {
+  const formatFileSize = (bytes) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
   const handleViewReport = (file) => {
-    onSelectFile(file);
-    setActiveView('report');
+    if (onFileSelect) {
+      onFileSelect(file);
+    }
   };
 
   const handleDelete = (file, e) => {
@@ -85,7 +86,7 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
     }
     
     // Create download
-    const blob = new Blob([fastaContent], { type);
+    const blob = new Blob([fastaContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -97,10 +98,34 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
   };
 
   return (
-    <div className="bg-white dark, index) => (
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Uploads</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{files.length} total files</p>
+          </div>
+        </div>
+      </div>
+
+      {files.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">File Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sequences</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Size</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+              {files.map((file, index) => (
                 <tr
                   key={index}
-                  className="hover) => onSelectFile(file)}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                  onClick={() => handleViewReport(file)}
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -109,7 +134,7 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
                       </div>
                       <div>
                         <p className="text-sm text-gray-900 dark:text-white">{file.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">FASTA file
+                        <p className="text-xs text-gray-500 dark:text-gray-400">FASTA file</p>
                       </div>
                     </div>
                   </td>
@@ -118,7 +143,7 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
                       <div className="px-3 py-1 bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100/50 dark:border-purple-800/50 rounded-lg">
                         <span className="text-sm text-gray-900 dark:text-white">{file.sequences}</span>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">sequences
+                      <span className="text-xs text-gray-500 dark:text-gray-400">sequences</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -163,7 +188,12 @@ export function RecentUploads({ onSelectFile, setActiveView }: RecentUploadsProp
       {/* Empty State */}
       {files.length === 0 && (
         <div className="p-12 text-center">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-gray-100 dark)}
+          <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <Icons.File className="w-10 h-10 text-gray-400" />
+          </div>
+          <p className="text-gray-500 dark:text-gray-400">No files uploaded yet</p>
+        </div>
+      )}
     </div>
   );
 }

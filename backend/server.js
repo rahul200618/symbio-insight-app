@@ -12,10 +12,15 @@ app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/symbio';
+// MongoDB Atlas URI with database name 'symbio'
+const uri = process.env.MONGODB_URI || 'mongodb+srv://meghanas_17:Anurag@cluster1.0b6v5qn.mongodb.net/symbio?retryWrites=true&w=majority';
+
 mongoose
-  .connect(uri)
-  .then(() => console.log('✅ MongoDB connected'))
+  .connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('✅ MongoDB Atlas connected successfully'))
   .catch((e) => console.error('❌ MongoDB connection error:', e));
 
 const sequencesRouter = require('./routes/sequences');
@@ -40,9 +45,9 @@ app.get('/api/health', (req, res) => {
     time: new Date().toISOString(),
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     version: '1.0.0',
-    uptime: '24h 15m'
+    uptime: process.uptime()
   });
 });
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));
+app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));   

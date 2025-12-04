@@ -3,14 +3,14 @@ import { Logo } from './Logo';
 import { useState, useRef, useEffect } from 'react';
 import { chatWithAI } from '../utils/aiService';
 
-export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantProps) {
+export function ChatbotAssistant({ sequences, currentView }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
-      id,
-      role,
-      content, explain genetic concepts, and suggest next steps. What would you like to know?",
-      timestamp),
+      id: '1',
+      role: 'assistant',
+      content: "Hi! I'm your AI assistant. I can help you analyze sequences, explain genetic concepts, and suggest next steps. What would you like to know?",
+      timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
@@ -19,7 +19,7 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
   const inputRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
     const userMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content,
+      content: input.trim(),
       timestamp: new Date(),
     };
 
@@ -48,11 +48,11 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
 
     try {
       const response = await chatWithAI(input, { sequences, currentView });
-      
+
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content,
+        content: response,
         timestamp: new Date(),
       };
 
@@ -100,7 +100,7 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
         >
           {/* Animated pulsing ring */}
           <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 animate-ping opacity-20" />
-          
+
           {/* DNA Helix Logo */}
           <div className="relative z-10 flex items-center justify-center">
             <svg
@@ -121,7 +121,7 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
               <circle cx="20" cy="30" r="1.5" fill="white" />
             </svg>
           </div>
-          
+
           {/* Active status indicator with glow */}
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-lg z-20">
             <span className="absolute inset-0 bg-emerald-400 rounded-full animate-pulse" />
@@ -131,7 +131,19 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark, 12 20 Q16 28, 12 36" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200 dark:border-gray-800">
+          {/* Header */}
+          <div className="p-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-2xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 40 40"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M12 4 Q8 12, 12 20 Q16 28, 12 36" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
                   <path d="M28 4 Q32 12, 28 20 Q24 28, 28 36" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
                   <line x1="12" y1="10" x2="28" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
                   <line x1="12" y1="20" x2="28" y2="20" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
@@ -142,7 +154,7 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
                 </svg>
               </div>
               <div>
-                <h3 className="text-white">DNA Assistant
+                <h3 className="text-white font-semibold">DNA Assistant</h3>
                 <p className="text-xs text-white/80 flex items-center gap-1">
                   <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                   Online & Ready
@@ -166,12 +178,16 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    message.role === 'user'
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
                       ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
-                      : 'bg-gray-100 dark, {
-                      hour,
-                      minute,
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                    }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
                     })}
                   </p>
                 </div>
@@ -180,7 +196,15 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 dark)}
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div ref={messagesEndRef} />
           </div>
@@ -188,7 +212,9 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
           {/* Quick Questions */}
           {messages.length <= 2 && (
             <div className="px-4 pb-3">
-              <p className="text-xs text-gray-500 dark, i) => (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Try asking:</p>
+              <div className="flex flex-wrap gap-2">
+                {quickQuestions.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => handleQuickQuestion(q)}
@@ -228,3 +254,4 @@ export function ChatbotAssistant({ sequences, currentView }: ChatbotAssistantPro
     </>
   );
 }
+ 

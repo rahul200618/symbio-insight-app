@@ -27,35 +27,80 @@ export default function App() {
     initAnimeJS();
   }, []);
 
+  // Log when parsedSequences changes
+  useEffect(() => {
+    console.log('App - parsedSequences updated:', parsedSequences.length, parsedSequences);
+  }, [parsedSequences]);
+
   const handleUploadComplete = (sequences) => {
+    console.log('App - handleUploadComplete called with:', sequences.length, 'sequences');
+
+    // Directly set new sequences
     setParsedSequences(sequences);
+
     // Auto-navigate to metadata view after successful parse
     setTimeout(() => {
       setActiveView('metadata');
-    }, 1000);
+    }, 800);
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark, transformOrigin, opacity, opacity, ease) => setShowRightPanel(!showRightPanel)} />
-        
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      <ScrollProgressBar progress={scrollProgress} />
+
+      {/* Left Sidebar */}
+      <Sidebar
+        activeView={activeView}
+        onViewChange={setActiveView}
+      />
+
+      {/* Top Bar */}
+      <div className="flex-1 flex flex-col">
+        <TopBar
+          selectedFile={selectedFile}
+          onInfoClick={() => setShowRightPanel(!showRightPanel)}
+        />
+
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <AnimatePresence mode="wait">
               {activeView === 'upload' && (
                 <AnimatedPage key="upload" animation="slide-up">
                   <motion.div
-                    initial={{ opacity, y, y)}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <UploadSection onUploadComplete={handleUploadComplete} />
+                  </motion.div>
+                </AnimatedPage>
+              )}
 
               {activeView === 'recent' && (
                 <AnimatedPage key="recent" animation="slide-up">
                   <motion.div
-                    initial={{ opacity, y, y)}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <RecentUploads onFileSelect={setSelectedFile} />
+                  </motion.div>
+                </AnimatedPage>
+              )}
 
               {activeView === 'metadata' && (
                 <AnimatedPage key="metadata" animation="slide-up">
                   <motion.div
                     className="flex items-center justify-between"
-                    initial={{ opacity, y, y) => setShowComparison(true)}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      Sequence Metadata
+                    </h2>
+                    {parsedSequences.length >= 2 && (
+                      <motion.button
+                        onClick={() => setShowComparison(true)}
                         className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
@@ -80,8 +125,8 @@ export default function App() {
       </div>
 
       {/* Right Panel - Slideable Sidebar */}
-      <RightPanel 
-        selectedFile={selectedFile} 
+      <RightPanel
+        selectedFile={selectedFile}
         isOpen={showRightPanel}
         onClose={() => setShowRightPanel(false)}
       />

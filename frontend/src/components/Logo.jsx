@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 
-export function Logo({ size = 'md', animate = false }: LogoProps) {
+export function Logo({ size = 'md', animate = false }) {
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -8,12 +8,12 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
   };
 
   const iconSizes = {
-    sm,
-    md,
-    lg,
+    sm: 32,
+    md: 40,
+    lg: 64,
   };
 
-  const iconSize = iconSizes[size];
+  const iconSize = iconSizes[size] || 40;
 
   const LogoContent = () => (
     <svg
@@ -21,13 +21,17 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
       height={iconSize}
       viewBox="0 0 40 40"
       fill="none"
-      xmlns="http, 12 20 Q16 28, 12 36"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Left strand */}
+      <motion.path
+        d="M12 4 Q8 12, 12 20 Q16 28, 12 36"
         stroke="url(#gradient1)"
         strokeWidth="2.5"
         strokeLinecap="round"
         fill="none"
-        initial={animate ? { pathLength, opacity: 0 } : {}}
-        animate={animate ? { pathLength, opacity: 1 } : {}}
+        initial={animate ? { pathLength: 0, opacity: 0 } : {}}
+        animate={animate ? { pathLength: 1, opacity: 1 } : {}}
         transition={{ duration: 1.5, ease: "easeInOut" }}
       />
       
@@ -38,8 +42,8 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
         strokeWidth="2.5"
         strokeLinecap="round"
         fill="none"
-        initial={animate ? { pathLength, opacity: 0 } : {}}
-        animate={animate ? { pathLength, opacity: 1 } : {}}
+        initial={animate ? { pathLength: 0, opacity: 0 } : {}}
+        animate={animate ? { pathLength: 1, opacity: 1 } : {}}
         transition={{ duration: 1.5, delay: 0.2, ease: "easeInOut" }}
       />
       
@@ -49,11 +53,15 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
         stroke="rgba(255, 255, 255, 0.8)"
         strokeWidth="1.5"
         strokeLinecap="round"
-        initial={animate ? { scaleX, opacity: 0 } : {}}
-        animate={animate ? { scaleX, opacity: 1 } : {}}
+        initial={animate ? { scaleX: 0, opacity: 0 } : {}}
+        animate={animate ? { scaleX: 1, opacity: 1 } : {}}
         transition={{ duration: 0.4, delay: 0.5 }}
       />
-      <motion.circle cx="20" cy="8" r="1.5" fill="white" 
+      <motion.circle 
+        cx="20" 
+        cy="8" 
+        r="1.5" 
+        fill="white"
         initial={animate ? { scale: 0 } : {}}
         animate={animate ? { scale: 1 } : {}}
         transition={{ duration: 0.3, delay: 0.7 }}
@@ -64,11 +72,15 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
         stroke="rgba(255, 255, 255, 0.8)"
         strokeWidth="1.5"
         strokeLinecap="round"
-        initial={animate ? { scaleX, opacity: 0 } : {}}
-        animate={animate ? { scaleX, opacity: 1 } : {}}
+        initial={animate ? { scaleX: 0, opacity: 0 } : {}}
+        animate={animate ? { scaleX: 1, opacity: 1 } : {}}
         transition={{ duration: 0.4, delay: 0.6 }}
       />
-      <motion.circle cx="20" cy="16" r="1.5" fill="white"
+      <motion.circle 
+        cx="20" 
+        cy="16" 
+        r="1.5" 
+        fill="white"
         initial={animate ? { scale: 0 } : {}}
         animate={animate ? { scale: 1 } : {}}
         transition={{ duration: 0.3, delay: 0.8 }}
@@ -79,11 +91,15 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
         stroke="rgba(255, 255, 255, 0.8)"
         strokeWidth="1.5"
         strokeLinecap="round"
-        initial={animate ? { scaleX, opacity: 0 } : {}}
-        animate={animate ? { scaleX, opacity: 1 } : {}}
+        initial={animate ? { scaleX: 0, opacity: 0 } : {}}
+        animate={animate ? { scaleX: 1, opacity: 1 } : {}}
         transition={{ duration: 0.4, delay: 0.7 }}
       />
-      <motion.circle cx="20" cy="24" r="1.5" fill="white"
+      <motion.circle 
+        cx="20" 
+        cy="24" 
+        r="1.5" 
+        fill="white"
         initial={animate ? { scale: 0 } : {}}
         animate={animate ? { scale: 1 } : {}}
         transition={{ duration: 0.3, delay: 0.9 }}
@@ -94,11 +110,15 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
         stroke="rgba(255, 255, 255, 0.8)"
         strokeWidth="1.5"
         strokeLinecap="round"
-        initial={animate ? { scaleX, opacity: 0 } : {}}
-        animate={animate ? { scaleX, opacity: 1 } : {}}
+        initial={animate ? { scaleX: 0, opacity: 0 } : {}}
+        animate={animate ? { scaleX: 1, opacity: 1 } : {}}
         transition={{ duration: 0.4, delay: 0.8 }}
       />
-      <motion.circle cx="20" cy="32" r="1.5" fill="white"
+      <motion.circle 
+        cx="20" 
+        cy="32" 
+        r="1.5" 
+        fill="white"
         initial={animate ? { scale: 0 } : {}}
         animate={animate ? { scale: 1 } : {}}
         transition={{ duration: 0.3, delay: 1.0 }}
@@ -122,12 +142,18 @@ export function Logo({ size = 'md', animate = false }: LogoProps) {
     return (
       <motion.div
         className={`${sizeClasses[size]} rounded-xl bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg`}
-        initial={{ scale, rotate, rotate,
-          stiffness,
-          damping,
-          duration,
-          rotate, -5, 5, -5, 0],
-          transition);
+        initial={{ scale: 0.8, rotate: -5 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 200,
+          damping: 20,
+          duration: 0.5
+        }}
+      >
+        <LogoContent />
+      </motion.div>
+    );
   }
 
   return (

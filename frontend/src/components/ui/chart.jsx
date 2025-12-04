@@ -1,23 +1,28 @@
 "use client";
 
-import * from "react";
-import * from "recharts@2.15.2";
+import * as React from "react";
+import * as RechartsPrimitive from "recharts";
 
 import { cn } from "./utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" };
 
+type ChartConfig = {
+  [k: string]: {
+    label?: React.ReactNode;
     icon?: React.ComponentType;
   } & (
-    | { color?; theme?: never }
-    | { color?; theme, string> }
+    | { color?: string; theme?: never }
+    | { color?: never; theme: Record<keyof typeof THEMES, string> }
   );
 };
 
+type ChartContextProps = {
+  config: ChartConfig;
 };
 
-const ChartContext = React.createContext(null);
+const ChartContext = React.createContext < ChartContextProps | null > (null);
 
 function useChart() {
   const context = React.useContext(ChartContext);
@@ -35,8 +40,12 @@ function ChartContainer({
   children,
   config,
   ...props
-}: React.ComponentProps & {
-  config) {
+}: React.ComponentProps<"div"> & {
+  config: ChartConfig;
+  children: React.ComponentProps<
+    typeof RechartsPrimitive.ResponsiveContainer
+  >["children"];
+}) {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -46,7 +55,7 @@ function ChartContainer({
         data-slot="chart"
         data-chart={chartId}
         className={cn(
-          "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+          "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-sector]:outline-none [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-none",
           className,
         )}
         {...props}
@@ -60,7 +69,7 @@ function ChartContainer({
   );
 }
 
-const ChartStyle = ({ id, config }: { id) => {
+const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color,
   );
@@ -72,18 +81,18 @@ const ChartStyle = ({ id, config }: { id) => {
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html)
+        __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme typeof itemConfig.theme] ||
-      itemConfig.color;
-    return color ? `  --color-${key}: ${color};` ;
-  })
-  .join("\n")}
+                .map(([key, itemConfig]) => {
+                  const color =
+                    itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+                    itemConfig.color;
+                  return color ? `  --color-${key}: ${color};` : null;
+                })
+                .join("\n")}
 }
 `,
           )
@@ -109,13 +118,13 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps &
-  React.ComponentProps & {
-    hideLabel?;
-    hideIndicator?;
+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  React.ComponentProps<"div"> & {
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
     indicator?: "line" | "dot" | "dashed";
-    nameKey?;
-    labelKey?;
+    nameKey?: string;
+    labelKey?: string;
   }) {
   const { config } = useChart();
 
@@ -129,7 +138,7 @@ function ChartTooltipContent({
     const itemConfig = getPayloadConfigFromPayload(config, item, key);
     const value =
       !labelKey && typeof label === "string"
-        ? config[label typeof config]?.label || label
+        ? config[label as keyof typeof config]?.label || label
         : itemConfig?.label;
 
     if (labelFormatter) {
@@ -185,27 +194,28 @@ function ChartTooltipContent({
             >
               {formatter && item?.value !== undefined && item.name ? (
                 formatter(item.value, item.name, item, index, item.payload)
-              )
+              ) : (
                 <>
                   {itemConfig?.icon ? (
                     <itemConfig.icon />
-                  )
+                  ) : (
                     !hideIndicator && (
                       <div
                         className={cn(
-                          "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+                          "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
                           {
-                            "h-2.5 w-2.5" === "dot",
-                            "w-1" === "line",
-                            "w-0 border-[1.5px] border-dashed bg-transparent" === "dashed",
+                            "h-2.5 w-2.5": indicator === "dot",
+                            "w-1": indicator === "line",
+                            "w-0 border-[1.5px] border-dashed bg-transparent":
+                              indicator === "dashed",
                             "my-0.5": nestLabel && indicator === "dashed",
                           },
                         )}
                         style={
                           {
-                            "--color-bg",
-                            "--color-border",
-                          }.CSSProperties
+                            "--color-bg": indicatorColor,
+                            "--color-border": indicatorColor,
+                          } as React.CSSProperties
                         }
                       />
                     )
@@ -246,10 +256,10 @@ function ChartLegendContent({
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: React.ComponentProps &
-  Pick & {
-    hideIcon?;
-    nameKey?;
+}: React.ComponentProps<"div"> &
+  Pick<React.ComponentProps<typeof RechartsPrimitive.Legend>, "payload" | "verticalAlign"> & {
+    hideIcon?: boolean;
+    nameKey?: string;
   }) {
   const { config } = useChart();
 
@@ -278,11 +288,11 @@ function ChartLegendContent({
           >
             {itemConfig?.icon && !hideIcon ? (
               <itemConfig.icon />
-            )
+            ) : (
               <div
                 className="h-2 w-2 shrink-0 rounded-[2px]"
                 style={{
-                  backgroundColor,
+                  backgroundColor: item.color,
                 }}
               />
             )}
@@ -296,9 +306,9 @@ function ChartLegendContent({
 
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
-  config,
-  payload,
-  key,
+  config: ChartConfig,
+  payload: unknown,
+  key: string,
 ) {
   if (typeof payload !== "object" || payload === null) {
     return undefined;
@@ -306,31 +316,31 @@ function getPayloadConfigFromPayload(
 
   const payloadPayload =
     "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
+      typeof payload.payload === "object" &&
+      payload.payload !== null
       ? payload.payload
-      ;
+      : undefined;
 
-  let configLabelKey = key;
+  let configLabelKey: string = key;
 
   if (
     key in payload &&
-    typeof payload[key typeof payload] === "string"
+    typeof payload[key as keyof typeof payload] === "string"
   ) {
-    configLabelKey = payload[key typeof payload];
+    configLabelKey = payload[key as keyof typeof payload] as string;
   } else if (
     payloadPayload &&
     key in payloadPayload &&
-    typeof payloadPayload[key typeof payloadPayload] === "string"
+    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
   ) {
     configLabelKey = payloadPayload[
-      key typeof payloadPayload
-    ];
+      key as keyof typeof payloadPayload
+    ] as string;
   }
 
   return configLabelKey in config
     ? config[configLabelKey]
-    : config[key typeof config];
+    : config[key as keyof typeof config];
 }
 
 export {

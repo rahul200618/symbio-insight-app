@@ -16,8 +16,8 @@ export function UploadSlide() {
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div>
-              <h1 className="text-gray-900 mb-2">Upload FASTA Files
-              <p className="text-gray-600">Analyze DNA sequences and generate insights
+              <h1 className="text-gray-900 mb-2">Upload FASTA Files</h1>
+              <p className="text-gray-600">Analyze DNA sequences and generate insights</p>
             </div>
 
             {/* Upload Card */}
@@ -29,19 +29,20 @@ export function UploadSlide() {
                       <Icons.Upload className="w-10 h-10 text-white" />
                     </div>
                     
-                    <h3 className="text-gray-900 mb-2">Drag & drop your FASTA file
-                    <p className="text-gray-500 mb-4">or click to browse
+                    <h3 className="text-gray-900 mb-2">Drag & drop your FASTA file</h3>
+                    <p className="text-gray-500 mb-4">or click to browse</p>
                     
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200">
                       <Icons.File className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">Accepts .fasta or .fa files
+                      <span className="text-sm text-gray-600">Accepts .fasta or .fa files</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Quick Access */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="p-6 bg-white rounded-xl border border-gray-100 hover);
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

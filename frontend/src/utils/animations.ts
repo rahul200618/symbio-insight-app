@@ -78,7 +78,7 @@ export const animeAnimations = {
   /**
    * Stagger animation for multiple elements
    */
-  stagger: (targets, delay = 0) => {
+  stagger: (targets: any, delay = 0) => {
     const anime = (window as any).anime;
     if (!anime) return;
 

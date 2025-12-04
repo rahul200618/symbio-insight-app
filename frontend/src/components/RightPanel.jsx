@@ -1,20 +1,20 @@
 import { Icons } from './Icons';
 import { useState } from 'react';
 
-const XIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+const XIcon = ({ className = "w-6 h-6" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
-export function RightPanel({ selectedFile, isOpen, onClose }: RightPanelProps) {
+export function RightPanel({ selectedFile, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('recent');
 
   const recentFiles = [
-    { name: 'genome_seq_01.fasta', sequences, time: '2 hours ago' },
-    { name: 'protein_analysis.fa', sequences, time: '5 hours ago' },
-    { name: 'mitochondrial_dna.fasta', sequences, time: '1 day ago' },
-    { name: 'viral_genome.fa', sequences, time: '2 days ago' },
+    { name: 'genome_seq_01.fasta', sequences: 245, time: '2 hours ago' },
+    { name: 'protein_analysis.fa', sequences: 189, time: '5 hours ago' },
+    { name: 'mitochondrial_dna.fasta', sequences: 156, time: '1 day ago' },
+    { name: 'viral_genome.fa', sequences: 312, time: '2 days ago' },
   ];
 
   const activities = [
@@ -42,8 +42,8 @@ export function RightPanel({ selectedFile, isOpen, onClose }: RightPanelProps) {
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between">
           <div>
-            <h3 className="text-gray-900 dark:text-white">File Information
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Recent activity and details
+            <h3 className="text-gray-900 dark:text-white">File Information</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Recent activity and details</p>
           </div>
           <button 
             onClick={onClose}
@@ -77,7 +77,17 @@ export function RightPanel({ selectedFile, isOpen, onClose }: RightPanelProps) {
               {recentFiles.map((file, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-lg bg-purple-50/50 dark))}
+                  className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{file.sequences} sequences</p>
+                    </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{file.time}</p>
+                  </div>
+                </div>
+              ))}
             </>
           )}
 
@@ -86,7 +96,17 @@ export function RightPanel({ selectedFile, isOpen, onClose }: RightPanelProps) {
               {activities.map((activity, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-lg bg-gray-50 dark))}
+                  className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{activity.action}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{activity.file}</p>
+                    </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
             </>
           )}
 
@@ -94,9 +114,23 @@ export function RightPanel({ selectedFile, isOpen, onClose }: RightPanelProps) {
             <div className="space-y-4">
               {selectedFile ? (
                 <>
-                  <div className="p-4 rounded-lg bg-purple-50/50 dark)
+                  <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">File Details</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Name: {selectedFile.name || 'N/A'}</p>
+                    {selectedFile.size && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Size: {selectedFile.size}</p>
+                    )}
+                    {selectedFile.sequences && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Sequences: {selectedFile.sequences}</p>
+                    )}
+                  </div>
+                </>
+              ) : (
                 <div className="p-8 text-center">
-                  <Icons.FileText className="w-12 h-12 text-gray-300 dark)}
+                  <Icons.FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No file selected</p>
+                </div>
+              )}
             </div>
           )}
         </div>
