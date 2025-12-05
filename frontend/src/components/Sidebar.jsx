@@ -1,11 +1,17 @@
 import { Icons } from './Icons';
 import { motion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 
 export function Sidebar({ activeView }) {
   const location = useLocation();
   const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully');
+  };
 
   const navItems = [
     { id: 'dashboard', label: 'Upload FASTA', icon: 'Upload', path: '/dashboard' },
@@ -73,78 +79,18 @@ export function Sidebar({ activeView }) {
         })}
       </nav>
 
-      {/* Storage Info */}
-      <div className="p-4 m-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
-            <Icons.BarChart className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Storage Used</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">24 GB of 50 GB</p>
-          </div>
-        </div>
-        <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: '48%' }}
-            transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
-          />
-        </div>
-      </div>
-
-      {/* Bottom Quick Actions with Logout */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-        {/* Logout Button */}
+      {/* Logout Button */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <motion.button
-          onClick={() => logout()}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-red-600 dark:text-red-400"
-          whileHover={{ scale: 1.02 }}
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:shadow-lg hover:shadow-red-500/30 transition-all font-bold shadow-md"
+          style={{ color: '#ffffff', backgroundColor: '#ef4444' }}
+          whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Icons.X className="w-4 h-4" />
-          <span className="text-sm font-medium">Logout</span>
+          <Icons.LogOut className="w-5 h-5" style={{ color: '#ffffff', fill: '#ffffff', stroke: '#ffffff' }} />
+          <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '15px' }}>Logout</span>
         </motion.button>
-
-        {/* Quick Actions */}
-        <div className="flex items-center justify-around gap-2 pt-2">
-          <motion.button
-            className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Quick action 1"
-          >
-            <Icons.Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          </motion.button>
-
-          <motion.button
-            className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Quick action 2"
-          >
-            <Icons.BarChart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          </motion.button>
-
-          <motion.button
-            className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Quick action 3"
-          >
-            <Icons.FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          </motion.button>
-
-          <motion.button
-            className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Quick action 4"
-          >
-            <Icons.Activity className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          </motion.button>
-        </div>
       </div>
     </div>
   );

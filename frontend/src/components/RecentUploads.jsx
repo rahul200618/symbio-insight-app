@@ -1,5 +1,8 @@
 import { Icons } from './Icons';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function RecentUploads({ onFileSelect }) {
   // Helper to generate mock sequence data
@@ -127,6 +130,86 @@ export function RecentUploads({ onFileSelect }) {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportAll = () => {
+    try {
+      toast.loading('Generating PDF...', { id: 'pdf-export' });
+
+      const doc = new jsPDF();
+
+      // Add title
+      doc.setFontSize(20);
+      doc.setTextColor(124, 58, 237); // Purple color
+      doc.text('Symbio-NLM - Recent Uploads Report', 14, 22);
+
+      // Add generation date
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 14, 30);
+
+      // Add summary stats
+      doc.setFontSize(12);
+      doc.setTextColor(0);
+      doc.text(`Total Files: ${files.length}`, 14, 40);
+      const totalSequences = files.reduce((sum, file) => sum + file.sequences, 0);
+      doc.text(`Total Sequences: ${totalSequences}`, 14, 47);
+
+      // Prepare table data
+      const tableData = files.map(file => [
+        file.name,
+        file.sequences.toString(),
+        file.date,
+        file.size
+      ]);
+
+      // Add table
+      doc.autoTable({
+        head: [['File Name', 'Sequences', 'Upload Date', 'File Size']],
+        body: tableData,
+        startY: 55,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [124, 58, 237], // Purple color
+          textColor: 255,
+          fontSize: 11,
+          fontStyle: 'bold'
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 4
+        },
+        columnStyles: {
+          0: { cellWidth: 70 },
+          1: { cellWidth: 30, halign: 'center' },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 30, halign: 'right' }
+        },
+        margin: { left: 14, right: 14 }
+      });
+
+      // Add footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Save the PDF
+      doc.save(`symbio-nlm-uploads-${new Date().getTime()}.pdf`);
+
+      toast.success('PDF exported successfully!', { id: 'pdf-export' });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF', { id: 'pdf-export' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Main Header */}
@@ -142,8 +225,9 @@ export function RecentUploads({ onFileSelect }) {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Files</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{files.length} total uploads</p>
           </div>
-          <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all">
-            Export All
+          <button onClick={handleExportAll} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+            <Icons.Download className="w-4 h-4" />
+            Export All to PDF
           </button>
         </div>
 

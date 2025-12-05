@@ -254,24 +254,26 @@ export function UploadSection({ onUploadComplete }) {
               </div>
 
               {/* Accept/Reject Buttons */}
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <motion.button
                   onClick={handleAccept}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-1 py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
+                  style={{ color: '#ffffff' }}
                 >
-                  <Icons.CheckCircle className="w-5 h-5" />
-                  Accept & Continue
+                  <Icons.CheckCircle className="w-5 h-5" style={{ color: '#ffffff' }} />
+                  <span style={{ color: '#ffffff', fontWeight: 'bold' }}>Accept & Continue</span>
                 </motion.button>
                 <motion.button
                   onClick={handleReject}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
+                  style={{ color: '#ffffff !important', backgroundColor: '#ef4444' }}
                 >
-                  <Icons.X className="w-5 h-5" />
-                  Reject & Upload Again
+                  <Icons.X className="w-5 h-5" style={{ color: '#ffffff', fill: '#ffffff', stroke: '#ffffff' }} />
+                  <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '14px' }}>Reject & Upload Again</span>
                 </motion.button>
               </div>
             </motion.div>

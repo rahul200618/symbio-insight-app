@@ -35,6 +35,8 @@
             "embla-carousel-react": "^8.6.0",
             "firebase": "*",
             "input-otp": "^1.4.2",
+            "jspdf": "^3.0.4",
+            "jspdf-autotable": "^5.0.2",
             "lucide-react": "^0.487.0",
             "motion": "*",
             "next-themes": "^0.4.6",

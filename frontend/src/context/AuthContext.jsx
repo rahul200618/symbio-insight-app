@@ -66,6 +66,9 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('symbio_nlm_auth_token');
+        localStorage.removeItem('symbio_nlm_remember');
+        // Force redirect to login
+        window.location.href = '/login';
     };
 
     const value = {
