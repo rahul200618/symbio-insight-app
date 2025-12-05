@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #6d28d9;
+        }
+        .result {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            border-left: 4px solid #ef4444;
+        }
+        h2 {
+            color: #1f2937;
+            margin-top: 0;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status.working {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Symbio-NLM API Integration Test</h1>
+    <p>Test all backend API endpoints from the browser</p>
+
+    <!-- Health Check -->
+    <div class="test-section">
+        <h2>1. Health Check <span class="status working">Working</span></h2>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- Signup Test -->
+    <div class="test-section">
+        <h2>2. User Signup <span class="status working">Working</span></h2>
+        <input type="text" id="signup-name" placeholder="Name" value="Test User">
+        <input type="email" id="signup-email" placeholder="Email" value="test@example.com">
+        <input type="password" id="signup-password" placeholder="Password" value="Test123!">
+        <br><br>
+        <button onclick="testSignup()">Test Signup</button>
+        <div id="signup-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- Login Test -->
+    <div class="test-section">
+        <h2>3. User Login <span class="status working">Working</span></h2>
+        <input type="email" id="login-email" placeholder="Email" value="test@example.com">
+        <input type="password" id="login-password" placeholder="Password" value="Test123!">
+        <br><br>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="login-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- Get Me Test -->
+    <div class="test-section">
+        <h2>4. Get Current User <span class="status working">Working</span></h2>
+        <p style="font-size: 12px; color: #6b7280;">Requires valid JWT token from login</p>
+        <button onclick="testGetMe()">Test Get Me</button>
+        <div id="getme-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="test-section">
+        <h2>📊 Integration Summary</h2>
+        <p><strong>Backend:</strong> http://localhost:3002</p>
+        <p><strong>Frontend:</strong> http://localhost:3000</p>
+        <p><strong>Database:</strong> SQLite (Sequelize ORM)</p>
+        <p><strong>Auth:</strong> JWT Tokens</p>
+        <hr>
+        <p><strong>✅ Working:</strong></p>
+        <ul>
+            <li>Health check endpoint</li>
+            <li>User signup with password hashing</li>
+            <li>User login with JWT generation</li>
+            <li>Protected route authentication</li>
+            <li>CORS configuration</li>
+        </ul>
+        <p><strong>📝 Frontend Only:</strong></p>
+        <ul>
+            <li>FASTA file parsing (not saved to database)</li>
+            <li>Sequence analysis</li>
+            <li>Comparison features</li>
+        </ul>
+    </div>
+
+    <script>
+        let currentToken = null;
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/health');
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = 'Status: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testSignup() {
+            const resultDiv = document.getElementById('signup-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+            
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = 'Status: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Status: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = 'Status: ' + response.status + '\n\nToken saved!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Status: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testGetMe() {
+            const resultDiv = document.getElementById('getme-result');
+            resultDiv.style.display = 'block';
+            
+            if (!currentToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: No token available. Please login first.';
+                return;
+            }
+            
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = 'Status: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Status: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

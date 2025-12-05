@@ -1,7 +1,8 @@
 import { Icons } from './Icons';
 import { QuickAccessCards } from './QuickAccessCards';
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import { parseFastaFile, calculateAggregateStats } from '../utils/fastaParser.js';
 import { useScrollAnimation } from '../hooks/useScrollAnimation.js';
 import { animeAnimations } from '../utils/animations.js';
@@ -13,6 +14,7 @@ export function UploadSection({ onUploadComplete }) {
   const [isParsing, setIsParsing] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState(null);
+  const [showReview, setShowReview] = useState(false);
 
   const uploadBoxRef = useScrollAnimation('scale-up', 0);
 
@@ -43,6 +45,7 @@ export function UploadSection({ onUploadComplete }) {
       processFile(file);
     } else {
       setError('Please upload a valid .fasta or .fa file');
+      toast.error('Please upload a valid .fasta or .fa file');
     }
   };
 
@@ -56,6 +59,7 @@ export function UploadSection({ onUploadComplete }) {
   const processFile = async (file) => {
     setError(null);
     setIsUploading(true);
+    setShowReview(false);
 
     try {
       const text = await file.text();
@@ -80,16 +84,37 @@ export function UploadSection({ onUploadComplete }) {
 
       setParsedData(sequences);
       setIsParsing(false);
+      setShowReview(true); // Show review UI with accept/reject
 
-      if (onUploadComplete) {
-        onUploadComplete(sequences);
-      }
+      toast.success(`Parsed ${sequences.length} sequence(s) successfully`);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
       setIsUploading(false);
       setIsParsing(false);
     }
+  };
+
+  const handleAccept = () => {
+    if (onUploadComplete && parsedData) {
+      onUploadComplete(parsedData);
+      toast.success('File accepted! Navigating to metadata...');
+      setShowReview(false);
+    }
+  };
+
+  const handleReject = () => {
+    setUploadedFile(null);
+    setParsedData(null);
+    setShowReview(false);
+    setError(null);
+    // Reset file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.value = '';
+    }
+    toast.info('File rejected. Upload another file to continue.');
   };
 
   return (
@@ -104,7 +129,7 @@ export function UploadSection({ onUploadComplete }) {
         </p>
       </div>
 
-      {/* Upload Box - EXACT SIZE */}
+      {/* Upload Box */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-12" ref={uploadBoxRef}>
         <div
           className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
@@ -120,6 +145,7 @@ export function UploadSection({ onUploadComplete }) {
             accept=".fasta,.fa"
             onChange={handleFileSelect}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={showReview}
           />
 
           <div className="pointer-events-none flex flex-col items-center">
@@ -179,6 +205,78 @@ export function UploadSection({ onUploadComplete }) {
             </div>
           </div>
         )}
+
+        {/* Review Section with Accept/Reject */}
+        <AnimatePresence>
+          {showReview && uploadedFile && parsedData && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mt-6 p-6 rounded-xl bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-200 dark:border-green-800"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                    <Icons.CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      File Parsed Successfully
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Review the details and accept or reject
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* File Info */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Filename</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{uploadedFile.name}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">File Size</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{uploadedFile.size}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequences Found</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{parsedData.length}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Length</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {uploadedFile.stats.totalLength.toLocaleString()} bp
+                  </p>
+                </div>
+              </div>
+
+              {/* Accept/Reject Buttons */}
+              <div className="flex gap-3">
+                <motion.button
+                  onClick={handleAccept}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Icons.CheckCircle className="w-5 h-5" />
+                  Accept & Continue
+                </motion.button>
+                <motion.button
+                  onClick={handleReject}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Icons.X className="w-5 h-5" />
+                  Reject & Upload Again
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Quick Access Cards */}

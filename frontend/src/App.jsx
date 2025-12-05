@@ -113,7 +113,7 @@ function AppRoutes() {
         <Route path="/recent" element={<RecentPage onFileSelect={(file) => {
           setSelectedFile(file);
           if (file.data) setParsedSequences(file.data);
-        }} />} />
+        }} parsedSequences={parsedSequences} />} />
         <Route path="/metadata" element={<MetadataPage parsedSequences={parsedSequences} />} />
         <Route path="/report" element={<ReportPage parsedSequences={parsedSequences} />} />
       </Route>

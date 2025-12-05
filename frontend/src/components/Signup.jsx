@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import { Icons } from './Icons';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/auth';
@@ -25,37 +26,50 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
 
         // Validation
         if (!name.trim()) {
-            setLocalError('Please enter your name');
+            const error = 'Please enter your name';
+            setLocalError(error);
+            toast.error(error);
             return;
         }
 
         if (!validateEmail(email)) {
-            setLocalError('Please enter a valid email address');
+            const error = 'Please enter a valid email address';
+            setLocalError(error);
+            toast.error(error);
             return;
         }
 
         if (!passwordValidation.isValid) {
-            setLocalError('Password must be at least 8 characters long');
+            const error = 'Password must be at least 8 characters long';
+            setLocalError(error);
+            toast.error(error);
             return;
         }
 
         if (password !== confirmPassword) {
-            setLocalError('Passwords do not match');
+            const error = 'Passwords do not match';
+            setLocalError(error);
+            toast.error(error);
             return;
         }
 
         if (!agreeToTerms) {
-            setLocalError('Please agree to the Terms and Conditions');
+            const error = 'Please agree to the Terms and Conditions';
+            setLocalError(error);
+            toast.error(error);
             return;
         }
 
         try {
             const result = await signup(email, password, name);
             if (result) {
+                toast.success('Account created successfully! Welcome to Symbio-NLM.');
                 onSignupSuccess(result);
             }
         } catch (err) {
-            setLocalError(err.message || 'Registration failed. Please try again.');
+            const errorMsg = err.message || 'Registration failed. Please try again.';
+            setLocalError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 

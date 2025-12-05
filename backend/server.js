@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const compression = require('compression');
 const { connectDB } = require('./config/database');
 
 dotenv.config();
@@ -27,6 +28,9 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Compression middleware - compress all responses
+app.use(compression());
 
 // Connect to SQLite database
 connectDB();

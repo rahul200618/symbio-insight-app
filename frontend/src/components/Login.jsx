@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import { Icons } from './Icons';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,10 +23,13 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                 if (rememberMe) {
                     localStorage.setItem('symbio_nlm_remember', 'true');
                 }
+                toast.success('Login successful! Welcome back.');
                 onLoginSuccess(result);
             }
         } catch (err) {
-            setLocalError(err.message || 'Login failed. Please try again.');
+            const errorMsg = err.message || 'Login failed. Please try again.';
+            setLocalError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 
