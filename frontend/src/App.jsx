@@ -14,8 +14,11 @@ import { AnimatedPage, ScrollProgressBar } from './components/AnimatedPage';
 import { Icons } from './components/Icons';
 import { initAnimeJS } from './utils/animations.js';
 import { useScrollProgress } from './hooks/useScrollAnimation.js';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Login } from './components/Login';
+import { Signup } from './components/Signup';
 
-export default function App() {
+function AuthenticatedApp() {
   const [activeView, setActiveView] = useState('upload');
   const [selectedFile, setSelectedFile] = useState(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
@@ -148,5 +151,62 @@ export default function App() {
         />
       )}
     </div>
+  );
+}
+
+function AuthWrapper() {
+  const { user, loading } = useAuth();
+  const [authView, setAuthView] = useState('login'); // 'login' or 'signup'
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AnimatePresence mode="wait">
+        {authView === 'login' ? (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Login
+              onLoginSuccess={() => { }}
+              onSwitchToSignup={() => setAuthView('signup')}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Signup
+              onSignupSuccess={() => { }}
+              onSwitchToLogin={() => setAuthView('login')}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  return <AuthenticatedApp />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AuthWrapper />
+    </AuthProvider>
   );
 }

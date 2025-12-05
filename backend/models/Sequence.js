@@ -1,41 +1,74 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const SequenceSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    header: { type: String, default: '' },
-    sequence: { type: String, required: true },
-    length: { type: Number, required: true },
-    gcContent: { type: Number, required: true },
-    orfDetected: { type: Boolean, default: false },
-    orfCount: { type: Number, default: 0 },
-    orfs: [{
-      start: { type: Number },
-      end: { type: Number },
-      length: { type: Number },
-      sequence: { type: String },
-      frame: { type: Number }
-    }],
-    nucleotideCounts: {
-      A: { type: Number, default: 0 },
-      T: { type: Number, default: 0 },
-      G: { type: Number, default: 0 },
-      C: { type: Number, default: 0 }
-    },
-    filename: { type: String, required: true },
-    title: { type: String },
-    description: { type: String },
-    metrics: {
-      length: { type: Number },
-      gcContent: { type: Number },
-      orfDetected: { type: Boolean },
-      orfCount: { type: Number }
-    },
-    interpretation: { type: String },
-    aiSummary: { type: String },
-    cached: { type: Boolean, default: false }
+const Sequence = sequelize.define('Sequence', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  { timestamps: true }
-);
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  header: {
+    type: DataTypes.STRING,
+    defaultValue: ''
+  },
+  sequence: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  length: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  gcContent: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+  orfDetected: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  orfCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  orfs: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
+  nucleotideCounts: {
+    type: DataTypes.JSON,
+    defaultValue: { A: 0, T: 0, G: 0, C: 0 }
+  },
+  filename: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  title: {
+    type: DataTypes.STRING
+  },
+  description: {
+    type: DataTypes.TEXT
+  },
+  metrics: {
+    type: DataTypes.JSON
+  },
+  interpretation: {
+    type: DataTypes.TEXT
+  },
+  aiSummary: {
+    type: DataTypes.TEXT
+  },
+  cached: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  }
+}, {
+  timestamps: true,
+  tableName: 'sequences'
+});
 
-module.exports = mongoose.model('Sequence', SequenceSchema);
+module.exports = Sequence;

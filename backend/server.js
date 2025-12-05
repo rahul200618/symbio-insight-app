@@ -1,53 +1,76 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const mongoose = require('mongoose');
+const { connectDB } = require('./config/database');
 
 dotenv.config();
 const app = express();
 
-// Allow configuring frontend origin via env for dev (fallbacks to common dev ports)
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-app.use(cors({ origin: FRONTEND_URL }));
+// Allow configuring frontend origin via env for dev (support both common ports)
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// MongoDB Atlas URI with database name 'symbio'
-const uri = process.env.MONGODB_URI || 'mongodb+srv://meghanas_17:Anurag@cluster1.0b6v5qn.mongodb.net/symbio?retryWrites=true&w=majority';
-
-mongoose
-  .connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('✅ MongoDB Atlas connected successfully'))
-  .catch((e) => console.error('❌ MongoDB connection error:', e));
+// Connect to SQLite database
+connectDB();
 
 const sequencesRouter = require('./routes/sequences');
+const authRouter = require('./routes/auth');
+
 app.use('/api/sequences', sequencesRouter);
+app.use('/api/auth', authRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
     message: 'Symbio-NLM Backend API',
     version: '1.0.0',
+    database: 'SQLite',
     endpoints: {
       health: '/api/health',
-      sequences: '/api/sequences'
+      sequences: '/api/sequences',
+      auth: '/api/auth'
     }
   });
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const { sequelize } = require('./config/database');
+  let dbStatus = 'disconnected';
+  try {
+    await sequelize.authenticate();
+    dbStatus = 'connected';
+  } catch (error) {
+    dbStatus = 'disconnected';
+  }
+
   res.json({
     status: 'ok',
     time: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    database: dbStatus,
+    databaseType: 'SQLite',
     version: '1.0.0',
     uptime: process.uptime()
   });
 });
 
-const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));   
+const port = process.env.PORT || 3002;
+app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));

@@ -1,35 +1,32 @@
-const mongoose = require('mongoose');
+const { Sequelize } = require('sequelize');
+const path = require('path');
+
+// Create SQLite database in backend directory
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: path.join(__dirname, '..', 'database.sqlite'),
+  logging: false, // Set to console.log to see SQL queries
+});
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/symbio-nlm';
-    
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await sequelize.authenticate();
+    console.log('✅ SQLite database connected successfully');
 
-    console.log('✅ MongoDB Connected Successfully');
-    console.log(`   Database: ${mongoose.connection.name}`);
-    console.log(`   Host: ${mongoose.connection.host}`);
+    // Sync all models
+    await sequelize.sync({ alter: true });
+    console.log('   Database synced');
   } catch (error) {
-    console.error('❌ MongoDB Connection Error:', error.message);
+    console.error('❌ Database connection error:', error.message);
     process.exit(1);
   }
 };
 
-mongoose.connection.on('disconnected', () => {
-  console.log('⚠️  MongoDB Disconnected');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('❌ MongoDB Error:', err);
-});
-
+// Handle graceful shutdown
 process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('MongoDB connection closed due to app termination');
+  await sequelize.close();
+  console.log('Database connection closed due to app termination');
   process.exit(0);
 });
 
-module.exports = connectDB;
+module.exports = { sequelize, connectDB };

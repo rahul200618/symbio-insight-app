@@ -1,7 +1,7 @@
 // AI Service Integration
 // Supports OpenAI GPT-4, Anthropic Claude, and other AI models
 
-const AI_API_URL = 'http://localhost:3001/api/ai'; // Backend AI endpoint
+const AI_API_URL = 'http://localhost:3002/api/ai'; // Backend AI endpoint
 
 /**
  * Generate AI-powered sequence annotation
