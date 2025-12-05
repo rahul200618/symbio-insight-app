@@ -83,7 +83,13 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <RecentUploads onFileSelect={setSelectedFile} />
+                    <RecentUploads onFileSelect={(file) => {
+                      setSelectedFile(file);
+                      if (file.data) {
+                        setParsedSequences(file.data);
+                      }
+                      setActiveView('report');
+                    }} />
                   </motion.div>
                 </AnimatedPage>
               )}

@@ -2,6 +2,30 @@ import { Icons } from './Icons';
 import { useState } from 'react';
 
 export function RecentUploads({ onFileSelect }) {
+  // Helper to generate mock sequence data
+  const generateMockData = (count, fileName) => {
+    return Array.from({ length: count }, (_, i) => ({
+      id: `seq_${i}`,
+      sequenceName: `${fileName}_seq_${i + 1}`,
+      sequenceLength: Math.floor(Math.random() * 1000) + 100,
+      gcPercentage: Math.floor(Math.random() * 40) + 30,
+      nucleotideCounts: {
+        A: Math.floor(Math.random() * 100),
+        T: Math.floor(Math.random() * 100),
+        G: Math.floor(Math.random() * 100),
+        C: Math.floor(Math.random() * 100),
+      },
+      orfs: Array.from({ length: Math.floor(Math.random() * 3) }, () => ({
+        start: 0,
+        end: 100,
+        length: 100,
+        sequence: 'ATGC'
+      })),
+      rawSequence: 'ATGC'.repeat(20),
+      timestamp: new Date().toISOString(),
+    }));
+  };
+
   const [files, setFiles] = useState([
     {
       id: '1',
@@ -9,6 +33,7 @@ export function RecentUploads({ onFileSelect }) {
       sequences: 245,
       date: 'Nov 27, 2024 14:32',
       size: '2.4 MB',
+      data: generateMockData(245, 'genome_sequence_01')
     },
     {
       id: '2',
@@ -16,6 +41,7 @@ export function RecentUploads({ onFileSelect }) {
       sequences: 189,
       date: 'Nov 27, 2024 09:15',
       size: '1.8 MB',
+      data: generateMockData(189, 'protein_coding_regions')
     },
     {
       id: '3',
@@ -23,6 +49,7 @@ export function RecentUploads({ onFileSelect }) {
       sequences: 156,
       date: 'Nov 26, 2024 16:45',
       size: '956 KB',
+      data: generateMockData(156, 'mitochondrial_dna_analysis')
     },
     {
       id: '4',
@@ -30,6 +57,7 @@ export function RecentUploads({ onFileSelect }) {
       sequences: 312,
       date: 'Nov 26, 2024 11:20',
       size: '3.7 MB',
+      data: generateMockData(312, 'viral_genome_complete')
     },
     {
       id: '5',
@@ -37,6 +65,7 @@ export function RecentUploads({ onFileSelect }) {
       sequences: 98,
       date: 'Nov 25, 2024 13:08',
       size: '1.5 MB',
+      data: generateMockData(98, 'bacterial_plasmid_seq')
     },
     {
       id: '6',
@@ -44,6 +73,7 @@ export function RecentUploads({ onFileSelect }) {
       sequences: 421,
       date: 'Nov 25, 2024 08:55',
       size: '5.2 MB',
+      data: generateMockData(421, 'chromosomal_region_22')
     },
   ]);
 
