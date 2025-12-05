@@ -1,13 +1,27 @@
 import { Icons } from './Icons';
 import { motion } from 'motion/react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-export function Sidebar({ activeView, onViewChange }) {
+export function Sidebar({ activeView }) {
+  const location = useLocation();
+  const { logout } = useAuth();
+
   const navItems = [
-    { id: 'upload', label: 'Upload FASTA', icon: 'Upload' },
-    { id: 'recent', label: 'Recent Uploads', icon: 'Clock' },
-    { id: 'metadata', label: 'Metadata Dashboard', icon: 'BarChart' },
-    { id: 'report', label: 'Generate Report', icon: 'FileText' },
+    { id: 'dashboard', label: 'Upload FASTA', icon: 'Upload', path: '/dashboard' },
+    { id: 'recent', label: 'Recent Uploads', icon: 'Clock', path: '/recent' },
+    { id: 'metadata', label: 'Metadata Dashboard', icon: 'BarChart', path: '/metadata' },
+    { id: 'report', label: 'Generate Report', icon: 'FileText', path: '/report' },
   ];
+
+  // Determine active item based on current location
+  const getActiveItem = () => {
+    const path = location.pathname;
+    const activeItem = navItems.find(item => path.includes(item.id));
+    return activeItem?.id || activeView;
+  };
+
+  const currentActive = getActiveItem();
 
   return (
     <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen">
@@ -39,22 +53,22 @@ export function Sidebar({ activeView, onViewChange }) {
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
           const Icon = Icons[item.icon];
-          const isActive = activeView === item.id;
+          const isActive = currentActive === item.id;
 
           return (
-            <motion.button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${isActive
-                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              whileHover={!isActive ? { x: 4 } : {}}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{item.label}</span>
-            </motion.button>
+            <Link key={item.id} to={item.path}>
+              <motion.div
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                whileHover={!isActive ? { x: 4 } : {}}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </motion.div>
+            </Link>
           );
         })}
       </nav>
@@ -80,9 +94,21 @@ export function Sidebar({ activeView, onViewChange }) {
         </div>
       </div>
 
-      {/* Bottom Quick Actions (Optional - shown in image) */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-        <div className="flex items-center justify-around gap-2">
+      {/* Bottom Quick Actions with Logout */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+        {/* Logout Button */}
+        <motion.button
+          onClick={() => logout()}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-red-600 dark:text-red-400"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Icons.X className="w-4 h-4" />
+          <span className="text-sm font-medium">Logout</span>
+        </motion.button>
+
+        {/* Quick Actions */}
+        <div className="flex items-center justify-around gap-2 pt-2">
           <motion.button
             className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
             whileHover={{ scale: 1.05 }}

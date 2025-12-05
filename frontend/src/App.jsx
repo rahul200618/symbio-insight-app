@@ -1,50 +1,52 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { RightPanel } from './components/RightPanel';
-import { UploadSection } from './components/UploadSection';
-import { RecentUploads } from './components/RecentUploads';
-import { MetadataCards } from './components/MetadataCards';
-import { ReportViewer } from './components/ReportViewer';
-import { QuickAccess } from './components/QuickAccess';
 import { ChatbotAssistant } from './components/ChatbotAssistant';
-import { SequenceComparison } from './components/SequenceComparison';
-import { AnimatedPage, ScrollProgressBar } from './components/AnimatedPage';
-import { Icons } from './components/Icons';
+import { ScrollProgressBar } from './components/AnimatedPage';
 import { initAnimeJS } from './utils/animations.js';
 import { useScrollProgress } from './hooks/useScrollAnimation.js';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Login } from './components/Login';
-import { Signup } from './components/Signup';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
-function AuthenticatedApp() {
-  const [activeView, setActiveView] = useState('upload');
-  const [selectedFile, setSelectedFile] = useState(null);
+// Page imports
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { RecentPage } from './pages/RecentPage';
+import { MetadataPage } from './pages/MetadataPage';
+import { ReportPage } from './pages/ReportPage';
+
+// Main Layout Component (for authenticated pages)
+function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSelectedFile }) {
   const [showRightPanel, setShowRightPanel] = useState(false);
-  const [parsedSequences, setParsedSequences] = useState([]);
-  const [showComparison, setShowComparison] = useState(false);
   const scrollProgress = useScrollProgress();
+  const location = useLocation();
 
   useEffect(() => {
     initAnimeJS();
   }, []);
 
-  // Log when parsedSequences changes
-  useEffect(() => {
-    console.log('App - parsedSequences updated:', parsedSequences.length, parsedSequences);
-  }, [parsedSequences]);
-
   const handleUploadComplete = (sequences) => {
-    console.log('App - handleUploadComplete called with:', sequences.length, 'sequences');
-
-    // Directly set new sequences
     setParsedSequences(sequences);
+  };
 
-    // Auto-navigate to metadata view after successful parse
-    setTimeout(() => {
-      setActiveView('metadata');
-    }, 800);
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
+    if (file.data) {
+      setParsedSequences(file.data);
+    }
+  };
+
+  // Get current view from location pathname
+  const getCurrentView = () => {
+    const path = location.pathname;
+    if (path.includes('/metadata')) return 'metadata';
+    if (path.includes('/recent')) return 'recent';
+    if (path.includes('/report')) return 'report';
+    return 'dashboard';
   };
 
   return (
@@ -52,12 +54,9 @@ function AuthenticatedApp() {
       <ScrollProgressBar progress={scrollProgress} />
 
       {/* Left Sidebar */}
-      <Sidebar
-        activeView={activeView}
-        onViewChange={setActiveView}
-      />
+      <Sidebar activeView={getCurrentView()} />
 
-      {/* Top Bar */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <TopBar
           selectedFile={selectedFile}
@@ -67,96 +66,70 @@ function AuthenticatedApp() {
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <AnimatePresence mode="wait">
-              {activeView === 'upload' && (
-                <AnimatedPage key="upload" animation="slide-up">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <UploadSection onUploadComplete={handleUploadComplete} />
-                  </motion.div>
-                </AnimatedPage>
-              )}
-
-              {activeView === 'recent' && (
-                <AnimatedPage key="recent" animation="slide-up">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <RecentUploads onFileSelect={(file) => {
-                      setSelectedFile(file);
-                      if (file.data) {
-                        setParsedSequences(file.data);
-                      }
-                      setActiveView('report');
-                    }} />
-                  </motion.div>
-                </AnimatedPage>
-              )}
-
-              {activeView === 'metadata' && (
-                <AnimatedPage key="metadata" animation="slide-up">
-                  <motion.div
-                    className="flex items-center justify-between"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Sequence Metadata
-                    </h2>
-                    {parsedSequences.length >= 2 && (
-                      <motion.button
-                        onClick={() => setShowComparison(true)}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Icons.Activity className="w-4 h-4" />
-                        Compare Sequences
-                      </motion.button>
-                    )}
-                  </motion.div>
-                  <MetadataCards parsedSequences={parsedSequences} />
-                </AnimatedPage>
-              )}
-
-              {activeView === 'report' && (
-                <AnimatedPage key="report" animation="slide-up">
-                  <ReportViewer parsedSequences={parsedSequences} />
-                </AnimatedPage>
-              )}
+              <Outlet context={{ parsedSequences, onUploadComplete: handleUploadComplete, onFileSelect: handleFileSelect }} />
             </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Slideable Sidebar */}
+      {/* Right Panel */}
       <RightPanel
         selectedFile={selectedFile}
         isOpen={showRightPanel}
         onClose={() => setShowRightPanel(false)}
       />
 
-      {/* AI Chatbot Assistant */}
-      <ChatbotAssistant sequences={parsedSequences} currentView={activeView} />
-
-      {/* Sequence Comparison Modal */}
-      {showComparison && parsedSequences.length >= 2 && (
-        <SequenceComparison
-          sequences={parsedSequences}
-          onClose={() => setShowComparison(false)}
-        />
-      )}
+      {/* AI Chatbot */}
+      <ChatbotAssistant sequences={parsedSequences} currentView={getCurrentView()} />
     </div>
   );
 }
 
-function AuthWrapper() {
+// Router Configuration
+function AppRoutes() {
+  const [parsedSequences, setParsedSequences] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+
+      {/* Protected Routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout
+              parsedSequences={parsedSequences}
+              setParsedSequences={setParsedSequences}
+              selectedFile={selectedFile}
+              setSelectedFile={setSelectedFile}
+            />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
+        <Route path="/recent" element={<RecentPage onFileSelect={(file) => {
+          setSelectedFile(file);
+          if (file.data) setParsedSequences(file.data);
+        }} />} />
+        <Route path="/metadata" element={<MetadataPage parsedSequences={parsedSequences} />} />
+        <Route path="/report" element={<ReportPage parsedSequences={parsedSequences} />} />
+      </Route>
+
+      {/* Root redirect */}
+      <Route path="/" element={<RootRedirect />} />
+
+      {/* 404 */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
+// Root Redirect Component
+function RootRedirect() {
   const { user, loading } = useAuth();
-  const [authView, setAuthView] = useState('login'); // 'login' or 'signup'
 
   if (loading) {
     return (
@@ -166,47 +139,16 @@ function AuthWrapper() {
     );
   }
 
-  if (!user) {
-    return (
-      <AnimatePresence mode="wait">
-        {authView === 'login' ? (
-          <motion.div
-            key="login"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Login
-              onLoginSuccess={() => { }}
-              onSwitchToSignup={() => setAuthView('signup')}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="signup"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Signup
-              onSignupSuccess={() => { }}
-              onSwitchToLogin={() => setAuthView('login')}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  }
-
-  return <AuthenticatedApp />;
+  return <Navigate to={user ? "/dashboard" : "/login"} replace />;
 }
 
+// Main App Component
 export default function App() {
   return (
     <AuthProvider>
-      <AuthWrapper />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </AuthProvider>
   );
 }
