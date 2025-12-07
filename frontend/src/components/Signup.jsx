@@ -60,9 +60,9 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
     const error = localError || authError;
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <div className="h-screen w-full flex items-center justify-center relative overflow-hidden">
             {/* Animated Gradient Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-700">
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNGgydjJoLTJ2LTJ6bS0yIDJoLTJ2Mmgydi0yem0wLTJoMnYyaC0ydi0yem0tMiAyaC0ydjJoMnYtMnptLTQgMGgybC0yIDR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
             </div>
 
@@ -107,15 +107,15 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                 initial={{ opacity: 0, scale: 0.9, y: 50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-md px-6"
+                className="relative z-10 w-full max-w-sm px-4"
             >
                 <motion.div
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.2 }}
-                    className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-indigo-200/50 dark:border-indigo-700/50"
+                    className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-indigo-200/50 dark:border-indigo-700/50"
                 >
                     {/* Header with 3D Effect */}
-                    <div className="relative p-8 bg-gradient-to-br from-indigo-600 to-purple-700 text-white overflow-hidden">
+                    <div className="relative p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white overflow-hidden">
                         <motion.div
                             animate={{
                                 backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
@@ -133,8 +133,8 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                         >
                             {/* Animated DNA Logo */}
                             <motion.div
-                                className="w-20 h-20 mx-auto mb-4 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center"
-                                whileHover={{ rotate: 360, scale: 1.1 }}
+                                className="w-16 h-16 mx-auto mb-3 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
+                                whileHover={{ rotate: 360, scale: 1.15 }}
                                 transition={{ duration: 0.6 }}
                             >
                                 <svg width="40" height="40" viewBox="0 0 40 40">
@@ -146,13 +146,13 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                 </svg>
                             </motion.div>
 
-                            <h2 className="text-3xl font-bold mb-2">Create Account</h2>
-                            <p className="text-indigo-100">Join Symbio-NLM Today</p>
+                            <h2 className="text-2xl font-bold mb-1">Create Account</h2>
+                            <p className="text-sm text-indigo-100">Join Symbio-NLM Today</p>
                         </motion.div>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                    <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         {/* Error Message */}
                         <AnimatePresence>
                             {error && (
@@ -174,22 +174,26 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: 0.3 }}
                         >
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                 Full Name
                             </label>
-                            <div className="relative">
+                            <motion.div
+                                className="relative"
+                                whileHover={{ scale: 1.01 }}
+                            >
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                    <Icons.User className="w-5 h-5 text-gray-400" />
+                                    <Icons.User className="w-4 h-4 text-gray-400" />
                                 </div>
-                                <input
+                                <motion.input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="John Doe"
                                     required
+                                    whileFocus={{ scale: 1.01 }}
                                 />
-                            </div>
+                            </motion.div>
                         </motion.div>
 
                         {/* Email Input */}
@@ -198,22 +202,26 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: 0.4 }}
                         >
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                 Email Address
                             </label>
-                            <div className="relative">
+                            <motion.div
+                                className="relative"
+                                whileHover={{ scale: 1.01 }}
+                            >
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                    <Icons.User className="w-5 h-5 text-gray-400" />
+                                    <Icons.User className="w-4 h-4 text-gray-400" />
                                 </div>
-                                <input
+                                <motion.input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="your.email@example.com"
                                     required
+                                    whileFocus={{ scale: 1.01 }}
                                 />
-                            </div>
+                            </motion.div>
                         </motion.div>
 
                         {/* Password Input */}
@@ -222,31 +230,36 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: 0.5 }}
                         >
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                 Password
                             </label>
-                            <div className="relative">
+                            <motion.div
+                                className="relative"
+                                whileHover={{ scale: 1.01 }}
+                            >
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                    <Icons.Lock className="w-5 h-5 text-gray-400" />
+                                    <Icons.Lock className="w-4 h-4 text-gray-400" />
                                 </div>
-                                <input
+                                <motion.input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-11 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-11 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="••••••••"
                                     required
+                                    whileFocus={{ scale: 1.01 }}
                                 />
                                 <motion.button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-indigo-100 hover:text-indigo-600 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-all shadow-sm"
+                                    whileHover={{ scale: 1.15 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    title={showPassword ? 'Hide password' : 'Show password'}
                                 >
-                                    {showPassword ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
+                                    {showPassword ? <Icons.EyeOff className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
                                 </motion.button>
-                            </div>
+                            </motion.div>
                         </motion.div>
 
                         {/* Confirm Password Input */}
@@ -255,29 +268,33 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: 0.6 }}
                         >
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                 Confirm Password
                             </label>
-                            <div className="relative">
+                            <motion.div
+                                className="relative"
+                                whileHover={{ scale: 1.01 }}
+                            >
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                    <Icons.Lock className="w-5 h-5 text-gray-400" />
+                                    <Icons.Lock className="w-4 h-4 text-gray-400" />
                                 </div>
-                                <input
+                                <motion.input
                                     type={showPassword ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="••••••••"
                                     required
+                                    whileFocus={{ scale: 1.01 }}
                                 />
-                            </div>
+                            </motion.div>
                         </motion.div>
 
                         {/* Submit Button */}
                         <motion.button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all relative overflow-hidden"
+                            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-bold text-base shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all relative overflow-hidden"
                             whileHover={{ scale: loading ? 1 : 1.02, y: -2 }}
                             whileTap={{ scale: loading ? 1 : 0.98 }}
                             initial={{ y: 20, opacity: 0 }}
@@ -313,12 +330,12 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                             transition={{ delay: 0.8 }}
                             className="text-center"
                         >
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                                 Already have an account?{' '}
                                 <motion.button
                                     type="button"
                                     onClick={onSwitchToLogin}
-                                    className="text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                                    className="text-indigo-600 dark:text-indigo-400 font-bold hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors underline decoration-2 underline-offset-2"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -328,17 +345,17 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                         </motion.div>
                     </form>
                 </motion.div>
-
-                {/* Footer */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.9 }}
-                    className="text-center mt-8 text-sm text-white/80"
-                >
-                    © 2024 Symbio-NLM. Secure DNA Analysis Platform.
-                </motion.p>
             </motion.div>
+
+            {/* Footer */}
+            <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
+                className="absolute bottom-6 left-0 right-0 text-center text-base font-bold text-white drop-shadow-lg z-20"
+            >
+                © 2024 Symbio-NLM. Secure DNA Analysis Platform.
+            </motion.p>
         </div>
     );
 }

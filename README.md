@@ -214,29 +214,29 @@ Located in `frontend/src/utils/sequenceApi.js`
 ``
 symbio-insight-app/
 +-- backend/
-¦   +-- server.js              # Express server
-¦   +-- package.json
-¦   +-- config/                # Configuration
-¦   +-- middleware/            # Express middleware
-¦   +-- models/                # Database models
-¦   +-- routes/                # API endpoints
-¦   +-- utils/                 # Utilities
-¦
+ï¿½   +-- server.js              # Express server
+ï¿½   +-- package.json
+ï¿½   +-- config/                # Configuration
+ï¿½   +-- middleware/            # Express middleware
+ï¿½   +-- models/                # Database models
+ï¿½   +-- routes/                # API endpoints
+ï¿½   +-- utils/                 # Utilities
+ï¿½
 +-- frontend/
-¦   +-- src/
-¦   ¦   +-- main.jsx
-¦   ¦   +-- App.jsx
-¦   ¦   +-- components/        # React components
-¦   ¦   +-- pages/             # Page components
-¦   ¦   +-- context/           # React context
-¦   ¦   +-- utils/             # Utilities & APIs
-¦   ¦   +-- styles/            # CSS styles
-¦   ¦   +-- ui/                # UI components
-¦   +-- index.html
-¦   +-- vite.config.js
-¦   +-- package.json
-¦   +-- tailwind.config.js
-¦
+ï¿½   +-- src/
+ï¿½   ï¿½   +-- main.jsx
+ï¿½   ï¿½   +-- App.jsx
+ï¿½   ï¿½   +-- components/        # React components
+ï¿½   ï¿½   +-- pages/             # Page components
+ï¿½   ï¿½   +-- context/           # React context
+ï¿½   ï¿½   +-- utils/             # Utilities & APIs
+ï¿½   ï¿½   +-- styles/            # CSS styles
+ï¿½   ï¿½   +-- ui/                # UI components
+ï¿½   +-- index.html
+ï¿½   +-- vite.config.js
+ï¿½   +-- package.json
+ï¿½   +-- tailwind.config.js
+ï¿½
 +-- README.md                  # This file
 ``
 
