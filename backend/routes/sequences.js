@@ -3,6 +3,7 @@ const router = express.Router();
 const Sequence = require('../models/Sequence');
 const { Op } = require('sequelize');
 const multer = require('multer');
+const { generatePDFReport } = require('../utils/pdfGenerator');
 const {
   validateFasta,
   validatePagination,
@@ -492,6 +493,60 @@ router.get('/search/text', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST generate PDF report from sequences
+router.post('/generate-pdf', async (req, res) => {
+  try {
+    const { sequenceIds = [], title = 'Symbio-NLM Sequence Analysis Report' } = req.body || {};
+
+    let sequences = [];
+
+    if (sequenceIds.length > 0) {
+      // Fetch specific sequences
+      sequences = await Sequence.findAll({
+        where: {
+          id: {
+            [Op.in]: sequenceIds
+          }
+        }
+      });
+    } else {
+      // Get all sequences if none specified
+      sequences = await Sequence.findAll({
+        limit: 100 // Limit to 100 for performance
+      });
+    }
+
+    if (sequences.length === 0) {
+      return res.status(400).json({ error: 'No sequences found for PDF generation' });
+    }
+
+    // Convert to format expected by PDF generator
+    const sequenceData = sequences.map(seq => ({
+      name: seq.name,
+      length: seq.length,
+      gcContent: seq.gcContent,
+      orfCount: seq.orfCount || 0,
+      orfs: seq.orfs || [],
+      nucleotideCounts: seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 }
+    }));
+
+    // Generate PDF
+    const pdfBuffer = await generatePDFReport(sequenceData, {
+      title,
+      includeAIAnalysis: true
+    });
+
+    // Send as file download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="symbio-nlm-report-${Date.now()}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    res.status(500).json({ error: err.message || 'Error generating PDF' });
   }
 });
 

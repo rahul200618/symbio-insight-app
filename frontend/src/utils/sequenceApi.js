@@ -229,3 +229,48 @@ export async function checkHealth() {
         method: 'GET'
     });
 }
+
+/**
+ * Generate and download PDF report
+ * @param {Array} sequenceIds - Array of sequence IDs to include (optional)
+ * @param {string} title - Report title
+ * @returns {Promise<Blob>} PDF blob
+ */
+export async function generatePDFReport(sequenceIds = [], title = 'Symbio-NLM Sequence Analysis Report') {
+    const token = getToken();
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/sequences/generate-pdf`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                sequenceIds,
+                title
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`PDF generation failed: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `symbio-nlm-report-${Date.now()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        return blob;
+    } catch (error) {
+        throw new Error(`Failed to generate PDF: ${error.message}`);
+    }
+}

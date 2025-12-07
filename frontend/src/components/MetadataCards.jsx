@@ -69,7 +69,7 @@ export function MetadataCards({ parsedSequences = [] }) {
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
               <Icons.Activity className="w-6 h-6 text-white" />
             </div>
-            <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs rounded-lg">
+            <span className="px-3 py-1 bg-purple-500 dark:bg-purple-600 text-white text-xs rounded-lg font-semibold">
               {stats ? 'Parsed' : 'Sample'}
             </span>
           </div>
@@ -82,7 +82,7 @@ export function MetadataCards({ parsedSequences = [] }) {
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
               <Icons.PieChart className="w-6 h-6 text-white" />
             </div>
-            <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 text-xs rounded-lg">Optimal</span>
+            <span className="px-3 py-1 bg-indigo-500 dark:bg-indigo-600 text-white text-xs rounded-lg font-semibold">Optimal</span>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">GC Content</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{gcPercentage.toFixed(1)}%</p>
@@ -93,7 +93,7 @@ export function MetadataCards({ parsedSequences = [] }) {
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center shadow-sm">
               <Icons.BarChart className="w-6 h-6 text-white" />
             </div>
-            <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs rounded-lg">{totalSequences}</span>
+            <span className="px-3 py-1 bg-purple-500 dark:bg-purple-600 text-white text-xs rounded-lg font-semibold">{totalSequences}</span>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Sequences</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalSequences}</p>
@@ -104,7 +104,7 @@ export function MetadataCards({ parsedSequences = [] }) {
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center shadow-sm">
               <Icons.CheckCircle className="w-6 h-6 text-white" />
             </div>
-            <span className="px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-300 text-xs rounded-lg">Detected</span>
+            <span className="px-3 py-1 bg-green-500 dark:bg-green-600 text-white text-xs rounded-lg font-semibold">Detected</span>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">ORF Detection</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalORFs} ORFs</p>

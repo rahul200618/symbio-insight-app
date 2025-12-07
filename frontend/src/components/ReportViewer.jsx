@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Icons } from './Icons';
 import { calculateAggregateStats } from '../utils/fastaParser.js';
 import { generatePDFReport, downloadHTMLReport } from '../utils/reportGenerator.js';
+import { generatePDFReport as generateBackendPDF } from '../utils/sequenceApi.js';
+import { toast } from 'sonner';
 
 export function ReportViewer({ parsedSequences = [] }) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -15,23 +17,32 @@ export function ReportViewer({ parsedSequences = [] }) {
     console.log('Number of sequences:', parsedSequences.length);
 
     if (parsedSequences.length === 0) {
-      alert('No sequences available to generate report');
+      toast.error('No sequences available to generate report');
       return;
     }
 
     setIsGenerating(true);
     try {
-      await generatePDFReport(parsedSequences, {
-        includeCharts: true,
-        includeRawSequence: false,
-        includeORFDetails: true,
-        includeAIAnalysis: true,
-        title: 'Symbio-NLM Sequence Analysis Report',
-      });
-      console.log('PDF generated successfully');
+      // Try backend PDF generation first (more reliable)
+      try {
+        console.log('Attempting backend PDF generation...');
+        await generateBackendPDF([], 'Symbio-NLM Sequence Analysis Report');
+        toast.success('PDF downloaded successfully!');
+      } catch (backendError) {
+        // Fallback to client-side PDF generation if backend fails
+        console.log('Backend PDF failed, using client-side generation:', backendError);
+        await generatePDFReport(parsedSequences, {
+          includeCharts: true,
+          includeRawSequence: false,
+          includeORFDetails: true,
+          includeAIAnalysis: true,
+          title: 'Symbio-NLM Sequence Analysis Report',
+        });
+        toast.success('PDF generated and downloaded successfully!');
+      }
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Error generating PDF report: ' + error.message);
+      toast.error('Error generating PDF report: ' + error.message);
     } finally {
       setIsGenerating(false);
     }
@@ -39,17 +50,22 @@ export function ReportViewer({ parsedSequences = [] }) {
 
   const handleDownloadHTML = () => {
     if (parsedSequences.length === 0) {
-      alert('No sequences available to generate report');
+      toast.error('No sequences available to generate report');
       return;
     }
 
-    downloadHTMLReport(parsedSequences, {
-      includeCharts: true,
-      includeRawSequence: false,
-      includeORFDetails: true,
-      includeAIAnalysis: true,
-      title: 'Symbio-NLM Sequence Analysis Report',
-    });
+    try {
+      downloadHTMLReport(parsedSequences, {
+        includeCharts: true,
+        includeRawSequence: false,
+        includeORFDetails: true,
+        includeAIAnalysis: true,
+        title: 'Symbio-NLM Sequence Analysis Report',
+      });
+      toast.success('HTML report downloaded successfully!');
+    } catch (error) {
+      toast.error('Error downloading HTML report: ' + error.message);
+    }
   };
 
   const totalSequences = stats?.totalSequences || 245;

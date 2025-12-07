@@ -1,5 +1,6 @@
-// Report Generator Utilities with Real PDF Generation
-import html2pdf from 'html2pdf.js';
+// Report Generator Utilities with Real PDF Generation using html2canvas + jsPDF
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 /**
  * Generate a PDF report from sequence data
@@ -64,33 +65,63 @@ export async function generatePDFReport(sequences, options = {}) {
   container.style.position = 'absolute';
   container.style.left = '-9999px';
   container.style.top = '0';
+  container.style.width = '1200px';
+  container.style.backgroundColor = 'white';
   document.body.appendChild(container);
 
   try {
-    // Configure html2pdf options
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: `symbio-nlm-report-${Date.now()}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
+    console.log('Starting canvas rendering with html2canvas...');
+    
+    // Convert HTML to canvas
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      width: 1200,
+      height: container.scrollHeight,
+    });
 
-    console.log('Starting PDF conversion with html2pdf...');
-    // Generate and download PDF
-    await html2pdf().set(opt).from(container).save();
-    console.log('PDF saved successfully!');
+    console.log('Canvas created, dimensions:', canvas.width, 'x', canvas.height);
+
+    // Create PDF from canvas
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    
+    // Calculate scaling to fit the image to PDF width
+    const imgWidth = pdfWidth - 20; // 10mm margin on each side
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Add multiple pages if needed
+    pdf.addImage(imgData, 'PNG', 10, position + 10, imgWidth, imgHeight);
+    heightLeft -= (pdfHeight - 30); // Account for margins
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 10, position + 10, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+
+    // Save the PDF
+    const filename = `symbio-nlm-report-${Date.now()}.pdf`;
+    pdf.save(filename);
+    console.log('PDF saved successfully:', filename);
 
     return true;
+  } catch (error) {
+    console.error('Error during PDF generation:', error);
+    throw error;
   } finally {
     // Clean up
     document.body.removeChild(container);
