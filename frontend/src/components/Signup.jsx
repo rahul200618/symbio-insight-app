@@ -11,6 +11,7 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [particles, setParticles] = useState([]);
+    const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
 
     const { signup, loading, error: authError } = useAuth();
     const [localError, setLocalError] = useState('');
@@ -27,6 +28,32 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
         }));
         setParticles(newParticles);
     }, []);
+
+    // Password strength calculator
+    useEffect(() => {
+        if (!password) {
+            setPasswordStrength({ score: 0, label: '', color: '' });
+            return;
+        }
+
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (password.length >= 12) score++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+        const strengths = [
+            { score: 0, label: 'Too weak', color: 'bg-red-500' },
+            { score: 1, label: 'Weak', color: 'bg-orange-500' },
+            { score: 2, label: 'Fair', color: 'bg-yellow-500' },
+            { score: 3, label: 'Good', color: 'bg-lime-500' },
+            { score: 4, label: 'Strong', color: 'bg-green-500' },
+            { score: 5, label: 'Very Strong', color: 'bg-emerald-500' },
+        ];
+
+        setPasswordStrength(strengths[Math.min(score, 5)]);
+    }, [password]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -160,10 +187,10 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                    className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3"
+                                    className="p-4 bg-red-50 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg flex items-start gap-3 shadow-lg"
                                 >
                                     <Icons.AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                                    <p className="text-sm font-semibold text-red-700 dark:text-red-200">{error}</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -188,9 +215,11 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 focus:shadow-lg focus:shadow-indigo-500/20 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="John Doe"
                                     required
+                                    autoFocus
+                                    aria-label="Full name"
                                     whileFocus={{ scale: 1.01 }}
                                 />
                             </motion.div>
@@ -216,9 +245,10 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 focus:shadow-lg focus:shadow-indigo-500/20 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="your.email@example.com"
                                     required
+                                    aria-label="Email address"
                                     whileFocus={{ scale: 1.01 }}
                                 />
                             </motion.div>
@@ -244,9 +274,11 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-11 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-11 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 focus:shadow-lg focus:shadow-indigo-500/20 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="••••••••"
                                     required
+                                    aria-label="Password"
+                                    minLength={6}
                                     whileFocus={{ scale: 1.01 }}
                                 />
                                 <motion.button
@@ -256,10 +288,40 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                     whileHover={{ scale: 1.15 }}
                                     whileTap={{ scale: 0.95 }}
                                     title={showPassword ? 'Hide password' : 'Show password'}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 >
                                     {showPassword ? <Icons.EyeOff className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
                                 </motion.button>
                             </motion.div>
+                            {/* Password Strength Indicator */}
+                            {password && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="mt-2 space-y-1"
+                                >
+                                    <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map((level) => (
+                                            <div
+                                                key={level}
+                                                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                                                    level <= passwordStrength.score
+                                                        ? passwordStrength.color
+                                                        : 'bg-gray-200 dark:bg-gray-700'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <p className={`text-xs font-medium ${
+                                        passwordStrength.score <= 1 ? 'text-red-600 dark:text-red-400' :
+                                        passwordStrength.score <= 2 ? 'text-yellow-600 dark:text-yellow-400' :
+                                        'text-green-600 dark:text-green-400'
+                                    }`}>
+                                        {passwordStrength.label}
+                                    </p>
+                                </motion.div>
+                            )}
                         </motion.div>
 
                         {/* Confirm Password Input */}
@@ -282,9 +344,10 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                     type={showPassword ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 focus:shadow-lg focus:shadow-indigo-500/20 dark:focus:border-indigo-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="••••••••"
                                     required
+                                    aria-label="Confirm password"
                                     whileFocus={{ scale: 1.01 }}
                                 />
                             </motion.div>
@@ -300,11 +363,12 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.7 }}
+                            aria-label={loading ? 'Creating account...' : 'Create account'}
                         >
                             <motion.div
                                 className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
-                                animate={{ x: ['-100%', '200%'] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                                animate={{ x: loading ? ['-100%', '200%'] : ['-100%', '200%'] }}
+                                transition={{ duration: loading ? 1.5 : 2, repeat: Infinity, ease: 'linear' }}
                             />
                             <span className="relative z-10 flex items-center justify-center gap-2">
                                 {loading ? (
@@ -315,7 +379,13 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                                         >
                                             <Icons.Loader className="w-5 h-5" />
                                         </motion.div>
-                                        Creating account...
+                                        <motion.span
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.2 }}
+                                        >
+                                            Creating account...
+                                        </motion.span>
                                     </>
                                 ) : (
                                     'Create Account'

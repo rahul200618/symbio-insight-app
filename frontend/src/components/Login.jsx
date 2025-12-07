@@ -150,10 +150,10 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                    className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3"
+                                    className="p-4 bg-red-50 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg flex items-start gap-3 shadow-lg"
                                 >
                                     <Icons.AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                                    <p className="text-sm font-semibold text-red-700 dark:text-red-200">{error}</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -179,9 +179,11 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 focus:shadow-lg focus:shadow-purple-500/20 dark:focus:border-purple-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="your.email@example.com"
                                     required
+                                    autoFocus
+                                    aria-label="Email address"
                                     whileFocus={{ scale: 1.01 }}
                                 />
                             </motion.div>
@@ -208,9 +210,10 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-11 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-11 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 focus:shadow-lg focus:shadow-purple-500/20 dark:focus:border-purple-400 transition-all outline-none text-sm text-gray-900 dark:text-white"
                                     placeholder="••••••••"
                                     required
+                                    aria-label="Password"
                                     whileFocus={{ scale: 1.01 }}
                                 />
                                 <motion.button
@@ -239,11 +242,21 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
                                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                    aria-label="Remember me"
                                 />
                                 <span className="ml-2 text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                                     Remember me
                                 </span>
                             </label>
+                            <motion.button
+                                type="button"
+                                className="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors underline decoration-1 underline-offset-2"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => toast.info('Password reset feature coming soon!')}
+                            >
+                                Forgot password?
+                            </motion.button>
                         </motion.div>
 
                         {/* Submit Button */}
@@ -256,11 +269,12 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.6 }}
+                            aria-label={loading ? 'Signing in...' : 'Sign in'}
                         >
                             <motion.div
                                 className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
-                                animate={{ x: ['−100%', '200%'] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                                animate={{ x: loading ? ['-100%', '200%'] : ['-100%', '200%'] }}
+                                transition={{ duration: loading ? 1.5 : 2, repeat: Infinity, ease: 'linear' }}
                             />
                             <span className="relative z-10 flex items-center justify-center gap-2">
                                 {loading ? (
@@ -271,7 +285,13 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                                         >
                                             <Icons.Loader className="w-5 h-5" />
                                         </motion.div>
-                                        Signing in...
+                                        <motion.span
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.2 }}
+                                        >
+                                            Signing in...
+                                        </motion.span>
                                     </>
                                 ) : (
                                     'Sign In'
