@@ -23,10 +23,17 @@ export function ReportViewer({ parsedSequences = [] }) {
 
     setIsGenerating(true);
     try {
+      // Get sequence IDs from parsed sequences
+      const sequenceIds = parsedSequences
+        .map(seq => seq.id)
+        .filter(Boolean);
+
+      console.log('Sequence IDs for PDF:', sequenceIds);
+
       // Try backend PDF generation first (more reliable)
       try {
         console.log('Attempting backend PDF generation...');
-        await generateBackendPDF([], 'Symbio-NLM Sequence Analysis Report');
+        await generateBackendPDF(sequenceIds, 'Symbio-NLM Sequence Analysis Report');
         toast.success('PDF downloaded successfully!');
       } catch (backendError) {
         // Fallback to client-side PDF generation if backend fails

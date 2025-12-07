@@ -90,12 +90,14 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
 function AppRoutes() {
   const [parsedSequences, setParsedSequences] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const location = useLocation();
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
       {/* Protected Routes */}
       <Route
@@ -125,7 +127,8 @@ function AppRoutes() {
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+      </Routes>
+    </AnimatePresence>
   );
 }
 

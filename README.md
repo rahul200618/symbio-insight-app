@@ -6,23 +6,23 @@ A modern, full-stack bioinformatics application for FASTA file analysis, sequenc
 ![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
 ![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)
 
-## 🧬 Features
+## ?? Features
 
 ### Core Functionality
 - **FASTA File Upload & Analysis** - Parse and analyze DNA sequences with automatic metrics calculation
 - **Sequence Comparison** - Compare multiple sequences with detailed mutation analysis
 - **Report Generation** - Create comprehensive PDF and HTML reports
 - **Metadata Dashboard** - View detailed sequence statistics and visualizations
-- **Recent Uploads** - Track and manage all uploaded sequences
+- **Recent Uploads** - Track and manage all uploaded sequences with batch PDF export
 
 ### Advanced Features
 - **AI Chatbot Assistant** - Context-aware help and analysis suggestions
 - **Dark Mode** - Seamless light/dark theme switching
 - **User Profiles** - Complete user management with preferences and settings
-- **Notifications** - Real-time analysis status updates
+- **Real-time Notifications** - Status updates and error handling
 - **Responsive Design** - Works on desktop, tablet, and mobile
 
-## 🚀 Quick Start
+## ?? Quick Start
 
 ### Prerequisites
 - Node.js 18+ and npm
@@ -31,13 +31,13 @@ A modern, full-stack bioinformatics application for FASTA file analysis, sequenc
 ### Installation
 
 1. **Clone the repository**
-```bash
+``ash
 git clone https://github.com/yourusername/symbio-insight-app.git
 cd symbio-insight-app
-```
+``
 
 2. **Install dependencies**
-```bash
+``ash
 # Backend
 cd backend
 npm install
@@ -45,246 +45,319 @@ npm install
 # Frontend
 cd ../frontend
 npm install
-```
+``
 
-3. **Configure environment variables**
+3. **Start the application**
 
-Create `backend/.env`:
-```env
-PORT=3002
-JWT_SECRET=your-secret-key-here
-NODE_ENV=development
-```
-
-Create `frontend/.env`:
-```env
-VITE_API_URL=http://localhost:3002/api
-```
-
-4. **Start the application**
-
-```bash
-# Terminal 1 - Backend
+**Terminal 1 - Backend (Port 3002):**
+``ash
 cd backend
+npm start
+# or for development with auto-reload:
 npm run dev
+``
 
-# Terminal 2 - Frontend
+**Terminal 2 - Frontend (Port 3000):**
+``ash
 cd frontend
 npm run dev
-```
+``
 
-5. **Access the application**
+4. **Access the application**
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3002
+- API Documentation: http://localhost:3002/api
 
-## 📁 Project Structure
+## ?? API Reference (18 Endpoints)
 
-```
-symbio-insight-app/
-├── backend/              # Express.js API
-│   ├── models/          # Sequelize models
-│   ├── routes/          # API endpoints
-│   ├── server.js        # Main server file
-│   └── database.sqlite  # SQLite database
-│
-├── frontend/            # React + Vite application
-│   ├── src/
-│   │   ├── components/  # Reusable UI components
-│   │   ├── pages/       # Page components
-│   │   ├── utils/       # Utilities and helpers
-│   │   ├── hooks/       # Custom React hooks
-│   │   └── context/     # React context providers
-│   │
-│   └── public/          # Static assets
-│
-└── README.md           # This file
-```
+All endpoints return JSON with `{ success: true/false, message, data }` format.
 
-## 🔧 Tech Stack
+### Authentication Endpoints
 
-### Frontend
-- **Framework**: React 18.3 with Vite
-- **Animation**: Framer Motion
-- **Routing**: React Router v6
-- **Styling**: Tailwind CSS
-- **State**: React Context API
-- **Notifications**: Sonner
+#### POST /api/auth/signup
+Create a new user account
+``javascript
+// Request
+{
+  name: "John Doe",
+  email: "john@example.com",
+  password: "securePassword123"
+}
 
-### Backend
-- **Runtime**: Node.js + Express
-- **Database**: SQLite with Sequelize ORM
-- **Authentication**: JWT
-- **File Upload**: Multer
-- **Validation**: Express Validator
+// Response (200)
+{
+  success: true,
+  message: "User registered successfully",
+  token: "jwt_token_here",
+  user: { id, name, email }
+}
+``
 
-## 📖 Usage Guide
+#### POST /api/auth/login
+Login with email and password
+``javascript
+// Request
+{
+  email: "john@example.com",
+  password: "securePassword123"
+}
 
-### Uploading Sequences
+// Response (200)
+{
+  success: true,
+  message: "Login successful",
+  token: "jwt_token_here",
+  user: { id, name, email }
+}
+``
 
-1. Navigate to **Dashboard**
-2. Click **Upload FASTA** or drag & drop file
-3. Wait for automatic analysis completion
-4. View sequence in **Recent Uploads**
+#### GET /api/auth/me
+Get current user profile (requires JWT in Authorization header)
 
-### Comparing Sequences
+### Sequence Endpoints
 
-1. Upload at least 2 FASTA files
-2. Go to **Recent** page
-3. Click **Compare Sequences** button
-4. Drag sequences into comparison slots
-5. View similarity analysis and mutations
+#### POST /api/sequences/upload
+Upload and analyze a FASTA file
 
-### Generating Reports
+#### GET /api/sequences
+List sequences with pagination
+- Query: `page`, `limit`, `sort`, `search`
 
-1. Select a sequence from **Recent Uploads**
-2. Click **View** to see metadata
-3. Click **Generate Report** (green button, top-right)
-4. Download as PDF or HTML from Report page
+#### GET /api/sequences/:id
+Get sequence details by ID
 
-### Managing Profile
+#### PUT /api/sequences/:id
+Update sequence metadata
 
-1. Click profile button (top-right of TopBar)
-2. Select **View Profile**
-3. Edit account information
-4. Adjust preferences and settings
-5. Logout when done
+#### DELETE /api/sequences/:id
+Delete a sequence
 
-## 🔐 Authentication
+### Analysis Endpoints
 
-The app uses JWT-based authentication:
+#### GET /api/sequences/:id/metadata
+Get detailed sequence metadata (GC%, codons, ORFs, etc.)
 
-- **Signup**: Create account at `/signup`
-- **Login**: Access at `/login`
-- **Protected Routes**: Dashboard, Recent, Metadata, Report, Profile
-- **Token Storage**: LocalStorage (remember to logout on shared devices)
+#### GET /api/sequences/:id/report
+Generate comprehensive analysis report
 
-## 📊 API Endpoints
+#### POST /api/sequences/compare
+Compare multiple sequences with mutation analysis
+``javascript
+{
+  ids: ["id1", "id2", "id3"],
+  metrics: ["alignment", "mutation", "similarity"]
+}
+``
+
+#### POST /api/sequences/generate-pdf
+Generate PDF report for sequences
+``javascript
+{
+  ids: ["id1", "id2"],
+  title: "Report Title",
+  options: { includeCharts: true, includeMetadata: true }
+}
+``
+
+#### GET /api/sequences/search
+Search sequences by query
+- Query: `q`, `limit`
+
+#### GET /api/sequences/stats/aggregate
+Get overall platform statistics
+
+#### POST /api/sequences/bulk-delete
+Delete multiple sequences
+``javascript
+{
+  ids: ["id1", "id2", "id3"]
+}
+``
+
+#### GET /api/health
+System health check
+
+## ?? Frontend API Service (23 Functions)
+
+Located in `frontend/src/utils/sequenceApi.js`
 
 ### Authentication
-- `POST /api/auth/signup` - Create new user
-- `POST /api/auth/login` - Login user
+- `await signup({ name, email, password })`
+- `await login({ email, password })`
+- `await getCurrentUser()`
+- `logout()`
 
-### Sequences
-- `GET /api/sequences` - Get all sequences (paginated)
-- `GET /api/sequences/:id` - Get specific sequence
-- `POST /api/sequences` - Upload new FASTA file
-- `DELETE /api/sequences/:id` - Delete sequence
+### Sequence Management
+- `await getSequences({ page, limit, sort, search })`
+- `await getSequenceById(id)`
+- `await uploadSequenceFile(file)`
+- `await createSequence({ fasta, name, description })`
+- `await updateSequence(id, data)`
+- `await deleteSequence(id)`
+- `await bulkDeleteSequences(ids)`
 
-## 🎨 Design System
+### Analysis & Reporting
+- `await getSequenceMetadata(id)`
+- `await getSequenceReport(id)`
+- `await generatePDFReport(sequenceIds, title)`
+- `await generateReport(id, options)`
+- `await searchSequences(query, limit)`
+- `await getAggregateStats()`
 
-### Color Palette
-- **Primary**: Purple (#7c3aed) to Indigo (#4f46e5)
-- **Success**: Emerald (#10b981)
-- **Warning**: Amber (#f59e0b)
-- **Error**: Red (#ef4444)
-- **Dark Mode**: Gray scale with proper contrast
+### Utilities
+- `await checkHealth()`
+- `await getApiInfo()`
+- `parseError(error)`
 
-### Typography
-- **Font**: System font stack for optimal performance
-- **Headings**: Bold, with gradient accents
-- **Body**: Regular weight, comfortable line height
+## ??? Project Structure
 
-## 🧪 Features in Detail
+``
+symbio-insight-app/
++-- backend/
+�   +-- server.js              # Express server
+�   +-- package.json
+�   +-- config/                # Configuration
+�   +-- middleware/            # Express middleware
+�   +-- models/                # Database models
+�   +-- routes/                # API endpoints
+�   +-- utils/                 # Utilities
+�
++-- frontend/
+�   +-- src/
+�   �   +-- main.jsx
+�   �   +-- App.jsx
+�   �   +-- components/        # React components
+�   �   +-- pages/             # Page components
+�   �   +-- context/           # React context
+�   �   +-- utils/             # Utilities & APIs
+�   �   +-- styles/            # CSS styles
+�   �   +-- ui/                # UI components
+�   +-- index.html
+�   +-- vite.config.js
+�   +-- package.json
+�   +-- tailwind.config.js
+�
++-- README.md                  # This file
+``
 
-### Sequence Analysis Metrics
-- Total Base Pairs
-- GC Content Percentage  
-- Nucleotide Distribution (A, T, G, C)
-- ORF (Open Reading Frame) Detection
-- Sequence Length Validation
+## ?? Authentication
 
-### Comparison Features
-- Sequence Similarity Percentage
-- Mutation Detection (Transitions & Transversions)
-- Ti/Tv Ratio Calculation
-- Nucleotide Composition Differences
-- Alignment Quality Assessment
--  Biological Interpretation
+- **JWT Tokens**: 24-hour expiry
+- **Storage**: localStorage
+- **Protected Routes**: Dashboard, Recent, Metadata, Report, Profile
+- **Headers**: Authorization: Bearer <token>
 
-### Report Components
-- Executive Summary
-- Sequence Statistics
-- Nucleotide Distribution Charts
-- ORF Analysis Tables
-- Mutation Analysis (for comparisons)
-- Export Options (PDF/HTML)
+## ?? PDF Generation
 
-## 🛠️ Development
+### Backend Method (Primary)
+- Engine: PDFKit
+- Endpoint: POST /api/sequences/generate-pdf
+- Advantages: Server-side, consistent, reliable
 
-### Available Scripts
+### Client-Side Method (Fallback)
+- Engine: html2canvas + jsPDF
+- Location: frontend/src/utils/reportGenerator.js
+- Fallback: When backend unavailable
 
-**Backend:**
-```bash
-npm run dev      # Start development server with nodemon
-npm start        # Start production server
-```
+Usage example:
+``javascript
+import { generatePDFReport } from '../utils/sequenceApi';
+await generatePDFReport(['id1', 'id2'], 'Report Title');
+// PDF downloads automatically
+``
 
-**Frontend:**
-```bash
-npm run dev      # Start Vite dev server
-npm run build    # Build for production
-npm run preview  # Preview production build
-```
+## ?? Testing
 
-### Database Schema
+- **API Test**: Open `api-test.html` to test all endpoints
+- **Backend**: `npm test` (in backend folder)
+- **Frontend**: `npm test` (in frontend folder)
 
-**Users Table:**
-- id, email (unique), password (hashed), createdAt, updatedAt
+## ?? Tech Stack
 
-**Sequences Table:**
-- id, filename, header, sequence, length, gcContent, orfCount, orfs (JSON), nucleotideCounts (JSON), userId, createdAt, updatedAt
+### Frontend
+- **React** 18.3.1 + Vite 6.3.5
+- **Styling**: Tailwind CSS, Motion
+- **Notifications**: Sonner
+- **PDF**: jsPDF 2.5, html2canvas 1.4
+- **Components**: Radix UI
 
-## 🐛 Troubleshooting
+### Backend
+- **Framework**: Express.js
+- **Database**: SQLite (Sequelize ORM)
+- **PDF**: PDFKit 0.13
+- **Auth**: JWT (jsonwebtoken)
+- **Files**: Multer, bcryptjs
 
-### Common Issues
+## ?? Troubleshooting
 
-**Port Already in Use:**
-```bash
-# Kill process on port 3002 (backend)
+### jsPDF is not defined
+**Solution**: Use `generatePDFReport` from sequenceApi instead of direct jsPDF usage.
+
+### Failed to connect to backend
+1. Verify backend is running on port 3002
+2. Check `VITE_API_URL` in frontend .env
+3. Check for CORS issues in backend
+
+### Database locked
+1. Stop backend
+2. Delete `backend/db/database.sqlite3`
+3. Restart backend (creates new database)
+
+### Module reload failures
+1. Check browser console for syntax errors
+2. Verify all imports are correct
+3. Run `npm install` to restore dependencies
+
+### Port already in use
+``ash
+# Kill process on port 3002
 npx kill-port 3002
 
-# Kill process on port 3000 (frontend)
+# Kill process on port 3000
 npx kill-port 3000
-```
+``
 
-**Database Locked:**
-```bash
-# Delete and recreate database
-rm backend/database.sqlite
-# Restart backend (auto-creates new DB)
-```
+## ?? Usage Guide
 
-**Module Not Found:**
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
+### Upload FASTA Sequences
+1. Navigate to Dashboard
+2. Upload file or drag & drop
+3. View results in Recent Uploads
 
-## 🤝 Contributing
+### Compare Sequences
+1. Go to Recent page
+2. Select 2+ sequences
+3. Click Compare Sequences
+4. View alignment and mutations
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+### Generate PDF Reports
+1. Select sequence from Recent
+2. Click View or Generate Report
+3. Download PDF from Report page
 
-## 📝 License
+### Manage Profile
+1. Click profile icon (top-right)
+2. View/edit account information
+3. Adjust preferences
+4. Logout when done
 
-This project is licensed under the MIT License.
+## ?? License
 
-## 👤 Author
+MIT License
 
-**Symbio Research Team**
-- Email: research@symbio.com
+## ????? Author
 
-## 🙏 Acknowledgments
+Created as a comprehensive bioinformatics analysis platform.
 
-- React team for amazing framework
-- Framer Motion for smooth animations
-- Vite for lightning-fast dev experience
-- All open-source contributors
+## ?? Support
+
+1. Check troubleshooting section above
+2. Review console error messages
+3. Check Network tab for API responses
+4. See `api-test.html` for API examples
 
 ---
 
-**Built with ❤️ for bioinformatics research**
+**Last Updated**: January 2025
+**Version**: 1.0.0
+**Status**: Production Ready

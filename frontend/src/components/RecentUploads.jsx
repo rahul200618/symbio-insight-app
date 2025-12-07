@@ -1,7 +1,7 @@
 import { Icons } from './Icons';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getSequences, deleteSequence } from '../utils/sequenceApi.js';
+import { getSequences, deleteSequence, generatePDFReport } from '../utils/sequenceApi.js';
 
 export function RecentUploads({ onFileSelect }) {
   const [files, setFiles] = useState([]);
@@ -102,76 +102,28 @@ export function RecentUploads({ onFileSelect }) {
     toast.success('File downloaded');
   };
 
-  const handleExportAll = () => {
+  const handleExportAll = async () => {
     try {
-      toast.loading('Generating PDF...', { id: 'pdf-export' });
-
-      const doc = new jsPDF();
-
-      // Add title
-      doc.setFontSize(20);
-      doc.setTextColor(124, 58, 237); // Purple color
-      doc.text('Symbio-NLM - Recent Uploads Report', 14, 22);
-
-      // Add generation date
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 14, 30);
-
-      // Add summary stats
-      doc.setFontSize(12);
-      doc.setTextColor(0);
-      doc.text(`Total Files: ${files.length}`, 14, 40);
-
-      // Prepare table data
-      const tableData = files.map(file => [
-        file.name,
-        file.sequences.toString(),
-        file.date,
-        file.size
-      ]);
-
-      // Add table
-      doc.autoTable({
-        head: [['File Name', 'Sequences', 'Upload Date', 'Size']],
-        body: tableData,
-        startY: 50,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [124, 58, 237], // Purple color
-          textColor: 255,
-          fontSize: 11,
-          fontStyle: 'bold'
-        },
-        styles: {
-          fontSize: 9,
-          cellPadding: 4
-        },
-        columnStyles: {
-          0: { cellWidth: 70 },
-          1: { cellWidth: 30, halign: 'center' },
-          2: { cellWidth: 45 },
-          3: { cellWidth: 30, halign: 'right' }
-        },
-        margin: { left: 14, right: 14 }
-      });
-
-      // Add footer
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(
-          `Page ${i} of ${pageCount}`,
-          doc.internal.pageSize.width / 2,
-          doc.internal.pageSize.height - 10,
-          { align: 'center' }
-        );
+      if (files.length === 0) {
+        toast.error('No sequences to export', { id: 'pdf-export' });
+        return;
       }
 
-      // Save the PDF
-      doc.save(`symbio-nlm-uploads-${new Date().getTime()}.pdf`);
+      toast.loading('Generating PDF...', { id: 'pdf-export' });
+
+      // Extract sequence IDs from files
+      const sequenceIds = files.map(file => file.id).filter(Boolean);
+      
+      if (sequenceIds.length === 0) {
+        toast.error('No sequences available for export', { id: 'pdf-export' });
+        return;
+      }
+
+      // Use the API service to generate PDF
+      await generatePDFReport(
+        sequenceIds,
+        `Symbio-NLM Recent Uploads Report - ${new Date().toLocaleDateString()}`
+      );
 
       toast.success('PDF exported successfully!', { id: 'pdf-export' });
     } catch (error) {

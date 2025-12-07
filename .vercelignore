@@ -1,0 +1,9 @@
+node_modules
+.git
+*.md
+.env.local
+.env.development
+*.log
+.DS_Store
+backend/db/*.sqlite3
+backend/db/*.sqlite
