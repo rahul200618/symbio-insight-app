@@ -1,84 +1,48 @@
 import { Icons } from './Icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { getSequences, deleteSequence } from '../utils/sequenceApi.js';
 
 export function RecentUploads({ onFileSelect }) {
-  // Helper to generate mock sequence data
-  const generateMockData = (count, fileName) => {
-    return Array.from({ length: count }, (_, i) => ({
-      id: `seq_${i}`,
-      sequenceName: `${fileName}_seq_${i + 1}`,
-      sequenceLength: Math.floor(Math.random() * 1000) + 100,
-      gcPercentage: Math.floor(Math.random() * 40) + 30,
-      nucleotideCounts: {
-        A: Math.floor(Math.random() * 100),
-        T: Math.floor(Math.random() * 100),
-        G: Math.floor(Math.random() * 100),
-        C: Math.floor(Math.random() * 100),
-      },
-      orfs: Array.from({ length: Math.floor(Math.random() * 3) }, () => ({
-        start: 0,
-        end: 100,
-        length: 100,
-        sequence: 'ATGC'
-      })),
-      rawSequence: 'ATGC'.repeat(20),
-      timestamp: new Date().toISOString(),
-    }));
-  };
+  const [files, setFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [files, setFiles] = useState([
-    {
-      id: '1',
-      name: 'genome_sequence_01.fasta',
-      sequences: 245,
-      date: 'Nov 27, 2024 14:32',
-      size: '2.4 MB',
-      data: generateMockData(245, 'genome_sequence_01')
-    },
-    {
-      id: '2',
-      name: 'protein_coding_regions.fa',
-      sequences: 189,
-      date: 'Nov 27, 2024 09:15',
-      size: '1.8 MB',
-      data: generateMockData(189, 'protein_coding_regions')
-    },
-    {
-      id: '3',
-      name: 'mitochondrial_dna_analysis.fasta',
-      sequences: 156,
-      date: 'Nov 26, 2024 16:45',
-      size: '956 KB',
-      data: generateMockData(156, 'mitochondrial_dna_analysis')
-    },
-    {
-      id: '4',
-      name: 'viral_genome_complete.fa',
-      sequences: 312,
-      date: 'Nov 26, 2024 11:20',
-      size: '3.7 MB',
-      data: generateMockData(312, 'viral_genome_complete')
-    },
-    {
-      id: '5',
-      name: 'bacterial_plasmid_seq.fasta',
-      sequences: 98,
-      date: 'Nov 25, 2024 13:08',
-      size: '1.5 MB',
-      data: generateMockData(98, 'bacterial_plasmid_seq')
-    },
-    {
-      id: '6',
-      name: 'chromosomal_region_22.fa',
-      sequences: 421,
-      date: 'Nov 25, 2024 08:55',
-      size: '5.2 MB',
-      data: generateMockData(421, 'chromosomal_region_22')
-    },
-  ]);
+  // Fetch sequences from backend
+  useEffect(() => {
+    loadSequences();
+  }, []);
+
+  const loadSequences = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getSequences({ page: 1, limit: 50, sort: '-createdAt' });
+
+      // Transform backend data to match component format
+      const transformedFiles = response.data.map(seq => ({
+        id: seq.id.toString(),
+        name: seq.filename,
+        sequences: 1, // Each record is one sequence
+        date: new Date(seq.createdAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        size: `${seq.length} bp`,
+        backendData: seq, // Store the full backend data
+      }));
+
+      setFiles(transformedFiles);
+    } catch (error) {
+      console.error('Failed to load sequences:', error);
+      toast.error('Failed to load sequences: ' + error.message);
+      setFiles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return bytes + ' B';
@@ -92,28 +56,34 @@ export function RecentUploads({ onFileSelect }) {
     }
   };
 
-  const handleDelete = (file, e) => {
+  const handleDelete = async (file, e) => {
     e.stopPropagation();
 
     if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
       return;
     }
 
-    // Remove from local state
-    setFiles(files.filter(f => f.id !== file.id));
+    try {
+      await deleteSequence(file.id);
+      toast.success('File deleted successfully');
+
+      // Remove from local state
+      setFiles(files.filter(f => f.id !== file.id));
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete file: ' + error.message);
+    }
   };
 
   const handleDownload = (file, e) => {
     e.stopPropagation();
 
-    // Generate FASTA content
+    // Generate FASTA content from backend data
     let fastaContent = '';
 
-    if (file.data && file.data.length > 0) {
-      file.data.forEach((seq) => {
-        fastaContent += `>${seq.sequenceName}\n`;
-        fastaContent += `${seq.rawSequence}\n\n`;
-      });
+    if (file.backendData) {
+      fastaContent = `>${file.backendData.header || file.backendData.name}\n`;
+      fastaContent += `${file.backendData.sequence}\n`;
     } else {
       fastaContent = `>Sample sequence\nATGCGATCGATCGATCG\n`;
     }
@@ -128,6 +98,8 @@ export function RecentUploads({ onFileSelect }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    toast.success('File downloaded');
   };
 
   const handleExportAll = () => {
@@ -150,8 +122,6 @@ export function RecentUploads({ onFileSelect }) {
       doc.setFontSize(12);
       doc.setTextColor(0);
       doc.text(`Total Files: ${files.length}`, 14, 40);
-      const totalSequences = files.reduce((sum, file) => sum + file.sequences, 0);
-      doc.text(`Total Sequences: ${totalSequences}`, 14, 47);
 
       // Prepare table data
       const tableData = files.map(file => [
@@ -163,9 +133,9 @@ export function RecentUploads({ onFileSelect }) {
 
       // Add table
       doc.autoTable({
-        head: [['File Name', 'Sequences', 'Upload Date', 'File Size']],
+        head: [['File Name', 'Sequences', 'Upload Date', 'Size']],
         body: tableData,
-        startY: 55,
+        startY: 50,
         theme: 'grid',
         headStyles: {
           fillColor: [124, 58, 237], // Purple color
@@ -223,30 +193,63 @@ export function RecentUploads({ onFileSelect }) {
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Files</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{files.length} total uploads</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {isLoading ? 'Loading...' : `${files.length} total uploads`}
+            </p>
           </div>
-          <button onClick={handleExportAll} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
-            <Icons.Download className="w-4 h-4" />
-            Export All to PDF
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={loadSequences}
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-2"
+            >
+              <Icons.RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+            {files.length > 0 && (
+              <button onClick={handleExportAll} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+                <Icons.Download className="w-4 h-4" />
+                Export All to PDF
+              </button>
+            )}
+          </div>
         </div>
 
-        {files.length > 0 && (
+        {error ? (
+          <div className="p-12 text-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+              <Icons.AlertCircle className="w-10 h-10 text-red-600 dark:text-red-400" />
+            </div>
+            <p className="text-red-600 dark:text-red-400 mb-2 font-medium">Failed to load sequences</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error}</p>
+            <button
+              onClick={loadSequences}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : isLoading ? (
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 mx-auto mb-4 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <p className="text-gray-500 dark:text-gray-400">Loading sequences...</p>
+          </div>
+        ) : files.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">File Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sequences</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Length</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">GC %</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ORFs</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Size</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                {files.map((file, index) => (
+                {files.map((file) => (
                   <tr
-                    key={index}
+                    key={file.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                     onClick={() => handleViewReport(file)}
                   >
@@ -263,17 +266,20 @@ export function RecentUploads({ onFileSelect }) {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="px-3 py-1 bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100/50 dark:border-purple-800/50 rounded-lg">
-                          <span className="text-sm text-gray-900 dark:text-white">{file.sequences}</span>
-                        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">sequences</span>
+                        <span className="text-sm text-gray-900 dark:text-white">{file.backendData?.length?.toLocaleString() || 'N/A'}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">bp</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-900 dark:text-white">{file.backendData?.gcPercent || file.backendData?.gcContent || 'N/A'}%</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="px-3 py-1 bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100/50 dark:border-purple-800/50 rounded-lg inline-block">
+                        <span className="text-sm text-gray-900 dark:text-white">{file.backendData?.orfCount || 0}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-gray-700 dark:text-gray-300">{file.date}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{file.size}</p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -285,7 +291,7 @@ export function RecentUploads({ onFileSelect }) {
                           className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-2"
                         >
                           <Icons.Eye className="w-3 h-3 text-white" />
-                          View Report
+                          View
                         </button>
                         <button
                           onClick={(e) => handleDownload(file, e)}
@@ -306,18 +312,18 @@ export function RecentUploads({ onFileSelect }) {
               </tbody>
             </table>
           </div>
-        )}
-
-        {/* Empty State */}
-        {files.length === 0 && (
+        ) : (
+          /* Empty State */
           <div className="p-12 text-center">
             <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-gray-100 dark:bg-gray-800 flex items-center justify-center">
               <Icons.File className="w-10 h-10 text-gray-400" />
             </div>
-            <p className="text-gray-500 dark:text-gray-400">No files uploaded yet</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-2">No files uploaded yet</p>
+            <p className="text-sm text-gray-400">Upload a FASTA file to get started</p>
           </div>
         )}
       </div>
     </div>
   );
 }
+

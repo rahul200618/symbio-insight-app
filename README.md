@@ -1,289 +1,289 @@
-# 🧬 Symbio-NLM DNA Sequence Analysis Platform
+# Symbio-NLM - DNA Sequence Analysis Platform
 
-A full-stack bioinformatics application for parsing, analyzing, and visualizing DNA sequences from FASTA files. Features automated metadata extraction, ORF detection, GC content analysis, and AI-powered insights.
+A modern, full-stack bioinformatics application for FASTA file analysis, sequence comparison, and comprehensive report generation.
 
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **Node.js** 16+ and npm
-- **MongoDB** running locally or connection URI
-- Git
-
-### Backend Setup
-```bash
-cd backend
-npm install
-
-# Create .env file
-echo "MONGODB_URI=mongodb://localhost:27017/symbio" > .env
-echo "PORT=3001" >> .env
-
-# Start development server
-npm run dev
-```
-
-Backend runs on `http://localhost:3001`
-
-### Frontend Setup
-```bash
-cd frontend
-npm install
-
-# Create .env file (optional)
-echo "VITE_API_URL=http://localhost:3001/api" > .env
-
-# Start development server
-npm run dev
-```
-
-Frontend runs on `http://localhost:3000` with proxy to backend.
-
----
-
-## 📦 Tech Stack
-
-### Frontend
-- **React 18** + **TypeScript** - UI framework and type safety
-- **Vite** - Fast build tool and dev server
-- **Framer Motion** - Smooth animations
-- **Tailwind CSS** (optional) - Styling framework
-- **Custom UI Components** - shadcn/ui inspired component library
-
-### Backend
-- **Node.js** + **Express** - RESTful API server
-- **MongoDB** + **Mongoose** - Database and ODM
-- **CORS** enabled for cross-origin requests
-
----
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)
 
 ## 🧬 Features
 
 ### Core Functionality
-- **FASTA File Parsing** - Upload and parse `.fasta` / `.fa` files
-- **Metadata Extraction** - Automatic extraction of:
-  - Sequence names, lengths, and raw sequences
-  - GC content percentage
-  - Nucleotide counts (A, T, G, C)
-  - Open Reading Frames (ORF) detection
-  - Timestamps and unique IDs
-- **Aggregate Statistics** - Calculate averages, totals, and distributions
-- **Sequence Comparison** - Drag-and-drop interface to compare two sequences
-- **Report Generation** - Print/download HTML reports with charts and insights
-- **AI Chatbot Assistant** - Context-aware help and explanations
+- **FASTA File Upload & Analysis** - Parse and analyze DNA sequences with automatic metrics calculation
+- **Sequence Comparison** - Compare multiple sequences with detailed mutation analysis
+- **Report Generation** - Create comprehensive PDF and HTML reports
+- **Metadata Dashboard** - View detailed sequence statistics and visualizations
+- **Recent Uploads** - Track and manage all uploaded sequences
 
-### UI Views
-1. **Upload** - Drag-and-drop FASTA file upload with live parsing
-2. **Recent Uploads** - File history table with view/download/delete actions
-3. **Metadata** - Visual cards displaying nucleotide distribution and stats
-4. **Analysis Report** - Comprehensive report with AI-generated insights
+### Advanced Features
+- **AI Chatbot Assistant** - Context-aware help and analysis suggestions
+- **Dark Mode** - Seamless light/dark theme switching
+- **User Profiles** - Complete user management with preferences and settings
+- **Notifications** - Real-time analysis status updates
+- **Responsive Design** - Works on desktop, tablet, and mobile
 
----
+## 🚀 Quick Start
 
-## 📂 Project Structure
+### Prerequisites
+- Node.js 18+ and npm
+- Git
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/symbio-insight-app.git
+cd symbio-insight-app
+```
+
+2. **Install dependencies**
+```bash
+# Backend
+cd backend
+npm install
+
+# Frontend
+cd ../frontend
+npm install
+```
+
+3. **Configure environment variables**
+
+Create `backend/.env`:
+```env
+PORT=3002
+JWT_SECRET=your-secret-key-here
+NODE_ENV=development
+```
+
+Create `frontend/.env`:
+```env
+VITE_API_URL=http://localhost:3002/api
+```
+
+4. **Start the application**
+
+```bash
+# Terminal 1 - Backend
+cd backend
+npm run dev
+
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
+```
+
+5. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3002
+
+## 📁 Project Structure
 
 ```
 symbio-insight-app/
-├── .gitignore                    # Excludes node_modules, dist, .env
-├── README.md                     # This file
+├── backend/              # Express.js API
+│   ├── models/          # Sequelize models
+│   ├── routes/          # API endpoints
+│   ├── server.js        # Main server file
+│   └── database.sqlite  # SQLite database
 │
-├── backend/                      # Express API server
-│   ├── config/
-│   │   ├── database.js           # MongoDB connection
-│   │   └── firebase.js           # Firebase config (optional)
-│   ├── controllers/              # Route handlers (future)
-│   ├── middleware/               # Auth, validation (future)
-│   ├── models/
-│   │   └── Sequence.js           # Mongoose schema for sequences
-│   ├── routes/
-│   │   └── sequences.js          # CRUD + FASTA parsing endpoints
-│   ├── server.js                 # Express app entry point
-│   ├── package.json
-│   └── .env                      # MONGODB_URI, PORT
+├── frontend/            # React + Vite application
+│   ├── src/
+│   │   ├── components/  # Reusable UI components
+│   │   ├── pages/       # Page components
+│   │   ├── utils/       # Utilities and helpers
+│   │   ├── hooks/       # Custom React hooks
+│   │   └── context/     # React context providers
+│   │
+│   └── public/          # Static assets
 │
-└── frontend/                     # React + Vite app
-    ├── public/                   # Static assets
-    ├── src/
-    │   ├── components/           # UI components
-    │   │   ├── AnimatedPage.tsx
-    │   │   ├── Charts.tsx
-    │   │   ├── ChatbotAssistant.tsx
-    │   │   ├── Icons.tsx         # Inline SVG icon set
-    │   │   ├── MetadataCards.tsx
-    │   │   ├── RecentUploads.tsx
-    │   │   ├── ReportViewer.tsx
-    │   │   ├── SequenceComparison.tsx
-    │   │   ├── Sidebar.tsx
-    │   │   ├── TopBar.tsx
-    │   │   ├── UploadSection.tsx
-    │   │   └── ui/               # Reusable UI primitives
-    │   ├── hooks/
-    │   │   └── useScrollAnimation.ts
-    │   ├── utils/
-    │   │   ├── aiService.ts      # AI integration (mock + real)
-    │   │   ├── animations.ts     # Framer Motion variants
-    │   │   ├── api.ts            # Backend API client
-    │   │   ├── fastaParser.ts    # FASTA parsing + ORF detection
-    │   │   ├── pdfGenerator.ts   # HTML report generation
-    │   │   └── firebase.ts       # Firebase config (optional)
-    │   ├── types.ts              # Unified SequenceMetadata interface
-    │   ├── App.tsx               # Main app with view routing
-    │   ├── main.tsx              # Vite entry point
-    │   └── index.css             # Global styles
-    ├── vite.config.ts            # Vite config with alias & proxy
-    ├── tsconfig.json             # TypeScript config
-    ├── package.json
-    └── .env                      # VITE_API_URL (optional)
+└── README.md           # This file
 ```
 
----
+## 🔧 Tech Stack
 
-## 🔧 API Endpoints
+### Frontend
+- **Framework**: React 18.3 with Vite
+- **Animation**: Framer Motion
+- **Routing**: React Router v6
+- **Styling**: Tailwind CSS
+- **State**: React Context API
+- **Notifications**: Sonner
 
-### Sequences API (`/api/sequences`)
+### Backend
+- **Runtime**: Node.js + Express
+- **Database**: SQLite with Sequelize ORM
+- **Authentication**: JWT
+- **File Upload**: Multer
+- **Validation**: Express Validator
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/sequences` | Get all sequences (with pagination) |
-| GET | `/api/sequences/:id` | Get single sequence by ID |
-| POST | `/api/sequences` | Create new sequence (from parsed FASTA) |
-| DELETE | `/api/sequences/:id` | Delete sequence by ID |
-| GET | `/api/health` | Health check endpoint |
+## 📖 Usage Guide
 
----
+### Uploading Sequences
 
-## 🧪 Data Types
+1. Navigate to **Dashboard**
+2. Click **Upload FASTA** or drag & drop file
+3. Wait for automatic analysis completion
+4. View sequence in **Recent Uploads**
 
-### Unified `SequenceMetadata` Interface
+### Comparing Sequences
 
-All components and utilities now use a single, consistent type:
+1. Upload at least 2 FASTA files
+2. Go to **Recent** page
+3. Click **Compare Sequences** button
+4. Drag sequences into comparison slots
+5. View similarity analysis and mutations
 
-```typescript
-interface SequenceMetadata {
-  id: string;              // Unique identifier
-  name: string;            // FASTA header (without '>')
-  sequence: string;        // Full nucleotide sequence (A,T,G,C)
-  length: number;          // Total base pairs
-  gcContent: number;       // GC percentage (0-100)
-  nucleotideCounts: {      // Counts for each base
-    A: number;
-    T: number;
-    G: number;
-    C: number;
-  };
-  orfs: Array<{            // Detected open reading frames
-    start: number;
-    end: number;
-    length: number;
-    sequence: string;
-  }>;
-  createdAt: string;       // ISO timestamp
-  description?: string;    // Optional metadata
-}
-```
+### Generating Reports
 
-**Note:** Previously used field names (`sequenceName`, `sequenceLength`, `gcPercentage`, `rawSequence`) have been unified to `name`, `length`, `gcContent`, and `sequence` respectively.
+1. Select a sequence from **Recent Uploads**
+2. Click **View** to see metadata
+3. Click **Generate Report** (green button, top-right)
+4. Download as PDF or HTML from Report page
 
----
+### Managing Profile
 
-## 🎨 Key Components
+1. Click profile button (top-right of TopBar)
+2. Select **View Profile**
+3. Edit account information
+4. Adjust preferences and settings
+5. Logout when done
 
-- **UploadSection** - Drag-and-drop FASTA upload with parsing preview
-- **RecentUploads** - Table view with download/delete actions
-- **MetadataCards** - Visual display of nucleotide distribution
-- **ReportViewer** - Comprehensive analysis report with AI insights
-- **SequenceComparison** - Side-by-side comparison with similarity metrics
-- **ChatbotAssistant** - Contextual help with bioinformatics explanations
+## 🔐 Authentication
 
----
+The app uses JWT-based authentication:
 
-## 🚢 Deployment
+- **Signup**: Create account at `/signup`
+- **Login**: Access at `/login`
+- **Protected Routes**: Dashboard, Recent, Metadata, Report, Profile
+- **Token Storage**: LocalStorage (remember to logout on shared devices)
 
-### Frontend (Vercel/Netlify)
+## 📊 API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Create new user
+- `POST /api/auth/login` - Login user
+
+### Sequences
+- `GET /api/sequences` - Get all sequences (paginated)
+- `GET /api/sequences/:id` - Get specific sequence
+- `POST /api/sequences` - Upload new FASTA file
+- `DELETE /api/sequences/:id` - Delete sequence
+
+## 🎨 Design System
+
+### Color Palette
+- **Primary**: Purple (#7c3aed) to Indigo (#4f46e5)
+- **Success**: Emerald (#10b981)
+- **Warning**: Amber (#f59e0b)
+- **Error**: Red (#ef4444)
+- **Dark Mode**: Gray scale with proper contrast
+
+### Typography
+- **Font**: System font stack for optimal performance
+- **Headings**: Bold, with gradient accents
+- **Body**: Regular weight, comfortable line height
+
+## 🧪 Features in Detail
+
+### Sequence Analysis Metrics
+- Total Base Pairs
+- GC Content Percentage  
+- Nucleotide Distribution (A, T, G, C)
+- ORF (Open Reading Frame) Detection
+- Sequence Length Validation
+
+### Comparison Features
+- Sequence Similarity Percentage
+- Mutation Detection (Transitions & Transversions)
+- Ti/Tv Ratio Calculation
+- Nucleotide Composition Differences
+- Alignment Quality Assessment
+-  Biological Interpretation
+
+### Report Components
+- Executive Summary
+- Sequence Statistics
+- Nucleotide Distribution Charts
+- ORF Analysis Tables
+- Mutation Analysis (for comparisons)
+- Export Options (PDF/HTML)
+
+## 🛠️ Development
+
+### Available Scripts
+
+**Backend:**
 ```bash
-cd frontend
-npm run build
-# Deploy the 'dist' folder
+npm run dev      # Start development server with nodemon
+npm start        # Start production server
 ```
 
-Set environment variable: `VITE_API_URL=https://your-backend-url.com/api`
-
-### Backend (Heroku/Railway/Render)
+**Frontend:**
 ```bash
-cd backend
-# Ensure package.json has "start" script
-npm start
+npm run dev      # Start Vite dev server
+npm run build    # Build for production
+npm run preview  # Preview production build
 ```
 
-Set environment variables:
-- `MONGODB_URI=<your-mongodb-connection-string>`
-- `PORT=3001`
+### Database Schema
 
----
+**Users Table:**
+- id, email (unique), password (hashed), createdAt, updatedAt
 
-## 🧹 Git Workflow
+**Sequences Table:**
+- id, filename, header, sequence, length, gcContent, orfCount, orfs (JSON), nucleotideCounts (JSON), userId, createdAt, updatedAt
 
-This repository uses `.gitignore` to exclude:
-- `**/node_modules/` - Dependencies
-- `**/dist/`, `**/build/` - Build artifacts
-- `**/.vite/`, `**/.cache/` - Build caches
-- `**/.env` - Environment secrets
+## 🐛 Troubleshooting
 
-**Current repo size:** ~113 tracked files (clean)
+### Common Issues
 
----
+**Port Already in Use:**
+```bash
+# Kill process on port 3002 (backend)
+npx kill-port 3002
 
-## 📝 Development Notes
+# Kill process on port 3000 (frontend)
+npx kill-port 3000
+```
 
-### Type Safety
-All frontend code uses TypeScript with strict mode. The unified `SequenceMetadata` interface ensures consistency across parsing, storage, and display.
+**Database Locked:**
+```bash
+# Delete and recreate database
+rm backend/database.sqlite
+# Restart backend (auto-creates new DB)
+```
 
-### Animation System
-Uses Framer Motion for page transitions and micro-interactions. Custom variants in `utils/animations.ts`.
-
-### Offline-First
-Frontend works without backend connection using mock data and localStorage fallback.
-
----
+**Module Not Found:**
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
----
+## 📝 License
 
-## 📄 License
+This project is licensed under the MIT License.
 
-MIT License - see LICENSE file for details
+## 👤 Author
 
----
+**Symbio Research Team**
+- Email: research@symbio.com
 
-## 🐛 Troubleshooting
+## 🙏 Acknowledgments
 
-### Backend won't start
-- Verify MongoDB is running: `mongod` or check connection URI
-- Ensure `.env` file exists in `backend/` with `MONGODB_URI`
-
-### Frontend build errors
-- Clear cache: `rm -rf node_modules dist .vite && npm install`
-- Check TypeScript errors: `npm run type-check`
-
-### CORS issues
-- Backend already has CORS enabled for all origins (dev mode)
-- In production, restrict to specific origins in `server.js`
-
----
-
-## 🔗 Resources
-
-- [FASTA Format Specification](https://www.ncbi.nlm.nih.gov/BLAST/fasta.shtml)
-- [Open Reading Frames (ORF)](https://en.wikipedia.org/wiki/Open_reading_frame)
-- [GC Content Analysis](https://en.wikipedia.org/wiki/GC-content)
+- React team for amazing framework
+- Framer Motion for smooth animations
+- Vite for lightning-fast dev experience
+- All open-source contributors
 
 ---
 

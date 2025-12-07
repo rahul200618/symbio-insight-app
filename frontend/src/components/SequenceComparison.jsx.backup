@@ -1,0 +1,225 @@
+import { Icons } from './Icons';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+
+// Transform backend data to component format
+function normalizeSequence(seq) {
+  if (!seq) return null;
+
+  return {
+    sequenceName: seq.filename || seq.name || seq.sequenceName || 'Unknown',
+    rawSequence: seq.sequence || seq.rawSequence || '',
+    sequenceLength: seq.length || seq.sequenceLength || 0,
+    gcPercentage: seq.gcContent || seq.gcPercent || seq.gcPercentage || 0,
+    orfs: seq.orfs || [],
+    orfCount: seq.orfCount || (seq.orfs?.length || 0),
+    nucleotideCounts: seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 }
+  };
+}
+
+export function SequenceComparison({ sequences, onClose }) {
+  const [normalizedSequences, setNormalizedSequences] = useState([]);
+  const [selectedSequences, setSelectedSequences] = useState([null, null]);
+  const [draggedItem, setDraggedItem] = useState(null);
+
+  // Normalize sequences when they change
+  useEffect(() => {
+    if (sequences && Array.isArray(sequences)) {
+      const normalized = sequences.map(normalizeSequence).filter(s => s !== null);
+      setNormalizedSequences(normalized);
+    }
+  }, [sequences]);
+
+  const handleDragStart = (e, sequence) => {
+    setDraggedItem(sequence);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, slot) => {
+    e.preventDefault();
+    if (draggedItem) {
+      const newSelected = [...selectedSequences];
+      newSelected[slot] = draggedItem;
+      setSelectedSequences(newSelected);
+      setDraggedItem(null);
+    }
+  };
+
+  const calculateSimilarity = (seq1, seq2) => {
+    const minLength = Math.min(seq1.rawSequence.length, seq2.rawSequence.length);
+    let matches = 0;
+
+    for (let i = 0; i < minLength; i++) {
+      if (seq1.rawSequence[i] === seq2.rawSequence[i]) {
+        matches++;
+      }
+    }
+
+    return (matches / minLength) * 100;
+  };
+
+  const compareSequences = () => {
+    const [seq1, seq2] = selectedSequences;
+    if (!seq1 || !seq2) return null;
+
+    const similarity = calculateSimilarity(seq1, seq2);
+    const lengthDiff = Math.abs(seq1.sequenceLength - seq2.sequenceLength);
+    const gcDiff = Math.abs(seq1.gcPercentage - seq2.gcPercentage);
+
+    // Calculate mutations and differences
+    const minLength = Math.min(seq1.rawSequence.length, seq2.rawSequence.length);
+    let transitions = 0;
+    let transversions = 0;
+    let matches = 0;
+
+    for (let i = 0; i < minLength; i++) {
+      const base1 = seq1.rawSequence[i];
+      const base2 = seq2.rawSequence[i];
+
+      if (base1 === base2) {
+        matches++;
+      } else {
+        if ((base1 === 'A' && base2 === 'G') || (base1 === 'G' && base2 === 'A') ||
+          (base1 === 'C' && base2 === 'T') || (base1 === 'T' && base2 === 'C')) {
+          transitions++;
+        } else {
+          transversions++;
+        }
+      }
+    }
+
+    const totalMutations = transitions + transversions;
+    const mutationRate = ((totalMutations / minLength) * 100).toFixed(2);
+    const tiTvRatio = transitions > 0 && transversions > 0 ? (transitions / transversions).toFixed(2) : 'N/A';
+
+    const nucDiff = {
+      A: Math.abs(seq1.nucleotideCounts.A - seq2.nucleotideCounts.A),
+      T: Math.abs(seq1.nucleotideCounts.T - seq2.nucleotideCounts.T),
+      G: Math.abs(seq1.nucleotideCounts.G - seq2.nucleotideCounts.G),
+      C: Math.abs(seq1.nucleotideCounts.C - seq2.nucleotideCounts.C)
+    };
+
+    let alignmentQuality = 'Good';
+    if (similarity < 70) alignmentQuality = 'Poor';
+    else if (similarity < 85) alignmentQuality = 'Moderate';
+    else if (similarity >= 95) alignmentQuality = 'Excellent';
+
+    return {
+      similarity,
+      lengthDiff,
+      gcDiff,
+      orfDiff: Math.abs((seq1.orfs?.length || 0) - (seq2.orfs?.length || 0)),
+      mutations: {
+        total: totalMutations,
+        transitions,
+        transversions,
+        rate: mutationRate,
+        tiTvRatio
+      },
+      nucleotideDiff: nucDiff,
+      alignmentQuality,
+      interpretation: getInterpretation(similarity, gcDiff, totalMutations)
+    };
+  };
+
+  const getInterpretation = (similarity, gcDiff, mutations) => {
+    if (similarity >= 95) {
+      return "Sequences are highly similar, likely from the same species or closely related variants";
+    } else if (similarity >= 85) {
+      return "Sequences show significant similarity, possibly from related species or different strains";
+    } else if (similarity >= 70) {
+      return "Moderate similarity detected, sequences may share common ancestral features";
+    } else {
+      return "Low similarity suggests distinct evolutionary origins or different functional regions";
+    }
+  };
+
+  const comparison = compareSequences();
+
+  if (normalizedSequences.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-8"
+        onClick={onClose}
+      >
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-12 text-center">
+          <Icons.AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Sequences Available</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Upload FASTA files to enable comparison</p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-8"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 flex items-center justify-between">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Sequence Comparison
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <Icons.X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-12 gap-6">
+            {/* Left: Sequence List */}
+            <div className="col-span-4">
+              <h4 className="text-sm text-gray-700 dark:text-gray-300 mb-3">Available Sequences</h4>
+              <div className="space-y-2">
+                {normalizedSequences.slice(0, 20).map((seq, index) => (
+                  <div
+                    key={index}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, seq)}
+                    className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-move hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                        <Icons.DNA className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 dark:text-white truncate">
+                          {seq.sequenceName.length > 30 ? seq.sequenceName.substring(0, 30) + '...' : seq.sequenceName}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {seq.sequenceLength} bp • GC: {seq.gcPercentage.toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}

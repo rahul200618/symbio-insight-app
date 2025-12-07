@@ -18,6 +18,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { RecentPage } from './pages/RecentPage';
 import { MetadataPage } from './pages/MetadataPage';
 import { ReportPage } from './pages/ReportPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 // Main Layout Component (for authenticated pages)
 function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSelectedFile }) {
@@ -116,6 +117,7 @@ function AppRoutes() {
         }} parsedSequences={parsedSequences} />} />
         <Route path="/metadata" element={<MetadataPage parsedSequences={parsedSequences} />} />
         <Route path="/report" element={<ReportPage parsedSequences={parsedSequences} />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Root redirect */}

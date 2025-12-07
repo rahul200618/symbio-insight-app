@@ -11,6 +11,9 @@ export function ReportViewer({ parsedSequences = [] }) {
     : null;
 
   const handleDownloadPDF = async () => {
+    console.log('Generating PDF with sequences:', parsedSequences);
+    console.log('Number of sequences:', parsedSequences.length);
+
     if (parsedSequences.length === 0) {
       alert('No sequences available to generate report');
       return;
@@ -25,9 +28,10 @@ export function ReportViewer({ parsedSequences = [] }) {
         includeAIAnalysis: true,
         title: 'Symbio-NLM Sequence Analysis Report',
       });
+      console.log('PDF generated successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Error generating PDF report');
+      alert('Error generating PDF report: ' + error.message);
     } finally {
       setIsGenerating(false);
     }

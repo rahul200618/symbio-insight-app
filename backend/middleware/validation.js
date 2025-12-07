@@ -45,16 +45,14 @@ function validatePagination(req, res, next) {
 }
 
 /**
- * Validate MongoDB ObjectId format
+ * Validate integer ID format (for Sequelize)
  */
 function validateMongoId(req, res, next) {
     const { id } = req.params;
 
-    // MongoDB ObjectId is a 24-character hexadecimal string
-    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
-
-    if (!id || !objectIdPattern.test(id)) {
-        return res.status(400).json({ error: 'Invalid ID format: must be a valid MongoDB ObjectId' });
+    // For Sequelize with SQLite, we use integer IDs
+    if (!id || isNaN(id) || parseInt(id) < 1) {
+        return res.status(400).json({ error: 'Invalid ID format: must be a valid positive integer' });
     }
 
     next();
@@ -78,13 +76,12 @@ function validateBulkDelete(req, res, next) {
         return res.status(400).json({ error: 'Cannot delete more than 100 items at once' });
     }
 
-    // Validate each ID format
-    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
-    const invalidIds = ids.filter(id => !objectIdPattern.test(id));
+    // Validate each ID format (integers for Sequelize)
+    const invalidIds = ids.filter(id => isNaN(id) || parseInt(id) < 1);
 
     if (invalidIds.length > 0) {
         return res.status(400).json({
-            error: 'Invalid ID format in array',
+            error: 'Invalid ID format in array: all IDs must be positive integers',
             invalidIds: invalidIds.slice(0, 5) // Show first 5 invalid IDs
         });
     }

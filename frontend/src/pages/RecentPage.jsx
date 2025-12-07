@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -6,10 +6,28 @@ import { AnimatedPage } from '../components/AnimatedPage';
 import { RecentUploads } from '../components/RecentUploads';
 import { SequenceComparison } from '../components/SequenceComparison';
 import { Icons } from '../components/Icons';
+import { getSequences } from '../utils/sequenceApi.js';
 
 export function RecentPage({ onFileSelect, parsedSequences }) {
     const navigate = useNavigate();
     const [showComparison, setShowComparison] = useState(false);
+    const [fileCount, setFileCount] = useState(0);
+    const [sequences, setSequences] = useState([]);
+
+    // Fetch file count from backend
+    useEffect(() => {
+        loadFileCount();
+    }, []);
+
+    const loadFileCount = async () => {
+        try {
+            const response = await getSequences({ page: 1, limit: 100 });
+            setFileCount(response.data?.length || 0);
+            setSequences(response.data || []);
+        } catch (error) {
+            console.error('Failed to load file count:', error);
+        }
+    };
 
     const handleFileSelect = (file) => {
         if (onFileSelect) {
@@ -20,7 +38,7 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
     };
 
     const handleCompare = () => {
-        if (!parsedSequences || parsedSequences.length < 2) {
+        if (fileCount < 2) {
             toast.error('Please upload at least 2 files to compare');
             return;
         }
@@ -45,23 +63,16 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
                             </p>
                         </div>
 
-                        {/* Compare Button */}
-                        {parsedSequences && parsedSequences.length >= 2 ? (
-                            <motion.button
-                                onClick={handleCompare}
-                                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <Icons.Activity className="w-4 h-4" />
-                                Compare Sequences
-                            </motion.button>
-                        ) : (
-                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <Icons.Info className="w-4 h-4" />
-                                Upload {parsedSequences?.length === 1 ? '1 more file' : '2 files'} to enable comparison
-                            </div>
-                        )}
+                        {/* Compare Button - Always show when 2+ files */}
+                        <motion.button
+                            onClick={handleCompare}
+                            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <Icons.Activity className="w-4 h-4" />
+                            Compare Sequences
+                        </motion.button>
                     </div>
 
                     <RecentUploads onFileSelect={handleFileSelect} />
@@ -70,9 +81,9 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
 
             {/* Sequence Comparison Modal - Rendered outside AnimatedPage for proper z-index */}
             <AnimatePresence>
-                {showComparison && parsedSequences && parsedSequences.length >= 2 && (
+                {showComparison && sequences && sequences.length >= 2 && (
                     <SequenceComparison
-                        sequences={parsedSequences}
+                        sequences={sequences}
                         onClose={() => setShowComparison(false)}
                     />
                 )}

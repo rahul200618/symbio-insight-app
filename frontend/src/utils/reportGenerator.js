@@ -1,34 +1,35 @@
-// Report Generator Utilities - Mock Implementation for Offline Mode
-// This provides mock report generation functionality without backend dependencies
+// Report Generator Utilities with Real PDF Generation
+import html2pdf from 'html2pdf.js';
 
 /**
- * Generate a PDF report from sequence data (Mock implementation)
+ * Generate a PDF report from sequence data
  * @param {Array} sequences - Array of parsed sequences
  * @param {Object} options - Report generation options
- * @returns {Promise} - Resolves when report generation is complete
+ * @returns {Promise} - Resolves when PDF generation is complete
  */
 export async function generatePDFReport(sequences, options = {}) {
-  // Simulate async operation
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  console.log('PDF Report Generation:', {
-    sequences: sequences.length,
-    options,
-    note: 'Mock implementation - PDF download simulated'
-  });
-  
-  // Mock PDF download - in a real app, this would use a library like jsPDF
-  alert(`✅ PDF Report Generated!\n\nSequences: ${sequences.length}\nThis is a mock implementation. In production, a real PDF would be downloaded.`);
-  
-  return true;
-}
+  console.log('=== PDF Generation Started ===');
+  console.log('Input sequences:', sequences);
+  console.log('Number of sequences:', sequences?.length);
 
-/**
- * Generate and download an HTML report
- * @param {Array} sequences - Array of parsed sequences
- * @param {Object} options - Report generation options
- */
-export function downloadHTMLReport(sequences, options = {}) {
+  // Normalize sequences to always be an array
+  let normalizedSequences = sequences;
+  if (!Array.isArray(sequences)) {
+    console.log('Sequences is not an array, normalizing...');
+    if (sequences && typeof sequences === 'object') {
+      if (sequences.parsedSequences) {
+        normalizedSequences = Array.isArray(sequences.parsedSequences)
+          ? sequences.parsedSequences
+          : [sequences.parsedSequences];
+      } else {
+        normalizedSequences = [sequences];
+      }
+    } else {
+      normalizedSequences = [];
+    }
+  }
+  console.log('Normalized sequences:', normalizedSequences);
+
   const {
     title = 'Symbio-NLM Sequence Analysis Report',
     includeCharts = true,
@@ -38,10 +39,99 @@ export function downloadHTMLReport(sequences, options = {}) {
   } = options;
 
   // Calculate aggregate statistics
-  const stats = calculateReportStats(sequences);
+  const stats = calculateReportStats(normalizedSequences);
+  console.log('Calculated stats:', stats);
+
+  if (stats.totalSequences === 0) {
+    console.error('No sequences in stats!');
+    throw new Error('No sequences available for report generation');
+  }
 
   // Generate HTML content
-  const htmlContent = generateHTMLContent(sequences, stats, {
+  const htmlContent = generateHTMLContent(normalizedSequences, stats, {
+    title,
+    includeCharts,
+    includeRawSequence,
+    includeORFDetails,
+    includeAIAnalysis,
+  });
+
+  console.log('HTML content generated, length:', htmlContent.length);
+
+  // Create a temporary container to render the HTML
+  const container = document.createElement('div');
+  container.innerHTML = htmlContent;
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  document.body.appendChild(container);
+
+  try {
+    // Configure html2pdf options
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `symbio-nlm-report-${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    console.log('Starting PDF conversion with html2pdf...');
+    // Generate and download PDF
+    await html2pdf().set(opt).from(container).save();
+    console.log('PDF saved successfully!');
+
+    return true;
+  } finally {
+    // Clean up
+    document.body.removeChild(container);
+  }
+}
+
+/**
+ * Generate and download an HTML report
+ * @param {Array} sequences - Array of parsed sequences
+ * @param {Object} options - Report generation options
+ */
+export function downloadHTMLReport(sequences, options = {}) {
+  // Normalize sequences to always be an array
+  let normalizedSequences = sequences;
+  if (!Array.isArray(sequences)) {
+    if (sequences && typeof sequences === 'object') {
+      if (sequences.parsedSequences) {
+        normalizedSequences = Array.isArray(sequences.parsedSequences)
+          ? sequences.parsedSequences
+          : [sequences.parsedSequences];
+      } else {
+        normalizedSequences = [sequences];
+      }
+    } else {
+      normalizedSequences = [];
+    }
+  }
+
+  const {
+    title = 'Symbio-NLM Sequence Analysis Report',
+    includeCharts = true,
+    includeRawSequence = false,
+    includeORFDetails = true,
+    includeAIAnalysis = true,
+  } = options;
+
+  // Calculate aggregate statistics
+  const stats = calculateReportStats(normalizedSequences);
+
+  // Generate HTML content
+  const htmlContent = generateHTMLContent(normalizedSequences, stats, {
     title,
     includeCharts,
     includeRawSequence,
@@ -72,18 +162,20 @@ function calculateReportStats(sequences) {
       totalLength: 0,
       avgGC: 0,
       totalORFs: 0,
-      nucleotideDistribution: { A: 0, T: 0, G: 0, C: 0 }
+      nucleotideDistribution: { A: 0, T: 0, G: 0, C: 0 },
+      longestSequence: 0,
+      shortestSequence: 0
     };
   }
 
   const totalSequences = sequences.length;
-  const totalLength = sequences.reduce((sum, seq) => sum + (seq.length || 0), 0);
+  const totalLength = sequences.reduce((sum, seq) => sum + (seq.length || seq.sequenceLength || 0), 0);
   const avgLength = Math.round(totalLength / totalSequences);
-  
-  const totalGC = sequences.reduce((sum, seq) => sum + (seq.gcPercentage || 0), 0);
+
+  const totalGC = sequences.reduce((sum, seq) => sum + (seq.gcPercentage || seq.gcContent || 0), 0);
   const avgGC = totalGC / totalSequences;
-  
-  const totalORFs = sequences.reduce((sum, seq) => sum + (seq.orfCount || 0), 0);
+
+  const totalORFs = sequences.reduce((sum, seq) => sum + (seq.orfCount || (seq.orfs?.length || 0)), 0);
 
   // Calculate nucleotide distribution
   const totalNucleotides = {
@@ -101,6 +193,8 @@ function calculateReportStats(sequences) {
     C: totalBases > 0 ? (totalNucleotides.C / totalBases) * 100 : 0,
   };
 
+  const lengths = sequences.map(s => s.length || s.sequenceLength || 0);
+
   return {
     totalSequences,
     avgLength,
@@ -108,8 +202,8 @@ function calculateReportStats(sequences) {
     avgGC,
     totalORFs,
     nucleotideDistribution,
-    longestSequence: Math.max(...sequences.map(s => s.length || 0)),
-    shortestSequence: Math.min(...sequences.map(s => s.length || 0)),
+    longestSequence: Math.max(...lengths),
+    shortestSequence: Math.min(...lengths),
   };
 }
 
@@ -208,6 +302,7 @@ function generateHTMLContent(sequences, stats, options) {
     
     .section {
       margin-bottom: 40px;
+      page-break-inside: avoid;
     }
     
     .section-title {
@@ -277,6 +372,16 @@ function generateHTMLContent(sequences, stats, options) {
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: white;
+      }
+      .section {
+        page-break-inside: avoid;
+      }
     }
   </style>
 </head>
@@ -364,3 +469,4 @@ function generateHTMLContent(sequences, stats, options) {
 </body>
 </html>`;
 }
+

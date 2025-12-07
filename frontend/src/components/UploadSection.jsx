@@ -80,6 +80,7 @@ export function UploadSection({ onUploadComplete }) {
         sizeBytes: file.size,
         sequences: sequences.length,
         stats,
+        file: file, // Store the file object for backend upload
       });
 
       setParsedData(sequences);
@@ -96,11 +97,43 @@ export function UploadSection({ onUploadComplete }) {
     }
   };
 
-  const handleAccept = () => {
-    if (onUploadComplete && parsedData) {
-      onUploadComplete(parsedData);
-      toast.success('File accepted! Navigating to metadata...');
+  const handleAccept = async () => {
+    if (!parsedData || !uploadedFile) return;
+
+    try {
+      toast.loading('Uploading to server...', { id: 'upload-backend' });
+
+      // Import the API function
+      const { uploadSequenceFile } = await import('../utils/sequenceApi.js');
+
+      // Upload the file to the backend
+      const result = await uploadSequenceFile(uploadedFile.file);
+
+      toast.success('File uploaded successfully!', { id: 'upload-backend' });
+
+      // Call the onUploadComplete with both parsed data and backend result
+      if (onUploadComplete) {
+        onUploadComplete({
+          parsedSequences: parsedData,
+          uploadedSequence: result,
+        });
+      }
+
       setShowReview(false);
+
+      // Reset the form
+      setTimeout(() => {
+        setUploadedFile(null);
+        setParsedData(null);
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+          fileInput.value = '';
+        }
+      }, 500);
+
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast.error(`Upload failed: ${err.message}`, { id: 'upload-backend' });
     }
   };
 

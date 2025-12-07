@@ -1,10 +1,35 @@
 import { Icons } from './Icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Transform backend data to component format
+function normalizeSequence(seq) {
+  if (!seq) return null;
+
+  return {
+    sequenceName: seq.filename || seq.name || seq.sequenceName || seq.header || 'Unknown',
+    rawSequence: seq.sequence || seq.rawSequence || '',
+    sequenceLength: seq.length || seq.sequenceLength || 0,
+    gcPercentage: seq.gcContent || seq.gcPercent || seq.gcPercentage || 0,
+    orfs: seq.orfs || [],
+    orfCount: seq.orfCount || (seq.orfs?.length || 0),
+    nucleotideCounts: seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 }
+  };
+}
+
 export function SequenceComparison({ sequences, onClose }) {
+  const [normalizedSequences, setNormalizedSequences] = useState([]);
   const [selectedSequences, setSelectedSequences] = useState([null, null]);
   const [draggedItem, setDraggedItem] = useState(null);
+
+  // Normalize sequences when they change
+  useEffect(() => {
+    if (sequences && Array.isArray(sequences)) {
+      const normalized = sequences.map(normalizeSequence).filter(s => s !== null);
+      console.log('Normalized sequences:', normalized);
+      setNormalizedSequences(normalized);
+    }
+  }, [sequences]);
 
   const handleDragStart = (e, sequence) => {
     setDraggedItem(sequence);
@@ -156,7 +181,7 @@ export function SequenceComparison({ sequences, onClose }) {
             <div className="col-span-4">
               <h4 className="text-sm text-gray-700 dark:text-gray-300 mb-3">Available Sequences</h4>
               <div className="space-y-2">
-                {sequences.slice(0, 20).map((seq, index) => (
+                {normalizedSequences.slice(0, 20).map((seq, index) => (
                   <div
                     key={index}
                     draggable
@@ -308,9 +333,9 @@ export function SequenceComparison({ sequences, onClose }) {
                   <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
                     <h4 className="text-lg font-bold text-gray-900 dark:text-white">Detailed Comparison Report</h4>
                     <div className={`px-4 py-2 rounded-lg font-semibold ${comparison.alignmentQuality === 'Excellent' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                        comparison.alignmentQuality === 'Good' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                          comparison.alignmentQuality === 'Moderate' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                            'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                      comparison.alignmentQuality === 'Good' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                        comparison.alignmentQuality === 'Moderate' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
                       {comparison.alignmentQuality} Quality
                     </div>

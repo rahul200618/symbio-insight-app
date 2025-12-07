@@ -39,11 +39,11 @@ router.post('/signup', async (req, res) => {
         });
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Return user data and token
         res.status(201).json({
-            _id: user._id,
+            id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,
@@ -82,11 +82,11 @@ router.post('/login', async (req, res) => {
         }
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Return user data and token
         res.json({
-            _id: user._id,
+            id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,
@@ -104,7 +104,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', protect, async (req, res) => {
     try {
         res.json({
-            _id: req.user._id,
+            id: req.user.id,
             name: req.user.name,
             email: req.user.email,
             role: req.user.role
