@@ -103,6 +103,50 @@ export async function chatWithAI(message, context) {
     }
 }
 
+/**
+ * Generate AI-powered sequence analysis summary
+ */
+export async function generateSequenceAnalysis(sequenceStats) {
+    try {
+        const response = await fetch(`${AI_API_URL}/analyze-sequence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                totalSequences: sequenceStats.totalSequences,
+                avgLength: sequenceStats.avgLength,
+                longestSequence: sequenceStats.longestSequence,
+                shortestSequence: sequenceStats.shortestSequence,
+                totalLength: sequenceStats.totalLength,
+                gcContent: sequenceStats.avgGC,
+                atContent: 100 - sequenceStats.avgGC,
+                nucleotides: {
+                    A: sequenceStats.nucleotideDistribution.A,
+                    T: sequenceStats.nucleotideDistribution.T,
+                    G: sequenceStats.nucleotideDistribution.G,
+                    C: sequenceStats.nucleotideDistribution.C
+                },
+                totalORFs: sequenceStats.totalORFs
+            }),
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            if (data.fallback) {
+                // AI service not configured, use fallback
+                return null;
+            }
+            throw new Error('Sequence analysis failed');
+        }
+
+        const data = await response.json();
+        return data.summary;
+    } catch (error) {
+        console.log('AI analysis not available, using static content');
+        return null; // Return null to use static/fallback content
+    }
+}
+
+
 // ============================================================================
 // MOCK/FALLBACK FUNCTIONS (used when AI backend is not available)
 // ============================================================================

@@ -1,0 +1,16 @@
+{
+    "totalSequences": 1,
+    "avgLength": 885,
+    "longestSequence": 885,
+    "shortestSequence": 885,
+    "totalLength": 885,
+    "gcContent": 7.7,
+    "atContent": 92.3,
+    "nucleotides": {
+        "A": 31.7,
+        "T": 37.6,
+        "G": 24.0,
+        "C": 6.8
+    },
+    "totalORFs": 34
+}

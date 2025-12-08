@@ -39,9 +39,11 @@ connectDB();
 
 const sequencesRouter = require('./routes/sequences');
 const authRouter = require('./routes/auth');
+const aiRouter = require('./routes/ai');
 
 app.use('/api/sequences', sequencesRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/ai', aiRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -52,7 +54,8 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/api/health',
       sequences: '/api/sequences',
-      auth: '/api/auth'
+      auth: '/api/auth',
+      ai: '/api/ai'
     }
   });
 });

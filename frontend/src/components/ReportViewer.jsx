@@ -1,16 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icons } from './Icons';
 import { calculateAggregateStats } from '../utils/fastaParser.js';
 import { generatePDFReport, downloadHTMLReport } from '../utils/reportGenerator.js';
 import { generatePDFReport as generateBackendPDF } from '../utils/sequenceApi.js';
+import { generateSequenceAnalysis } from '../utils/aiService.js';
 import { toast } from 'sonner';
 
 export function ReportViewer({ parsedSequences = [] }) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [aiSummary, setAiSummary] = useState(null);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
   const stats = parsedSequences.length > 0
     ? calculateAggregateStats(parsedSequences)
     : null;
+
+  // Fetch AI summary when sequences change
+  useEffect(() => {
+    if (stats && stats.totalSequences > 0) {
+      setIsLoadingAI(true);
+      generateSequenceAnalysis(stats)
+        .then(summary => {
+          if (summary) {
+            setAiSummary(summary);
+          }
+        })
+        .catch(err => console.log('AI summary failed:', err))
+        .finally(() => setIsLoadingAI(false));
+    }
+  }, [parsedSequences.length]); // Re-fetch when sequences change
 
   const handleDownloadPDF = async () => {
     console.log('Generating PDF with sequences:', parsedSequences);
@@ -196,68 +214,82 @@ export function ReportViewer({ parsedSequences = [] }) {
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
             <Icons.FileText className="w-6 h-6 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI-Generated Summary</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Automated analysis and insights</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {isLoadingAI ? 'Generating insights with Gemini...' : 'Automated analysis and insights'}
+            </p>
           </div>
+          {isLoadingAI && (
+            <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          )}
         </div>
 
-        <div className="space-y-4">
-          <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
-            <div className="flex items-start gap-3">
-              <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  The uploaded FASTA file contains {totalSequences} high-quality sequences with an average length of {avgLength} base pairs.
-                  The GC content of {gcPercentage.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.
-                </p>
+        {isLoadingAI ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 animate-pulse">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Quality Assessment */}
+            <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
+              <div className="flex items-start gap-3">
+                <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {aiSummary?.qualityAssessment || `The uploaded FASTA file contains ${totalSequences} high-quality sequences with an average length of ${avgLength} base pairs. The GC content of ${gcPercentage.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.`}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="p-4 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100/50 dark:border-indigo-800/50">
-            <div className="flex items-start gap-3">
-              <Icons.Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  The nucleotide distribution shows balanced representation across all bases: Adenine ({nucleotideDistribution.A.toFixed(1)}%),
-                  Thymine ({nucleotideDistribution.T.toFixed(1)}%), Guanine ({nucleotideDistribution.G.toFixed(1)}%),
-                  and Cytosine ({nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.
-                </p>
+            {/* Nucleotide Composition */}
+            <div className="p-4 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100/50 dark:border-indigo-800/50">
+              <div className="flex items-start gap-3">
+                <Icons.Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {aiSummary?.compositionAnalysis || `The nucleotide distribution shows balanced representation across all bases: Adenine (${nucleotideDistribution.A.toFixed(1)}%), Thymine (${nucleotideDistribution.T.toFixed(1)}%), Guanine (${nucleotideDistribution.G.toFixed(1)}%), and Cytosine (${nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.`}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="p-4 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
-            <div className="flex items-start gap-3">
-              <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Open Reading Frame Analysis</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions.
-                  The longest ORF spans {longestSeq.toLocaleString()} base pairs, which may represent a significant functional gene. Further analysis is recommended
-                  to identify potential gene functions and protein products.
-                </p>
+            {/* ORF Analysis */}
+            <div className="p-4 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
+              <div className="flex items-start gap-3">
+                <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Open Reading Frame Analysis</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {aiSummary?.orfAnalysis || `${totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions. The longest ORF spans ${longestSeq.toLocaleString()} base pairs, which may represent a significant functional gene. Further analysis is recommended to identify potential gene functions and protein products.`}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
-            <div className="flex items-start gap-3">
-              <Icons.AlertCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Recommendations</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  All sequences have been successfully parsed and analyzed. The metadata includes sequence names, lengths, GC percentages,
-                  nucleotide counts (A, T, G, C), and ORF detection. For more detailed analysis, we recommend performing BLAST searches
-                  against reference databases and conducting phylogenetic analysis to determine evolutionary relationships.
-                </p>
+            {/* Recommendations */}
+            <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
+              <div className="flex items-start gap-3">
+                <Icons.AlertCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Recommendations</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {aiSummary?.recommendations || `All sequences have been successfully parsed and analyzed. The metadata includes sequence names, lengths, GC percentages, nucleotide counts (A, T, G, C), and ORF detection. For more detailed analysis, we recommend performing BLAST searches against reference databases and conducting phylogenetic analysis to determine evolutionary relationships.`}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Detailed Metrics */}
