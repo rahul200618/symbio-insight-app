@@ -14,16 +14,16 @@ export function MetadataCards({ parsedSequences = [] }) {
 
   const nucleotideData = stats
     ? [
-      { name: 'A', value: stats.nucleotideDistribution.A, color: '#38bdf8' },
-      { name: 'T', value: stats.nucleotideDistribution.T, color: '#22d3ee' },
-      { name: 'G', value: stats.nucleotideDistribution.G, color: '#06b6d4' },
-      { name: 'C', value: stats.nucleotideDistribution.C, color: '#0ea5e9' },
+      { name: 'A', value: stats.nucleotideDistribution.A, count: stats.nucleotideCounts.A, color: '#38bdf8' },
+      { name: 'T', value: stats.nucleotideDistribution.T, count: stats.nucleotideCounts.T, color: '#22d3ee' },
+      { name: 'G', value: stats.nucleotideDistribution.G, count: stats.nucleotideCounts.G, color: '#06b6d4' },
+      { name: 'C', value: stats.nucleotideDistribution.C, count: stats.nucleotideCounts.C, color: '#0ea5e9' },
     ]
     : [
-      { name: 'A', value: 28.5, color: '#38bdf8' },
-      { name: 'T', value: 27.8, color: '#22d3ee' },
-      { name: 'G', value: 22.3, color: '#06b6d4' },
-      { name: 'C', value: 21.4, color: '#0ea5e9' },
+      { name: 'A', value: 28.5, count: 35471, color: '#38bdf8' },
+      { name: 'T', value: 27.8, count: 34599, color: '#22d3ee' },
+      { name: 'G', value: 22.3, count: 27754, color: '#06b6d4' },
+      { name: 'C', value: 21.4, count: 26636, color: '#0ea5e9' },
     ];
 
   console.log('MetadataCards - nucleotideData:', nucleotideData);
@@ -31,9 +31,17 @@ export function MetadataCards({ parsedSequences = [] }) {
   const gcPercentage = stats ? stats.avgGC : 43.7;
   const atPercentage = stats ? (100 - stats.avgGC) : 56.3;
 
+  // Calculate raw counts for GC/AT if stats exist
+  const totalBases = stats ? stats.totalLength : 124460;
+  // This is an approximation based on averages if we don't sum them explicitly, 
+  // but we have exact counts now for nucleotideData. 
+  // GC count = G count + C count
+  const gcCount = stats ? (stats.nucleotideCounts.G + stats.nucleotideCounts.C) : 54390;
+  const atCount = stats ? (stats.nucleotideCounts.A + stats.nucleotideCounts.T) : 70070;
+
   const gcData = [
-    { name: 'GC', value: Number(gcPercentage.toFixed(1)), color: '#22d3ee' },
-    { name: 'AT', value: Number(atPercentage.toFixed(1)), color: '#38bdf8' },
+    { name: 'GC', value: Number(gcPercentage.toFixed(1)), count: gcCount, color: '#22d3ee' },
+    { name: 'AT', value: Number(atPercentage.toFixed(1)), count: atCount, color: '#38bdf8' },
   ];
 
   const totalSequences = stats?.totalSequences || 245;

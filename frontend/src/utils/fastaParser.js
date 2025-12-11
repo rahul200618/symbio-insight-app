@@ -176,5 +176,6 @@ export function calculateAggregateStats(sequences) {
             G: Number(((totalNucleotides.G / total) * 100).toFixed(2)),
             C: Number(((totalNucleotides.C / total) * 100).toFixed(2)),
         },
+        nucleotideCounts: totalNucleotides,
     };
 }

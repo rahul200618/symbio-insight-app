@@ -33,11 +33,15 @@ export function BarChart({ data }) {
                 }}
               >
                 {/* Tooltip on hover */}
-                <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded pointer-events-none transition-opacity whitespace-nowrap z-10">
-                  {item.value.toFixed(1)}%
+                <div className="opacity-0 group-hover:opacity-100 absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm text-white text-xs py-1.5 px-3 rounded-lg pointer-events-none transition-opacity whitespace-nowrap z-10 text-center shadow-xl border border-gray-700">
+                  <div className="font-bold text-sm mb-0.5">{item.count?.toLocaleString()}</div>
+                  <div className="text-gray-300">{item.value.toFixed(1)}%</div>
+                  {/* Arrow */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900/90"></div>
                 </div>
               </motion.div>
             </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">{item.name}</p>
           </div>
         );
       })}
@@ -46,6 +50,7 @@ export function BarChart({ data }) {
 }
 
 export function PieChart({ data }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const total = data.reduce((sum, item) => sum + item.value, 0) || 1; // Prevent division by zero
   let currentAngle = -90;
 
@@ -97,15 +102,55 @@ export function PieChart({ data }) {
   };
 
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
-      {slices.map((slice, index) => (
-        <path
-          key={index}
-          d={createArc(slice.startAngle, slice.endAngle, 55, 85)}
-          fill={slice.color}
-          className="hover:opacity-90 transition-opacity cursor-pointer"
-        />
-      ))}
-    </svg>
+    <div className="relative w-full h-full">
+      <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
+        {slices.map((slice, index) => (
+          <path
+            key={index}
+            d={createArc(slice.startAngle, slice.endAngle, 55, 85)}
+            fill={slice.color}
+            className="hover:opacity-90 transition-opacity cursor-pointer stroke-2 stroke-white dark:stroke-gray-900"
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          />
+        ))}
+      </svg>
+
+      {/* Center Tooltip/Label */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="text-center">
+          {hoveredIndex !== null ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              key="tooltip"
+            >
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                {data[hoveredIndex].value}%
+              </div>
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                {data[hoveredIndex].name}
+              </div>
+              {data[hoveredIndex].count && (
+                <div className="text-[10px] text-gray-400 mt-0.5">
+                  {data[hoveredIndex].count.toLocaleString()}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              key="default"
+            >
+              <div className="text-gray-400 dark:text-gray-500 text-xs font-medium">
+                Total
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
