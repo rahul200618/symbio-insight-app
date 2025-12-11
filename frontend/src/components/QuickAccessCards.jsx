@@ -3,10 +3,10 @@ import { motion } from 'motion/react';
 
 export function QuickAccessCards() {
     const cards = [
-        { id: 'recent', title: 'Recent Files', subtitle: '24 sequences', icon: 'Clock' },
-        { id: 'metadata', title: 'Metadata', subtitle: 'View analytics', icon: 'BarChart' },
-        { id: 'reports', title: 'Reports', subtitle: 'Generate now', icon: 'FileText' },
-        { id: 'analysis', title: 'DNA Analysis', subtitle: 'Quick tools', icon: 'Activity' },
+        { id: 'parsing', title: 'Smart Parsing', subtitle: 'Auto-detects multi-sequence files', icon: 'FileText' },
+        { id: 'analytics', title: 'Sequence Analysis', subtitle: 'GC content, ORF & mutations', icon: 'Activity' },
+        { id: 'visuals', title: 'Visual Insights', subtitle: 'Interactive distribution charts', icon: 'PieChart' },
+        { id: 'export', title: 'PDF Export', subtitle: 'Generate comprehensive reports', icon: 'Download' },
     ];
 
     return (
