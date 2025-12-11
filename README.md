@@ -1,11 +1,6 @@
 # Symbio-NLM - DNA Sequence Analysis Platform
 
 A modern, full-stack bioinformatics application for FASTA file analysis, sequence comparison, and comprehensive report generation.
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)
-
 ## ?? Features
 
 ### Core Functionality
