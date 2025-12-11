@@ -39,7 +39,10 @@ export function parseFastaFile(fileContent) {
 /**
  * Extract all metadata from a single sequence
  */
-function extractMetadata(header, sequence) {
+/**
+ * Extract all metadata from a single sequence
+ */
+export function extractMetadata(header, sequence) {
     const nucleotideCounts = countNucleotides(sequence);
     const gcPercentage = calculateGCPercentage(nucleotideCounts, sequence.length);
     const orfs = detectORFs(sequence);
@@ -59,7 +62,7 @@ function extractMetadata(header, sequence) {
 /**
  * Count each nucleotide (A, T, G, C)
  */
-function countNucleotides(sequence) {
+export function countNucleotides(sequence) {
     const counts = { A: 0, T: 0, G: 0, C: 0 };
 
     for (let i = 0; i < sequence.length; i++) {
@@ -75,7 +78,7 @@ function countNucleotides(sequence) {
 /**
  * Calculate GC percentage
  */
-function calculateGCPercentage(counts, totalLength) {
+export function calculateGCPercentage(counts, totalLength) {
     const gcCount = counts.G + counts.C;
     return totalLength > 0 ? Number(((gcCount / totalLength) * 100).toFixed(2)) : 0;
 }
@@ -84,7 +87,7 @@ function calculateGCPercentage(counts, totalLength) {
  * Detect Open Reading Frames (ORFs)
  * Simple check: starts with ATG and ends with TAA/TGA/TAG
  */
-function detectORFs(sequence) {
+export function detectORFs(sequence) {
     const orfs = [];
     const stopCodons = ['TAA', 'TGA', 'TAG'];
 
@@ -120,7 +123,7 @@ function detectORFs(sequence) {
 /**
  * Generate unique ID
  */
-function generateUniqueId() {
+export function generateUniqueId() {
     return `seq_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 

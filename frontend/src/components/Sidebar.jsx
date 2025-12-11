@@ -17,7 +17,6 @@ export function Sidebar({ activeView }) {
     { id: 'dashboard', label: 'Upload FASTA', icon: 'Upload', path: '/dashboard' },
     { id: 'recent', label: 'Recent Uploads', icon: 'Clock', path: '/recent' },
     { id: 'metadata', label: 'Metadata Dashboard', icon: 'BarChart', path: '/metadata' },
-    { id: 'report', label: 'Generate Report', icon: 'FileText', path: '/report' },
   ];
 
   // Determine active item based on current location

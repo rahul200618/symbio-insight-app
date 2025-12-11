@@ -103,7 +103,7 @@ export function Signup({ onSignupSuccess, onSwitchToLogin }) {
                         }}
                         className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg mb-2 ring-1 ring-white/30"
                     >
-                        <Icons.Activity className="w-5 h-5 text-white" />
+                        <Icons.DNA className="w-5 h-5 text-white" />
                     </motion.div>
 
                     <motion.div

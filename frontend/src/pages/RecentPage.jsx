@@ -30,11 +30,18 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
     };
 
     const handleFileSelect = (file) => {
+        // Ensure data property exists for App.jsx to pick up sequences
+        // RecentUploads provides 'backendData', but App expects 'data'
+        const fileWithData = {
+            ...file,
+            data: file.data || (file.backendData ? (Array.isArray(file.backendData) ? file.backendData : [file.backendData]) : [])
+        };
+
         if (onFileSelect) {
-            onFileSelect(file);
+            onFileSelect(fileWithData);
         }
-        // Navigate to report page when file is selected
-        navigate('/report');
+        // Navigate to metadata dashboard instead of report
+        navigate('/metadata');
     };
 
     const handleCompare = () => {

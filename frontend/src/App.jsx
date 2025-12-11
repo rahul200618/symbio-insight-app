@@ -92,6 +92,13 @@ function AppRoutes() {
   const [selectedFile, setSelectedFile] = useState(null);
   const location = useLocation();
 
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
+    if (file.data) {
+      setParsedSequences(file.data);
+    }
+  };
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -99,34 +106,31 @@ function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
-      {/* Protected Routes */}
-      <Route
-        element={
-          <ProtectedRoute>
-            <MainLayout
-              parsedSequences={parsedSequences}
-              setParsedSequences={setParsedSequences}
-              selectedFile={selectedFile}
-              setSelectedFile={setSelectedFile}
-            />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
-        <Route path="/recent" element={<RecentPage onFileSelect={(file) => {
-          setSelectedFile(file);
-          if (file.data) setParsedSequences(file.data);
-        }} parsedSequences={parsedSequences} />} />
-        <Route path="/metadata" element={<MetadataPage parsedSequences={parsedSequences} />} />
-        <Route path="/report" element={<ReportPage parsedSequences={parsedSequences} />} />
-        <Route path="/profile" element={<ProfilePage />} />
-      </Route>
+        {/* Protected Routes */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <MainLayout
+                parsedSequences={parsedSequences}
+                setParsedSequences={setParsedSequences}
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+              />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
+          <Route path="/recent" element={<RecentPage onFileSelect={handleFileSelect} parsedSequences={parsedSequences} />} />
+          <Route path="/metadata" element={<MetadataPage parsedSequences={parsedSequences} selectedFile={selectedFile} onFileSelect={handleFileSelect} />} />
+          <Route path="/report" element={<ReportPage parsedSequences={parsedSequences} />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
-      {/* Root redirect */}
-      <Route path="/" element={<RootRedirect />} />
+        {/* Root redirect */}
+        <Route path="/" element={<RootRedirect />} />
 
-      {/* 404 */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </AnimatePresence>
   );

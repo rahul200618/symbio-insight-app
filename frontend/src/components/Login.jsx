@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { Icons } from './Icons';
@@ -18,6 +18,15 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
     const [resetLoading, setResetLoading] = useState(false);
     const [isInteracting, setIsInteracting] = useState(false);
 
+    // Initialize Remember Me state
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('symbio_nlm_saved_email');
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true);
+        }
+    }, []);
+
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         setLocalError('');
@@ -26,8 +35,11 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
             const result = await login(email, password);
             if (result) {
                 if (rememberMe) {
-                    localStorage.setItem('symbio_nlm_remember', 'true');
+                    localStorage.setItem('symbio_nlm_saved_email', email);
+                } else {
+                    localStorage.removeItem('symbio_nlm_saved_email');
                 }
+
                 toast.success('Login successful! Welcome back.');
                 onLoginSuccess(result);
             }
@@ -95,7 +107,7 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                         }}
                         className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg mb-2 ring-1 ring-white/30"
                     >
-                        <Icons.Activity className="w-6 h-6 text-white" />
+                        <Icons.DNA className="w-6 h-6 text-white" />
                     </motion.div>
 
                     <motion.div
@@ -205,19 +217,15 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
 
                                     {/* Actions */}
                                     <div className="flex items-center justify-between pt-1">
-                                        <label className="flex items-center cursor-pointer group">
-                                            <div className="relative">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={rememberMe}
-                                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                                    className="peer appearance-none opacity-0 absolute h-0 w-0 pointer-events-none"
-                                                />
-                                                <div className="w-4 h-4 border-2 border-gray-300 rounded peer-checked:bg-purple-600 peer-checked:border-purple-600 transition-all duration-200"></div>
-                                                <Icons.Check className="w-2.5 h-2.5 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
+                                        <div
+                                            className="flex items-center gap-2 cursor-pointer group"
+                                            onClick={() => setRememberMe(!rememberMe)}
+                                        >
+                                            <div className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-300 ${rememberMe ? 'bg-purple-600' : 'bg-gray-300 group-hover:bg-gray-400'}`}>
+                                                <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-300 ${rememberMe ? 'translate-x-4' : 'translate-x-0'}`} />
                                             </div>
-                                            <span className="ml-2 text-xs text-gray-500 group-hover:text-gray-700 transition-colors">Remember me</span>
-                                        </label>
+                                            <span className="text-xs text-gray-500 group-hover:text-gray-700 transition-colors font-medium select-none">Remember me</span>
+                                        </div>
                                         <button
                                             type="button"
                                             onClick={() => setView('forgot')}
