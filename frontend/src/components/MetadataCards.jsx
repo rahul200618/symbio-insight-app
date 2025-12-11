@@ -44,12 +44,12 @@ export function MetadataCards({ parsedSequences = [] }) {
     { name: 'AT', value: Number(atPercentage.toFixed(1)), count: atCount, color: '#38bdf8' },
   ];
 
-  const totalSequences = stats?.totalSequences || 245;
-  const totalLength = stats?.totalLength || 124460;
-  const totalORFs = stats?.totalORFs || 34;
-  const avgLength = stats?.avgLength || 508;
-  const longestSeq = stats?.longestSequence || 2845;
-  const shortestSeq = stats?.shortestSequence || 89;
+  const totalSequences = stats?.totalSequences ?? 245;
+  const totalLength = stats?.totalLength ?? 124460;
+  const totalORFs = stats?.totalORFs ?? 34;
+  const avgLength = stats?.avgLength ?? 508;
+  const longestSeq = stats?.longestSequence ?? 2845;
+  const shortestSeq = stats?.shortestSequence ?? 89;
 
   return (
     <div className="space-y-6">

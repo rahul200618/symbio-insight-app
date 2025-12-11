@@ -93,13 +93,13 @@ export function ReportViewer({ parsedSequences = [] }) {
     }
   };
 
-  const totalSequences = stats?.totalSequences || 245;
-  const gcPercentage = stats?.avgGC || 43.7;
-  const totalORFs = stats?.totalORFs || 34;
-  const totalLength = stats?.totalLength || 124460;
-  const avgLength = stats?.avgLength || 508;
-  const longestSeq = stats?.longestSequence || 2845;
-  const shortestSeq = stats?.shortestSequence || 89;
+  const totalSequences = stats?.totalSequences ?? 245;
+  const gcPercentage = stats?.avgGC ?? 43.7;
+  const totalORFs = stats?.totalORFs ?? 34;
+  const totalLength = stats?.totalLength ?? 124460;
+  const avgLength = stats?.avgLength ?? 508;
+  const longestSeq = stats?.longestSequence ?? 2845;
+  const shortestSeq = stats?.shortestSequence ?? 89;
 
   const nucleotideDistribution = stats?.nucleotideDistribution || {
     A: 28.5,
