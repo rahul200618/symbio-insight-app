@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const { generateSequenceAnalysisSummary } = require('../services/geminiService');
 
 /**
  * Generate PDF report from sequence data
@@ -7,16 +8,34 @@ const PDFDocument = require('pdfkit');
  * @returns {Promise<Buffer>} - PDF document as buffer
  */
 async function generatePDFReport(sequences, options = {}) {
-  return new Promise((resolve, reject) => {
-    try {
-      const {
-        title = 'Symbio-NLM Sequence Analysis Report',
-        includeAIAnalysis = true,
-      } = options;
+  try {
+    const {
+      title = 'Symbio-NLM Sequence Analysis Report',
+      includeAIAnalysis = true,
+    } = options;
 
-      // Calculate statistics
-      const stats = calculateStats(sequences);
+    // Calculate statistics
+    const stats = calculateStats(sequences);
 
+    // Generate AI summary if needed (before creating PDF)
+    let aiSummary = null;
+    if (includeAIAnalysis) {
+      try {
+        aiSummary = await generateSequenceAnalysisSummary({
+          totalSequences: stats.totalSequences,
+          avgLength: stats.avgLength,
+          gcContent: stats.avgGC.toFixed(1),
+          totalORFs: stats.totalORFs,
+          nucleotideDistribution: stats.nucleotideDistribution
+        });
+        console.log('✅ AI summary generated successfully');
+      } catch (error) {
+        console.warn('⚠️ AI generation failed, using fallback:', error.message);
+      }
+    }
+
+    // Now create the PDF with the AI summary available
+    return new Promise((resolve, reject) => {
       // Create PDF document
       const doc = new PDFDocument({
         margin: 40,
@@ -35,7 +54,7 @@ async function generatePDFReport(sequences, options = {}) {
       // Add header
       doc.fontSize(24).font('Helvetica-Bold').text(title, { align: 'center' });
       doc.moveDown(0.5);
-      
+
       const date = new Date().toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -55,7 +74,7 @@ async function generatePDFReport(sequences, options = {}) {
         ['Total Sequences', stats.totalSequences.toString()],
         ['GC Content', `${stats.avgGC.toFixed(1)}%`],
         ['ORFs Found', stats.totalORFs.toString()],
-        ['Total Length', `${(stats.totalLength / 1000).toFixed(1)}k bp`],
+        ['Total Length', `${stats.totalLength.toLocaleString()} bp`],
         ['Average Length', `${stats.avgLength} bp`],
         ['Longest Sequence', `${stats.longestSequence.toLocaleString()} bp`],
         ['Shortest Sequence', `${stats.shortestSequence} bp`],
@@ -72,29 +91,54 @@ async function generatePDFReport(sequences, options = {}) {
         doc.fontSize(12).font('Helvetica-Bold').text('AI-Generated Summary', { underline: true });
         doc.moveDown(0.3);
 
-        doc.fontSize(10).font('Helvetica-Bold').text('✓ Sequence Quality Assessment');
-        doc.fontSize(9).font('Helvetica');
-        doc.text(
-          `The uploaded FASTA file contains ${stats.totalSequences} high-quality sequences with an average length of ${stats.avgLength} base pairs. The GC content of ${stats.avgGC.toFixed(1)}% falls within the optimal range for most organisms.`,
-          { align: 'justify' }
-        );
-        doc.moveDown(0.5);
+        // Use AI-generated content or fallback to hardcoded
+        if (aiSummary) {
+          // AI-generated sections
+          doc.fontSize(10).font('Helvetica-Bold').text('✓ Sequence Quality Assessment');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(aiSummary.qualityAssessment, { align: 'justify' });
+          doc.moveDown(0.5);
 
-        doc.fontSize(10).font('Helvetica-Bold').text('◆ Nucleotide Composition');
-        doc.fontSize(9).font('Helvetica');
-        doc.text(
-          `The nucleotide distribution shows balanced representation: Adenine (${stats.nucleotideDistribution.A.toFixed(1)}%), Thymine (${stats.nucleotideDistribution.T.toFixed(1)}%), Guanine (${stats.nucleotideDistribution.G.toFixed(1)}%), Cytosine (${stats.nucleotideDistribution.C.toFixed(1)}%).`,
-          { align: 'justify' }
-        );
-        doc.moveDown(0.5);
+          doc.fontSize(10).font('Helvetica-Bold').text('% Nucleotide Composition Analysis');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(aiSummary.compositionAnalysis, { align: 'justify' });
+          doc.moveDown(0.5);
 
-        doc.fontSize(10).font('Helvetica-Bold').text('◉ Open Reading Frame Analysis');
-        doc.fontSize(9).font('Helvetica');
-        doc.text(
-          `${stats.totalORFs} potential open reading frames (ORFs) were detected, suggesting multiple protein-coding regions.`,
-          { align: 'justify' }
-        );
-        doc.moveDown(1);
+          doc.fontSize(10).font('Helvetica-Bold').text('% Open Reading Frame Analysis');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(aiSummary.orfAnalysis, { align: 'justify' });
+          doc.moveDown(0.5);
+
+          doc.fontSize(10).font('Helvetica-Bold').text('% Recommendations');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(aiSummary.recommendations, { align: 'justify' });
+          doc.moveDown(1);
+        } else {
+          // Fallback hardcoded content
+          doc.fontSize(10).font('Helvetica-Bold').text('✓ Sequence Quality Assessment');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(
+            `The uploaded FASTA file contains ${stats.totalSequences} high-quality sequences with an average length of ${stats.avgLength} base pairs. The GC content of ${stats.avgGC.toFixed(1)}% falls within the optimal range for most organisms.`,
+            { align: 'justify' }
+          );
+          doc.moveDown(0.5);
+
+          doc.fontSize(10).font('Helvetica-Bold').text('% Nucleotide Composition');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(
+            `The nucleotide distribution shows balanced representation: Adenine (${stats.nucleotideDistribution.A.toFixed(1)}%), Thymine (${stats.nucleotideDistribution.T.toFixed(1)}%), Guanine (${stats.nucleotideDistribution.G.toFixed(1)}%), Cytosine (${stats.nucleotideDistribution.C.toFixed(1)}%).`,
+            { align: 'justify' }
+          );
+          doc.moveDown(0.5);
+
+          doc.fontSize(10).font('Helvetica-Bold').text('% Open Reading Frame Analysis');
+          doc.fontSize(9).font('Helvetica');
+          doc.text(
+            `${stats.totalORFs} potential open reading frames (ORFs) were detected, suggesting multiple protein-coding regions.`,
+            { align: 'justify' }
+          );
+          doc.moveDown(1);
+        }
       }
 
       // Add detailed metrics table
@@ -159,10 +203,10 @@ async function generatePDFReport(sequences, options = {}) {
         if (seq.nucleotideCounts) {
           doc.fontSize(11).font('Helvetica-Bold').text('Nucleotide Composition');
           doc.fontSize(10).font('Helvetica');
-          
+
           const counts = seq.nucleotideCounts;
           const total = counts.A + counts.T + counts.G + counts.C;
-          
+
           doc.text(`Adenine (A): ${counts.A?.toLocaleString() || 0} (${total > 0 ? ((counts.A / total) * 100).toFixed(1) : 0}%)`);
           doc.text(`Thymine (T): ${counts.T?.toLocaleString() || 0} (${total > 0 ? ((counts.T / total) * 100).toFixed(1) : 0}%)`);
           doc.text(`Guanine (G): ${counts.G?.toLocaleString() || 0} (${total > 0 ? ((counts.G / total) * 100).toFixed(1) : 0}%)`);
@@ -174,12 +218,12 @@ async function generatePDFReport(sequences, options = {}) {
         if (seq.orfs && seq.orfs.length > 0) {
           doc.fontSize(11).font('Helvetica-Bold').text('Open Reading Frames (ORFs)');
           doc.fontSize(9).font('Helvetica');
-          
+
           const displayORFs = seq.orfs.slice(0, 10); // Limit to first 10 ORFs
           displayORFs.forEach((orf, orfIndex) => {
             doc.text(`ORF ${orfIndex + 1}: Position ${orf.start}-${orf.end}, Length: ${orf.length} bp, Frame: ${orf.frame || 'N/A'}`);
           });
-          
+
           if (seq.orfs.length > 10) {
             doc.text(`... and ${seq.orfs.length - 10} more ORFs`);
           }
@@ -189,7 +233,7 @@ async function generatePDFReport(sequences, options = {}) {
         // Visual indicators
         doc.fontSize(11).font('Helvetica-Bold').text('Sequence Quality Assessment');
         doc.fontSize(9).font('Helvetica');
-        
+
         // GC content assessment
         const gcContent = seq.gcContent || 0;
         let gcAssessment = '';
@@ -241,10 +285,10 @@ async function generatePDFReport(sequences, options = {}) {
 
       // Finalize PDF
       doc.end();
-    } catch (error) {
-      reject(error);
-    }
-  });
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**

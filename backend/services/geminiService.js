@@ -14,8 +14,8 @@ async function generateSequenceAnalysisSummary(sequenceData) {
             throw new Error('GEMINI_API_KEY not configured');
         }
 
-        console.log('Initializing Gemini 2.5 Flash model...');
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+        console.log('Initializing Gemini 2.5 Flash Lite model...');
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
         const prompt = `You are a bioinformatics expert analyzing DNA/RNA sequence data. Provide a professional analysis based on these statistics:
 
@@ -82,7 +82,7 @@ async function generateChatbotResponse(userMessage, context = {}) {
             throw new Error('GEMINI_API_KEY not configured');
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
         let contextInfo = '';
         if (context.sequences && context.sequences.length > 0) {

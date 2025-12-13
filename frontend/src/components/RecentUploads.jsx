@@ -113,7 +113,7 @@ export function RecentUploads({ onFileSelect }) {
 
       // Extract sequence IDs from files
       const sequenceIds = files.map(file => file.id).filter(Boolean);
-      
+
       if (sequenceIds.length === 0) {
         toast.error('No sequences available for export', { id: 'pdf-export' });
         return;

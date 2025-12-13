@@ -172,8 +172,8 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                                                             key={file._id || file.id || Math.random()}
                                                             onClick={() => handleFileChange(file)}
                                                             className={`w-full text-left px-4 py-3 text-sm hover:bg-purple-50 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors border-l-2 ${isSelected
-                                                                    ? 'bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300 border-purple-500'
-                                                                    : 'text-gray-700 dark:text-gray-300 border-transparent'
+                                                                ? 'bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300 border-purple-500'
+                                                                : 'text-gray-700 dark:text-gray-300 border-transparent'
                                                                 }`}
                                                         >
                                                             <div className={`p-1.5 rounded-md ${isSelected ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-800'}`}>

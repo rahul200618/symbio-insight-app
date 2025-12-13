@@ -20,36 +20,36 @@ export function MetadataCards({ parsedSequences = [] }) {
       { name: 'C', value: stats.nucleotideDistribution.C, count: stats.nucleotideCounts.C, color: '#0ea5e9' },
     ]
     : [
-      { name: 'A', value: 28.5, count: 35471, color: '#38bdf8' },
-      { name: 'T', value: 27.8, count: 34599, color: '#22d3ee' },
-      { name: 'G', value: 22.3, count: 27754, color: '#06b6d4' },
-      { name: 'C', value: 21.4, count: 26636, color: '#0ea5e9' },
+      { name: 'A', value: 0, count: 0, color: '#38bdf8' },
+      { name: 'T', value: 0, count: 0, color: '#22d3ee' },
+      { name: 'G', value: 0, count: 0, color: '#06b6d4' },
+      { name: 'C', value: 0, count: 0, color: '#0ea5e9' },
     ];
 
   console.log('MetadataCards - nucleotideData:', nucleotideData);
 
-  const gcPercentage = stats ? stats.avgGC : 43.7;
-  const atPercentage = stats ? (100 - stats.avgGC) : 56.3;
+  const gcPercentage = stats ? stats.avgGC : 0;
+  const atPercentage = stats ? (100 - stats.avgGC) : 0;
 
   // Calculate raw counts for GC/AT if stats exist
-  const totalBases = stats ? stats.totalLength : 124460;
+  const totalBases = stats ? stats.totalLength : 0;
   // This is an approximation based on averages if we don't sum them explicitly, 
   // but we have exact counts now for nucleotideData. 
   // GC count = G count + C count
-  const gcCount = stats ? (stats.nucleotideCounts.G + stats.nucleotideCounts.C) : 54390;
-  const atCount = stats ? (stats.nucleotideCounts.A + stats.nucleotideCounts.T) : 70070;
+  const gcCount = stats ? (stats.nucleotideCounts.G + stats.nucleotideCounts.C) : 0;
+  const atCount = stats ? (stats.nucleotideCounts.A + stats.nucleotideCounts.T) : 0;
 
   const gcData = [
     { name: 'GC', value: Number(gcPercentage.toFixed(1)), count: gcCount, color: '#22d3ee' },
     { name: 'AT', value: Number(atPercentage.toFixed(1)), count: atCount, color: '#38bdf8' },
   ];
 
-  const totalSequences = stats?.totalSequences ?? 245;
-  const totalLength = stats?.totalLength ?? 124460;
-  const totalORFs = stats?.totalORFs ?? 34;
-  const avgLength = stats?.avgLength ?? 508;
-  const longestSeq = stats?.longestSequence ?? 2845;
-  const shortestSeq = stats?.shortestSequence ?? 89;
+  const totalSequences = stats?.totalSequences ?? 0;
+  const totalLength = stats?.totalLength ?? 0;
+  const totalORFs = stats?.totalORFs ?? 0;
+  const avgLength = stats?.avgLength ?? 0;
+  const longestSeq = stats?.longestSequence ?? 0;
+  const shortestSeq = stats?.shortestSequence ?? 0;
 
   return (
     <div className="space-y-6">
