@@ -17,22 +17,86 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// Enhanced FASTA parser with multiple sequence support
+// Enhanced FASTA parser with multiple sequence support - parses ALL sequences
 function parseFastaToMetadata(fasta) {
-  const lines = fasta.split(/\r?\n/).filter(Boolean);
-  let header = '';
-  let name = 'Sequence';
-  let seq = '';
+  const lines = fasta.split(/\r?\n/);
+  const sequences = [];
+  let currentHeader = '';
+  let currentSeq = '';
 
   for (const line of lines) {
-    if (line.startsWith('>')) {
-      header = line.replace(/^>\s*/, '').trim();
-      name = header.split(/\s+/)[0];
-    } else {
-      seq += line.trim().toUpperCase();
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('>')) {
+      // Save previous sequence if exists
+      if (currentHeader && currentSeq) {
+        sequences.push(createSequenceMetadata(currentHeader, currentSeq));
+      }
+      currentHeader = trimmedLine.replace(/^>\s*/, '').trim();
+      currentSeq = '';
+    } else if (trimmedLine.length > 0) {
+      currentSeq += trimmedLine.toUpperCase();
     }
   }
 
+  // Don't forget the last sequence
+  if (currentHeader && currentSeq) {
+    sequences.push(createSequenceMetadata(currentHeader, currentSeq));
+  }
+
+  // If no sequences found, return empty structure
+  if (sequences.length === 0) {
+    return {
+      name: 'Empty',
+      header: '',
+      sequence: '',
+      length: 0,
+      gcContent: 0,
+      orfDetected: false,
+      orfCount: 0,
+      orfs: [],
+      nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 },
+      filename: 'empty.fasta',
+      metrics: { length: 0, gcContent: 0, orfDetected: false, orfCount: 0 },
+      sequences: [],
+      sequenceCount: 0
+    };
+  }
+
+  // Calculate aggregate stats for all sequences
+  const totalLength = sequences.reduce((sum, s) => sum + s.length, 0);
+  const totalA = sequences.reduce((sum, s) => sum + s.nucleotideCounts.A, 0);
+  const totalT = sequences.reduce((sum, s) => sum + s.nucleotideCounts.T, 0);
+  const totalG = sequences.reduce((sum, s) => sum + s.nucleotideCounts.G, 0);
+  const totalC = sequences.reduce((sum, s) => sum + s.nucleotideCounts.C, 0);
+  const totalOrfs = sequences.reduce((sum, s) => sum + s.orfCount, 0);
+  const avgGC = sequences.length > 0 ? sequences.reduce((sum, s) => sum + s.gcContent, 0) / sequences.length : 0;
+
+  // Return combined result with all sequences
+  return {
+    name: sequences[0].name,
+    header: sequences[0].header,
+    sequence: sequences.map(s => s.sequence).join(''), // Combined sequence for backward compatibility
+    length: totalLength,
+    gcContent: Math.round(avgGC * 10) / 10,
+    orfDetected: totalOrfs > 0,
+    orfCount: totalOrfs,
+    orfs: sequences.flatMap(s => s.orfs),
+    nucleotideCounts: { A: totalA, T: totalT, G: totalG, C: totalC },
+    filename: `${sequences[0].name}.fasta`,
+    metrics: {
+      length: totalLength,
+      gcContent: Math.round(avgGC * 10) / 10,
+      orfDetected: totalOrfs > 0,
+      orfCount: totalOrfs
+    },
+    sequences: sequences, // Array of all individual sequences
+    sequenceCount: sequences.length
+  };
+}
+
+// Helper function to create metadata for a single sequence
+function createSequenceMetadata(header, seq) {
+  const name = header.split(/\s+/)[0] || 'Sequence';
   const length = seq.length;
   const a = seq.replace(/[^A]/g, '').length;
   const t = seq.replace(/[^T]/g, '').length;
@@ -41,7 +105,6 @@ function parseFastaToMetadata(fasta) {
   const gc = g + c;
   const gcContent = length ? Math.round((gc / length) * 100 * 10) / 10 : 0;
   const orfList = detectAllORFs(seq);
-  const orfDetected = orfList.length > 0;
 
   return {
     name,
@@ -49,17 +112,10 @@ function parseFastaToMetadata(fasta) {
     sequence: seq,
     length,
     gcContent,
-    orfDetected,
+    orfDetected: orfList.length > 0,
     orfCount: orfList.length,
     orfs: orfList,
-    nucleotideCounts: { A: a, T: t, G: g, C: c },
-    filename: `${name}.fasta`,
-    metrics: {
-      length,
-      gcContent,
-      orfDetected,
-      orfCount: orfList.length
-    }
+    nucleotideCounts: { A: a, T: t, G: g, C: c }
   };
 }
 
@@ -143,6 +199,8 @@ router.get('/', validatePagination, async (req, res) => {
         orfDetected: d.orfDetected,
         orfCount: d.orfCount || 0,
         nucleotideCounts: d.nucleotideCounts,
+        sequences: d.sequences || [],
+        sequenceCount: d.sequenceCount || 1,
         createdAt: d.createdAt,
         updatedAt: d.updatedAt
       })),
@@ -213,6 +271,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       gcPercent: doc.gcContent,
       orfDetected: doc.orfDetected,
       nucleotideCounts: doc.nucleotideCounts,
+      sequences: doc.sequences || [],
+      sequenceCount: doc.sequenceCount || 1,
       createdAt: doc.createdAt
     });
   } catch (err) {
@@ -246,6 +306,8 @@ router.get('/:id', async (req, res) => {
       orfCount: doc.orfCount || 0,
       orfs: doc.orfs || [],
       nucleotideCounts: doc.nucleotideCounts,
+      sequences: doc.sequences || [],
+      sequenceCount: doc.sequenceCount || 1,
       interpretation: doc.interpretation,
       aiSummary: doc.aiSummary,
       description: doc.description,

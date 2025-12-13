@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 
-export function BarChart({ data }) {
+export function BarChart({ data, minHeight = 120 }) {
   const maxValue = Math.max(...data.map(d => d.value)) || 100; // Prevent division by zero
   const [isVisible, setIsVisible] = useState(false);
 
@@ -12,16 +12,17 @@ export function BarChart({ data }) {
   }, [JSON.stringify(data)]);
 
   return (
-    <div className="w-full h-full flex items-end justify-between gap-3 px-2">
+    <div className="w-full h-full flex items-end justify-between gap-3 px-2" style={{ minHeight: `${minHeight}px` }}>
       {data.map((item, index) => {
         const height = (item.value / maxValue) * 100;
         return (
-          <div key={`${item.name}-${index}`} className="flex-1 flex flex-col items-center h-full justify-end group">
-            <div className="w-full relative flex items-end h-full">
+          <div key={`${item.name}-${index}`} className="flex-1 flex flex-col items-center h-full justify-end group" style={{ minHeight: `${minHeight}px` }}>
+            <div className="w-full relative flex items-end h-full" style={{ minHeight: `${minHeight - 24}px` }}>
               <motion.div
                 className="w-full rounded-t-lg shadow-sm group-hover:opacity-90 transition-opacity"
                 style={{
                   backgroundColor: item.color,
+                  minHeight: item.value > 0 ? '8px' : '0px',
                 }}
                 initial={{ height: 0 }}
                 animate={{ height: isVisible ? `${height}%` : 0 }}

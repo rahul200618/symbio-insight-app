@@ -22,7 +22,7 @@ export function RecentUploads({ onFileSelect }) {
       const transformedFiles = response.data.map(seq => ({
         id: seq.id.toString(),
         name: seq.filename,
-        sequences: 1, // Each record is one sequence
+        sequences: seq.sequenceCount || seq.sequences?.length || 1, // Use sequenceCount from backend
         date: new Date(seq.createdAt).toLocaleString('en-US', {
           month: 'short',
           day: 'numeric',
@@ -191,6 +191,7 @@ export function RecentUploads({ onFileSelect }) {
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">File Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sequences</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Length</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">GC %</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ORFs</th>
@@ -214,6 +215,12 @@ export function RecentUploads({ onFileSelect }) {
                           <p className="text-sm text-gray-900 dark:text-white">{file.name}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">FASTA file</p>
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="px-3 py-1 bg-indigo-50/50 dark:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-800/50 rounded-lg inline-flex items-center gap-1">
+                        <Icons.BarChart className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                        <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">{file.sequences}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

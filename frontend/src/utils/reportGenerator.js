@@ -404,6 +404,191 @@ function generateHTMLContent(sequences, stats, options) {
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    
+    .sequence-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    
+    .sequence-header {
+      background: linear-gradient(135deg, #7a3ef3 0%, #6366f1 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .sequence-number {
+      background: rgba(255,255,255,0.2);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    .sequence-info h4 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .sequence-info .meta {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .sequence-content {
+      padding: 20px;
+    }
+    
+    .sequence-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .sequence-stat {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .sequence-stat .label {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    
+    .sequence-stat .value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #7a3ef3;
+    }
+    
+    .nucleotide-bars {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .nucleotide-bar {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .nucleotide-bar .bar-container {
+      background: #e5e7eb;
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    
+    .nucleotide-bar .bar {
+      width: 100%;
+      border-radius: 8px 8px 0 0;
+      transition: height 0.3s;
+    }
+    
+    .nucleotide-bar .bar-a { background: #38bdf8; }
+    .nucleotide-bar .bar-t { background: #22d3ee; }
+    .nucleotide-bar .bar-g { background: #06b6d4; }
+    .nucleotide-bar .bar-c { background: #0ea5e9; }
+    
+    .nucleotide-bar .percentage {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    
+    .nucleotide-bar .count {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    
+    .nucleotide-bar .name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    
+    .gc-content-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 16px;
+    }
+    
+    .gc-box {
+      flex: 1;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .gc-box .label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    
+    .gc-box .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #7a3ef3;
+    }
+    
+    .orf-section {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .orf-section h5 {
+      color: #059669;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    
+    .orf-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .orf-item {
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+    
+    .orf-item .orf-label {
+      font-size: 11px;
+      color: #7a3ef3;
+      font-weight: 600;
+    }
+    
+    .orf-item .orf-info {
+      font-size: 11px;
+      color: #6b7280;
+    }
 
     @media print {
       body {
@@ -440,7 +625,7 @@ function generateHTMLContent(sequences, stats, options) {
         </div>
         <div class="metric-card">
           <div class="metric-label">Total Length</div>
-          <div class="metric-value">${(stats.totalLength / 1000).toFixed(1)}k bp</div>
+          <div class="metric-value">${stats.totalLength.toLocaleString()} bp</div>
         </div>
       </div>
       
@@ -489,6 +674,120 @@ function generateHTMLContent(sequences, stats, options) {
           </tbody>
         </table>
       </div>
+      
+      ${sequences.length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">Individual Sequence Analysis</h2>
+        <p style="color: #6b7280; margin-bottom: 20px;">Detailed analytics for each of the ${sequences.length} sequences</p>
+        
+        ${sequences.map((seq, index) => {
+          const seqLength = seq.sequenceLength || seq.length || 0;
+          const seqGC = seq.gcPercentage || seq.gcContent || 0;
+          const seqOrfs = seq.orfs || [];
+          const counts = seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
+          const totalBases = counts.A + counts.T + counts.G + counts.C;
+          const aPercent = totalBases > 0 ? (counts.A / totalBases) * 100 : 0;
+          const tPercent = totalBases > 0 ? (counts.T / totalBases) * 100 : 0;
+          const gPercent = totalBases > 0 ? (counts.G / totalBases) * 100 : 0;
+          const cPercent = totalBases > 0 ? (counts.C / totalBases) * 100 : 0;
+          const maxPercent = Math.max(aPercent, tPercent, gPercent, cPercent) || 1;
+          
+          return `
+        <div class="sequence-card">
+          <div class="sequence-header">
+            <div class="sequence-number">${index + 1}</div>
+            <div class="sequence-info">
+              <h4>${seq.sequenceName || seq.name || seq.header || 'Sequence ' + (index + 1)}</h4>
+              <div class="meta">${seqLength.toLocaleString()} bp • GC: ${seqGC.toFixed(1)}% • ${seqOrfs.length} ORFs</div>
+            </div>
+          </div>
+          <div class="sequence-content">
+            <div class="sequence-stats">
+              <div class="sequence-stat">
+                <div class="label">Sequence Length</div>
+                <div class="value">${seqLength.toLocaleString()} bp</div>
+              </div>
+              <div class="sequence-stat">
+                <div class="label">GC Content</div>
+                <div class="value">${seqGC.toFixed(1)}%</div>
+              </div>
+              <div class="sequence-stat">
+                <div class="label">ORFs Detected</div>
+                <div class="value">${seqOrfs.length}</div>
+              </div>
+              <div class="sequence-stat">
+                <div class="label">AT Content</div>
+                <div class="value">${(100 - seqGC).toFixed(1)}%</div>
+              </div>
+            </div>
+            
+            <h5 style="font-size: 14px; color: #374151; margin-bottom: 12px;">Nucleotide Distribution</h5>
+            <div class="nucleotide-bars">
+              <div class="nucleotide-bar">
+                <div class="bar-container">
+                  <div class="bar bar-a" style="height: ${(aPercent / maxPercent) * 100}%"></div>
+                </div>
+                <div class="percentage">${aPercent.toFixed(1)}%</div>
+                <div class="count">${counts.A.toLocaleString()}</div>
+                <div class="name">A</div>
+              </div>
+              <div class="nucleotide-bar">
+                <div class="bar-container">
+                  <div class="bar bar-t" style="height: ${(tPercent / maxPercent) * 100}%"></div>
+                </div>
+                <div class="percentage">${tPercent.toFixed(1)}%</div>
+                <div class="count">${counts.T.toLocaleString()}</div>
+                <div class="name">T</div>
+              </div>
+              <div class="nucleotide-bar">
+                <div class="bar-container">
+                  <div class="bar bar-g" style="height: ${(gPercent / maxPercent) * 100}%"></div>
+                </div>
+                <div class="percentage">${gPercent.toFixed(1)}%</div>
+                <div class="count">${counts.G.toLocaleString()}</div>
+                <div class="name">G</div>
+              </div>
+              <div class="nucleotide-bar">
+                <div class="bar-container">
+                  <div class="bar bar-c" style="height: ${(cPercent / maxPercent) * 100}%"></div>
+                </div>
+                <div class="percentage">${cPercent.toFixed(1)}%</div>
+                <div class="count">${counts.C.toLocaleString()}</div>
+                <div class="name">C</div>
+              </div>
+            </div>
+            
+            <div class="gc-content-row">
+              <div class="gc-box">
+                <div class="label">GC Content</div>
+                <div class="value">${seqGC.toFixed(1)}%</div>
+              </div>
+              <div class="gc-box">
+                <div class="label">AT Content</div>
+                <div class="value">${(100 - seqGC).toFixed(1)}%</div>
+              </div>
+            </div>
+            
+            ${seqOrfs.length > 0 ? `
+            <div class="orf-section">
+              <h5>✓ Open Reading Frames (${seqOrfs.length} detected)</h5>
+              <div class="orf-grid">
+                ${seqOrfs.slice(0, 6).map((orf, orfIndex) => `
+                <div class="orf-item">
+                  <div class="orf-label">ORF ${orfIndex + 1}</div>
+                  <div class="orf-info">${orf.length} bp • Pos: ${orf.start}-${orf.end}</div>
+                </div>
+                `).join('')}
+              </div>
+              ${seqOrfs.length > 6 ? `<p style="font-size: 11px; color: #6b7280; margin-top: 8px; text-align: center;">+ ${seqOrfs.length - 6} more ORFs</p>` : ''}
+            </div>
+            ` : ''}
+          </div>
+        </div>
+          `;
+        }).join('')}
+      </div>
+      ` : ''}
     </div>
     
     <div class="footer">

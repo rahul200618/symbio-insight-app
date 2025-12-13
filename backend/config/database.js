@@ -14,7 +14,7 @@ const connectDB = async () => {
     console.log('✅ SQLite database connected successfully');
 
     // Sync all models (use force: false for production, alter: true for development)
-    await sequelize.sync({ alter: false });
+    await sequelize.sync({ alter: true });
     console.log('   Database synced');
   } catch (error) {
     console.error('❌ Database connection error:', error.message);

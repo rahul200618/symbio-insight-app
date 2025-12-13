@@ -12,12 +12,31 @@ const transformToFrontendFormat = (data) => {
     if (!data) return [];
 
     // Handle array input
-    const inputs = Array.isArray(data) ? data : [data];
+    let inputs = Array.isArray(data) ? data : [data];
+    
+    // If the input has a sequences array (from backend multi-sequence file), use that
+    if (!Array.isArray(data) && data.sequences && Array.isArray(data.sequences) && data.sequences.length > 0) {
+        inputs = data.sequences;
+    }
 
     return inputs.map(item => {
-        // If it already looks correct, return it
+        // If it already looks correct (from frontend parser), return it
         if (item.sequenceLength !== undefined && item.nucleotideCounts && item.orfs) {
             return item;
+        }
+
+        // If it has backend format (length instead of sequenceLength), transform it
+        if (item.length !== undefined && item.nucleotideCounts) {
+            return {
+                id: item._id || item.id || generateUniqueId(),
+                sequenceName: item.header || item.name || 'Untitled Sequence',
+                sequenceLength: item.length,
+                gcPercentage: item.gcContent || 0,
+                nucleotideCounts: item.nucleotideCounts,
+                orfs: item.orfs || [],
+                rawSequence: item.sequence || '',
+                timestamp: item.createdAt || new Date().toISOString(),
+            };
         }
 
         // If it has a raw sequence string, calculate stats using the robust parser
@@ -182,7 +201,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="font-medium truncate">{fileName}</p>
                                                                 <p className="text-xs text-gray-400 truncate">
-                                                                    {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'No date'} • {file.sequences?.length || 1} seqs
+                                                                    {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'No date'} • {file.sequenceCount || file.sequences?.length || 1} seqs
                                                                 </p>
                                                             </div>
                                                             {isSelected && (

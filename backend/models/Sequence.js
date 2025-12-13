@@ -62,6 +62,14 @@ const Sequence = sequelize.define('Sequence', {
   aiSummary: {
     type: DataTypes.TEXT
   },
+  sequences: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
+  sequenceCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1
+  },
   cached: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
