@@ -73,7 +73,7 @@ Provide your analysis in exactly this JSON format (no markdown, just JSON):
 /**
  * Generate chatbot response using Gemini AI
  * @param {string} userMessage - User's message
- * @param {Object} context -Conversation context
+ * @param {Object} context - Conversation context with sequence data
  * @returns {Promise<string>} AI-generated response
  */
 async function generateChatbotResponse(userMessage, context = {}) {
@@ -85,14 +85,35 @@ async function generateChatbotResponse(userMessage, context = {}) {
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
         let contextInfo = '';
-        if (context.sequences && context.sequences.length > 0) {
-            contextInfo = `\n\n**User has ${context.sequences.length} sequence(s) uploaded.**`;
+        
+        if (context.hasSequences && context.sequences) {
+            const seqSummary = context.sequences.map((s, i) => 
+                `  ${i+1}. ${s.name || 'Sequence'}: ${s.length}bp, GC: ${s.gcContent?.toFixed(1)}%, ORFs: ${s.orfs || 0}`
+            ).join('\n');
+            
+            contextInfo = `\n\n**User's Current Data:**
+- ${context.sequenceCount} sequence(s) uploaded
+- Current View: ${context.currentView}
+${seqSummary}
+${context.avgStats ? `
+- Average Length: ${context.avgStats.avgLength.toFixed(0)} bp
+- Average GC: ${context.avgStats.avgGC.toFixed(1)}%
+- Total ORFs: ${context.avgStats.totalORFs}` : ''}`;
         }
 
-        const prompt = `You are a helpful DNA/RNA sequence analysis assistant. Answer concisely (2-4 sentences).
+        const prompt = `You are an expert bioinformatics assistant specializing in DNA/RNA sequence analysis. You help users understand their genetic data, identify species, determine sequence types, and guide them through analysis workflows.
+
+**Instructions:**
+- Provide clear, concise responses (2-5 sentences)
+- When asked about species, use GC content patterns to suggest likely organisms
+- When asked about sequence type (DNA/RNA/protein), analyze nucleotide composition
+- Provide actionable next steps when appropriate
+- Be friendly and educational
 
 **User Question:** ${userMessage}
-${contextInfo}`;
+${contextInfo}
+
+**Your Response:**`;
 
         console.log('Chatbot request to Gemini...');
         const result = await model.generateContent(prompt);

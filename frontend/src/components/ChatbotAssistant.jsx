@@ -5,11 +5,38 @@ import { chatWithAI } from '../utils/aiService.js';
 
 export function ChatbotAssistant({ sequences, currentView }) {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Generate context-aware initial message
+  const getContextualGreeting = () => {
+    if (!sequences || sequences.length === 0) {
+      return "Hi! I'm your DNA Analysis Assistant. Upload a FASTA file to get started, and I'll help you understand your sequences, identify their type (DNA/RNA/Protein), predict species, and guide you through the analysis process!";
+    }
+    
+    const seqCount = sequences.length;
+    const avgLength = sequences.reduce((sum, s) => sum + (s.sequenceLength || s.length || 0), 0) / seqCount;
+    const avgGC = sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / seqCount;
+    
+    let greeting = `Hi! I'm analyzing your ${seqCount} sequence${seqCount > 1 ? 's' : ''}. `;
+    greeting += `Average length: ${Math.round(avgLength)} bp, GC content: ${avgGC.toFixed(1)}%. `;
+    
+    if (currentView === 'metadata') {
+      greeting += "You're viewing metadata. I can explain any metrics or suggest what to analyze next!";
+    } else if (currentView === 'report') {
+      greeting += "You're on the report page. Ready to generate a comprehensive analysis report!";
+    } else if (currentView === 'recent') {
+      greeting += "Viewing recent uploads. Need help comparing or selecting sequences?";
+    } else {
+      greeting += "What would you like to know about your sequences?";
+    }
+    
+    return greeting;
+  };
+  
   const [messages, setMessages] = useState([
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm your AI assistant. I can help you analyze sequences, explain genetic concepts, and suggest next steps. What would you like to know?",
+      content: getContextualGreeting(),
       timestamp: new Date(),
     },
   ]);
@@ -77,11 +104,16 @@ export function ChatbotAssistant({ sequences, currentView }) {
     }
   };
 
-  const quickQuestions = [
-    "What's an ORF?",
-    "Explain GC content",
-    "How do I improve sequence quality?",
-    "What should I do next?",
+  const quickQuestions = sequences && sequences.length > 0 ? [
+    "What species is this?",
+    "Is this DNA, RNA, or protein?",
+    "What does the GC content tell me?",
+    "What should I analyze next?",
+  ] : [
+    "How do I upload a file?",
+    "What file formats are supported?",
+    "What analysis can I perform?",
+    "How do I interpret results?",
   ];
 
   const handleQuickQuestion = (question) => {

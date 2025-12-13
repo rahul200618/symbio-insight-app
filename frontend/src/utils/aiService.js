@@ -83,12 +83,35 @@ export async function generateIntelligentReport(sequences) {
 /**
  * Chat with AI assistant about sequences
  */
-export async function chatWithAI(message, context) {
+export async function chatWithAI(message, context = {}) {
     try {
+        // Prepare detailed context
+        const sequences = context.sequences || [];
+        const detailedContext = {
+            hasSequences: sequences.length > 0,
+            sequenceCount: sequences.length,
+            currentView: context.currentView || 'unknown',
+            sequences: sequences.slice(0, 3).map(seq => ({ // Send first 3 sequences
+                name: seq.sequenceName || seq.name,
+                length: seq.sequenceLength || seq.length,
+                gcContent: seq.gcPercentage || seq.gcContent,
+                orfs: seq.orfs?.length || 0,
+                nucleotides: seq.nucleotideCounts
+            })),
+            avgStats: sequences.length > 0 ? {
+                avgLength: sequences.reduce((sum, s) => sum + (s.sequenceLength || s.length || 0), 0) / sequences.length,
+                avgGC: sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length,
+                totalORFs: sequences.reduce((sum, s) => sum + (s.orfs?.length || 0), 0)
+            } : null
+        };
+        
         const response = await fetch(`${AI_API_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, context }),
+            body: JSON.stringify({
+                message,
+                context: detailedContext
+            }),
         });
 
         if (!response.ok) {
@@ -282,35 +305,100 @@ function generateTemplateReport(sequences) {
 }
 
 function getRuleBasedResponse(message, context) {
-    const lowerMessage = message.toLowerCase();
-
-    if (lowerMessage.includes('orf') || lowerMessage.includes('open reading frame')) {
-        return `An Open Reading Frame (ORF) is a continuous stretch of DNA codons that begins with a start codon (ATG) and ends with a stop codon (TAA, TAG, or TGA). ORFs are potential protein-coding regions. ${context.sequences ? `Your sequences contain ${context.sequences.reduce((sum, s) => sum + s.orfs.length, 0)} total ORFs.` : ''}`;
+    const msg = message.toLowerCase();
+    const sequences = context.sequences || [];
+    
+    // Species identification
+    if (msg.includes('species') || msg.includes('organism') || msg.includes('what is this')) {
+        if (sequences.length === 0) {
+            return 'Upload a sequence first, and I can help identify the potential species based on GC content, sequence characteristics, and ORF patterns.';
+        }
+        
+        const avgGC = sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length;
+        const avgLength = sequences.reduce((sum, s) => sum + (s.sequenceLength || s.length || 0), 0) / sequences.length;
+        
+        let prediction = '';
+        if (avgGC < 35) {
+            prediction = 'Based on the low GC content (~' + avgGC.toFixed(1) + '%), this might be from AT-rich organisms like Plasmodium (malaria parasite) or certain fungi. ';
+        } else if (avgGC > 65) {
+            prediction = 'The high GC content (~' + avgGC.toFixed(1) + '%) suggests this could be from bacteria like Streptomyces or Mycobacterium. ';
+        } else if (avgGC >= 40 && avgGC <= 45) {
+            prediction = 'The GC content (~' + avgGC.toFixed(1) + '%) is typical of mammals including humans, mice, or other vertebrates. ';
+        } else {
+            prediction = 'The GC content (~' + avgGC.toFixed(1) + '%) suggests a bacterial or plant origin. ';
+        }
+        
+        prediction += 'For definitive identification, I recommend running a BLAST search against NCBI databases.';
+        return prediction;
+    }
+    
+    // DNA/RNA/Protein detection
+    if (msg.includes('dna') || msg.includes('rna') || msg.includes('protein') || msg.includes('type')) {
+        if (sequences.length === 0) {
+            return 'Upload a sequence to determine if it\'s DNA, RNA, or protein. I\'ll analyze the nucleotide composition and presence of uracil (U) to identify the type.';
+        }
+        
+        const firstSeq = sequences[0];
+        const counts = firstSeq.nucleotideCounts || {};
+        
+        if (counts.U || counts.u) {
+            return 'This appears to be RNA based on the presence of Uracil (U). RNA sequences contain U instead of Thymine (T) found in DNA.';
+        } else if (counts.A && counts.T && counts.G && counts.C) {
+            const hasORFs = sequences.some(s => s.orfs && s.orfs.length > 0);
+            return `This is DNA (deoxyribonucleic acid). ${hasORFs ? 'ORFs detected suggest this is coding DNA that may produce proteins.' : 'This appears to be genomic DNA.'} DNA contains Adenine, Thymine, Guanine, and Cytosine.`;
+        } else {
+            return 'Unable to determine sequence type. Standard DNA contains A, T, G, C, while RNA contains A, U, G, C. Protein sequences use amino acid codes.';
+        }
+    }
+    
+    // Context-aware responses
+    if (msg.includes('orf') || msg.includes('open reading frame')) {
+        const totalORFs = sequences.reduce((sum, s) => sum + (s.orfs?.length || 0), 0);
+        let response = 'An Open Reading Frame (ORF) is a continuous stretch of DNA codons that begins with a start codon (ATG) and ends with a stop codon (TAA, TAG, or TGA). ORFs are potential protein-coding regions. ';
+        if (totalORFs > 0) {
+            response += `Your sequences contain ${totalORFs} ORF${totalORFs > 1 ? 's' : ''}, suggesting potential protein-coding capability.`;
+        }
+        return response;
+    }
+    
+    if (msg.includes('gc content') || msg.includes('gc%')) {
+        const avgGC = sequences.length > 0 ? sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length : 0;
+        let response = 'GC content is the percentage of guanine (G) and cytosine (C) bases in a DNA sequence. It affects DNA stability, melting temperature, and can indicate coding regions. Typical ranges: Bacteria (30-70%), Mammals (~40-45%). ';
+        if (avgGC > 0) {
+            response += `Your sequences have ${avgGC.toFixed(1)}% GC content, which is ${avgGC < 40 ? 'low (AT-rich)' : avgGC > 60 ? 'high' : 'moderate'}.`;
+        }
+        return response;
+    }
+    
+    if (msg.includes('next') || msg.includes('what should') || msg.includes('recommend')) {
+        if (context.currentView === 'upload') {
+            return 'Upload your FASTA file to begin analysis. Once uploaded, you can view detailed metadata, generate reports, and compare sequences.';
+        } else if (sequences.length > 0) {
+            return 'Based on your sequences, I recommend: 1) Check the Metadata page for detailed statistics, 2) Generate a comprehensive PDF report with AI analysis, 3) Use BLAST to identify similar sequences, 4) Analyze ORFs for potential proteins. Would you like details on any of these?';
+        }
+        return 'Start by uploading a FASTA file with your DNA sequences.';
     }
 
-    if (lowerMessage.includes('gc content') || lowerMessage.includes('gc%')) {
-        return `GC content refers to the percentage of guanine (G) and cytosine (C) bases in a DNA sequence. It's an important indicator of genome characteristics. Different organisms have characteristic GC contents - for example, humans have ~41%, E. coli has ~51%, and some bacteria can have >70%. ${context.sequences ? `Your sequences have an average GC content of ${(context.sequences.reduce((sum, s) => sum + s.gcPercentage, 0) / context.sequences.length).toFixed(1)}%.` : ''}`;
-    }
-
-    if (lowerMessage.includes('quality') || lowerMessage.includes('good') || lowerMessage.includes('bad')) {
+    if (msg.includes('quality') || msg.includes('good') || msg.includes('bad')) {
         return 'Sequence quality can be assessed by several factors: 1) Balanced nucleotide distribution, 2) Appropriate GC content for the organism, 3) Absence of unusual patterns or repeats, 4) Presence of expected features like ORFs. Would you like me to analyze the quality of your sequences?';
     }
 
-    if (lowerMessage.includes('help') || lowerMessage.includes('what can')) {
+    if (msg.includes('help') || msg.includes('what can')) {
         return `I can help you with:
     
 • Understanding sequence analysis results
 • Explaining genetic terms (ORF, GC content, etc.)
 • Interpreting charts and statistics
+• Identifying species and sequence types (DNA/RNA/protein)
 • Suggesting next steps in your analysis
 • Answering questions about your uploaded sequences
 
 Just ask me anything about DNA sequence analysis!`;
     }
 
-    if (lowerMessage.includes('fasta')) {
+    if (msg.includes('fasta')) {
         return 'FASTA is a text-based format for representing nucleotide or protein sequences. Each sequence begins with a ">" character followed by a description line (header), then the sequence data on subsequent lines. It\'s one of the most widely used formats in bioinformatics.';
     }
 
-    return `I'm here to help with DNA sequence analysis! ${context.sequences ? `You currently have ${context.sequences.length} sequences loaded.` : ''} Feel free to ask me about ORFs, GC content, sequence quality, or any other bioinformatics concepts.`;
+    return `I'm here to help with DNA sequence analysis! ${sequences.length ? `You currently have ${sequences.length} sequences loaded with an average GC content of ${(sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length).toFixed(1)}%.` : 'Upload a FASTA file to get started.'} Feel free to ask me about species identification, sequence types, ORFs, GC content, or any other bioinformatics concepts.`;
 }

@@ -1,16 +1,60 @@
 // Report Generator Utilities with Real PDF Generation using html2canvas + jsPDF
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { generateSequenceAnalysis, generateAIAnnotation, predictSequenceQuality } from './aiService.js';
+import { generateSequenceAnalysis } from './aiService.js';
 
 /**
- * Generate a PDF report with AI-powered analysis
+ * Generate AI analysis for individual sequence
+ */
+async function generateSequenceAIAnalysis(seq, index) {
+  try {
+    const seqLength = seq.sequenceLength || seq.length || 0;
+    const seqGC = seq.gcPercentage || seq.gcContent || 0;
+    const seqOrfs = seq.orfs || [];
+    
+    const response = await fetch('http://localhost:3002/api/ai/analyze-sequence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sequenceName: seq.sequenceName || seq.name || `Sequence ${index + 1}`,
+        length: seqLength,
+        gcContent: seqGC,
+        atContent: 100 - seqGC,
+        nucleotides: seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 },
+        totalORFs: seqOrfs.length,
+        orfs: seqOrfs.slice(0, 3).map(orf => ({
+          start: orf.start,
+          end: orf.end,
+          length: orf.length,
+          frame: orf.frame || 2
+        }))
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.summary;
+    }
+  } catch (error) {
+    console.log('AI analysis failed for sequence, using fallback');
+  }
+  
+  // Fallback analysis
+  const seqLength = seq.sequenceLength || seq.length || 0;
+  const seqGC = seq.gcPercentage || seq.gcContent || 0;
+  const seqOrfs = seq.orfs || [];
+  
+  return `This sequence exhibits a length of ${seqLength} bp with a GC content of ${seqGC.toFixed(1)}%. ${seqGC >= 40 && seqGC <= 60 ? 'The balanced GC content suggests optimal stability for most organisms.' : seqGC > 60 ? 'The high GC content may indicate thermophilic origin or specialized adaptation.' : 'The AT-rich composition suggests potential regulatory or structural roles.'} ${seqOrfs.length > 0 ? `${seqOrfs.length} open reading frame${seqOrfs.length > 1 ? 's were' : ' was'} identified, indicating potential protein-coding capability.` : 'No clear protein-coding regions were detected.'} ${seqLength < 200 ? 'The short length limits comprehensive analysis, but preliminary assessment suggests adequate quality for initial screening.' : 'The sequence length is suitable for detailed bioinformatics analysis and functional prediction.'}`;
+}
+
+/**
+ * Generate a PDF report from sequence data with AI analysis
  * @param {Array} sequences - Array of parsed sequences
  * @param {Object} options - Report generation options
  * @returns {Promise} - Resolves when PDF generation is complete
  */
 export async function generatePDFReport(sequences, options = {}) {
-  console.log('=== AI-Powered PDF Generation Started ===');
+  console.log('=== PDF Generation Started ===');
   console.log('Input sequences:', sequences);
   console.log('Number of sequences:', sequences?.length);
 
@@ -49,33 +93,31 @@ export async function generatePDFReport(sequences, options = {}) {
     throw new Error('No sequences available for report generation');
   }
 
-  // Generate AI Analysis
-  console.log('Generating AI analysis...');
-  const aiSummary = includeAIAnalysis ? await generateSequenceAnalysis(stats) : null;
-  
-  // Generate individual sequence analysis
-  const sequenceAnalyses = [];
-  if (includeAIAnalysis && normalizedSequences.length > 0) {
-    console.log('Generating individual sequence analyses...');
-    for (const seq of normalizedSequences) {
-      try {
-        const annotation = await generateAIAnnotation(seq);
-        const quality = await predictSequenceQuality(seq);
-        sequenceAnalyses.push({ sequence: seq, annotation, quality });
-      } catch (error) {
-        console.log('Error generating analysis for sequence:', seq.sequenceName, error);
-        sequenceAnalyses.push({ sequence: seq, annotation: null, quality: null });
-      }
-    }
+  // Generate AI analysis for overall summary
+  let overallAIAnalysis = null;
+  if (includeAIAnalysis) {
+    console.log('Generating overall AI analysis...');
+    overallAIAnalysis = await generateSequenceAnalysis(stats);
   }
 
-  // Generate HTML content with AI insights
-  const htmlContent = generateAIPoweredHTMLContent(normalizedSequences, stats, sequenceAnalyses, aiSummary, {
+  // Generate AI analysis for each sequence
+  let sequenceAIAnalyses = [];
+  if (includeAIAnalysis && normalizedSequences.length > 0) {
+    console.log('Generating individual sequence AI analyses...');
+    sequenceAIAnalyses = await Promise.all(
+      normalizedSequences.map((seq, index) => generateSequenceAIAnalysis(seq, index))
+    );
+  }
+
+  // Generate HTML content with AI analysis
+  const htmlContent = generatePDFHTMLContent(normalizedSequences, stats, {
     title,
     includeCharts,
     includeRawSequence,
     includeORFDetails,
     includeAIAnalysis,
+    overallAIAnalysis,
+    sequenceAIAnalyses,
   });
 
   console.log('HTML content generated, length:', htmlContent.length);
@@ -93,9 +135,9 @@ export async function generatePDFReport(sequences, options = {}) {
   try {
     console.log('Starting canvas rendering with html2canvas...');
     
-    // Convert HTML to canvas
+    // Convert HTML to canvas with optimized settings for compression
     const canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 1.5, // Reduced from 2 for smaller file size
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
@@ -105,12 +147,13 @@ export async function generatePDFReport(sequences, options = {}) {
 
     console.log('Canvas created, dimensions:', canvas.width, 'x', canvas.height);
 
-    // Create PDF from canvas
-    const imgData = canvas.toDataURL('image/png');
+    // Create PDF from canvas with compression
+    const imgData = canvas.toDataURL('image/jpeg', 0.85); // JPEG with 85% quality for compression
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4'
+      format: 'a4',
+      compress: true // Enable PDF compression
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -124,13 +167,13 @@ export async function generatePDFReport(sequences, options = {}) {
     let position = 0;
 
     // Add multiple pages if needed
-    pdf.addImage(imgData, 'PNG', 10, position + 10, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight, undefined, 'FAST'); // FAST compression
     heightLeft -= (pdfHeight - 30); // Account for margins
 
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 10, position + 10, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight, undefined, 'FAST');
       heightLeft -= pdfHeight;
     }
 
@@ -260,7 +303,520 @@ function calculateReportStats(sequences) {
 }
 
 /**
- * Generate HTML content for the report
+ * Generate HTML content specifically for PDF reports with AI analysis
+ */
+function generatePDFHTMLContent(sequences, stats, options) {
+  const { title, includeAIAnalysis, overallAIAnalysis, sequenceAIAnalyses } = options;
+  const date = new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+      background: white;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+    }
+    
+    .header {
+      background: white;
+      color: #1f2937;
+      padding: 40px 40px 20px 40px;
+      border-bottom: 3px solid #f3f4f6;
+    }
+    
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+    
+    .header .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .key-metrics {
+      padding: 24px 40px;
+      background: white;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .key-metrics h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+    
+    .key-metrics ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .key-metrics li {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 4px;
+      line-height: 1.6;
+    }
+    
+    .key-metrics li strong {
+      font-weight: 600;
+    }
+    
+    .section {
+      padding: 28px 40px;
+      border-bottom: 1px solid #e5e7eb;
+      page-break-inside: avoid;
+    }
+    
+    .section:last-child {
+      border-bottom: none;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      color: #111827;
+      margin-bottom: 18px;
+      font-weight: 700;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .ai-summary {
+      background: white;
+      padding: 0;
+      margin-bottom: 20px;
+    }
+    
+    .ai-summary h3 {
+      color: #111827;
+      font-size: 15px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .ai-summary p {
+      color: #374151;
+      line-height: 1.8;
+      font-size: 14px;
+      text-align: justify;
+    }
+    
+    .individual-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f3f4f6;
+    }
+    
+    .sequence-card {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      overflow: hidden;
+      page-break-before: always;
+      page-break-inside: avoid;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sequence-card:first-child {
+      page-break-before: auto;
+    }
+    
+    .sequence-header {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      color: #1f2937;
+      padding: 20px 24px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .sequence-header h4 {
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: #7c3aed;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    
+    .sequence-header .meta {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    
+    .sequence-content {
+      padding: 20px;
+      background: #fafafa;
+    }
+    
+    .info-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+    
+    .info-section-title:first-child {
+      margin-top: 0;
+    }
+    
+    .ai-analysis {
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 6px;
+      border-left: 3px solid #7c3aed;
+      margin-bottom: 16px;
+    }
+    
+    .ai-analysis p {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.8;
+      text-align: justify;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-item {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px;
+    }
+    
+    .stat-item .label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    
+    .stat-item .value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    .nucleotide-list p {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    
+    .orf-list p {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    
+    .detailed-metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    
+    .detailed-metrics-table th,
+    .detailed-metrics-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .detailed-metrics-table th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .detailed-metrics-table tr:nth-child(even) {
+      background: #fafafa;
+    }
+    
+    @media print {
+      body {
+        padding: 0;
+      }
+      .section, .sequence-card {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>${title}</h1>
+      <p class="subtitle">${date}</p>
+      <p class="subtitle">${stats.totalSequences} sequences analyzed</p>
+    </div>
+    
+    <div class="key-metrics">
+      <h2>Key Metrics</h2>
+      <ul>
+        <li><strong>Total Sequences:</strong> ${stats.totalSequences}</li>
+        <li><strong>GC Content:</strong> ${stats.avgGC.toFixed(1)}%</li>
+        <li><strong>ORFs Found:</strong> ${stats.totalORFs}</li>
+        <li><strong>Total Length:</strong> ${stats.totalLength.toLocaleString()} bp</li>
+        <li><strong>Average Length:</strong> ${stats.avgLength} bp</li>
+        <li><strong>Longest Sequence:</strong> ${stats.longestSequence.toLocaleString()} bp</li>
+        <li><strong>Shortest Sequence:</strong> ${stats.shortestSequence} bp</li>
+      </ul>
+    </div>
+    
+    ${includeAIAnalysis && overallAIAnalysis ? `
+    <div class="section">
+      <h2 class="section-title">AI-Generated Summary</h2>
+      <div class="ai-summary">
+        <p>${overallAIAnalysis}</p>
+      </div>
+    </div>
+    ` : includeAIAnalysis ? `
+    <div class="section">
+      <h2 class="section-title">AI-Generated Summary</h2>
+      
+      <div class="ai-summary">
+        <h3>% Sequence Quality Assessment</h3>
+        <p>The ${stats.totalSequences === 1 ? 'single sequence' : stats.totalSequences + ' sequences'} exhibit${stats.totalSequences === 1 ? 's' : ''} a respectable average length of ${stats.avgLength} bp, suggesting adequate coverage and minimal fragmentation. While overall length is not a definitive indicator of sequence accuracy, it provides a reasonable starting point for further analysis.</p>
+      </div>
+      
+      <div class="ai-summary">
+        <h3>% Nucleotide Composition Analysis</h3>
+        <p>The GC content of ${stats.avgGC.toFixed(1)}% is ${stats.avgGC > 52 ? 'relatively high' : stats.avgGC < 45 ? 'relatively low' : 'well-balanced'}, indicating a ${stats.avgGC > 52 ? 'possible preference for guanine and cytosine' : stats.avgGC < 45 ? 'possible preference for adenine and thymine' : 'balanced nucleotide composition'} in this particular sequence, which can influence factors like melting temperature and DNA stability. Further examination of base distribution would be beneficial to confirm any significant biases.</p>
+      </div>
+      
+      <div class="ai-summary">
+        <h3>% Open Reading Frame Analysis</h3>
+        <p>The presence of ${stats.totalORFs === 0 ? 'no identified ORFs' : stats.totalORFs === 1 ? 'a single identified ORF' : stats.totalORFs + ' identified ORFs'} ${stats.totalORFs > 0 ? 'suggests the potential for a coding region within this sequence. However, without further information on the ORF\'s length, start/stop codons, and frame, its biological significance remains speculative.' : 'indicates that no clear protein-coding regions were detected using standard ORF prediction criteria.'}</p>
+      </div>
+      
+      <div class="ai-summary">
+        <h3>% Recommendations</h3>
+        <p>To enhance understanding, it is recommended to perform a BLAST search against relevant databases to identify potential homologous sequences or known genes. Further analysis, including codon usage and potential protein domain prediction for the identified ORF${stats.totalORFs > 1 ? 's' : ''}, is also advised.</p>
+      </div>
+    </div>
+    ` : ''}
+    
+    ${sequences.length > 0 ? `
+    <div class="section">
+      <h2 class="individual-title">Individual Sequence Details</h2>
+      
+      ${sequences.map((seq, index) => {
+        const seqLength = seq.sequenceLength || seq.length || 0;
+        const seqGC = seq.gcPercentage || seq.gcContent || 0;
+        const seqOrfs = seq.orfs || [];
+        const counts = seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
+        const aiAnalysis = sequenceAIAnalyses[index];
+        
+        return `
+        <div class="sequence-card">
+          <div class="sequence-header">
+            <h4>Sequence ${index + 1}: ${seq.sequenceName || seq.name || seq.header || 'Unnamed'}</h4>
+            <div class="meta">Length: ${seqLength} bp | GC Content: ${seqGC.toFixed(2)}% | AT Content: ${(100 - seqGC).toFixed(2)}% | ORF Count: ${seqOrfs.length}</div>
+          </div>
+          <div class="sequence-content">
+            ${aiAnalysis ? `
+            <div class="ai-analysis">
+              <p><strong>AI Analysis:</strong> ${aiAnalysis}</p>
+            </div>
+            ` : ''}
+            
+            <h5 class="info-section-title">Sequence Information</h5>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="label">Length</div>
+                <div class="value">${seqLength} bp</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">GC Content</div>
+                <div class="value">${seqGC.toFixed(2)}%</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">AT Content</div>
+                <div class="value">${(100 - seqGC).toFixed(2)}%</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">ORF Count</div>
+                <div class="value">${seqOrfs.length}</div>
+              </div>
+            </div>
+            
+            <h5 class="info-section-title">Detailed Metrics</h5>
+            <table class="detailed-metrics-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Sequence Length</td>
+                  <td>${seqLength.toLocaleString()} bp</td>
+                  <td>Total number of base pairs</td>
+                </tr>
+                <tr>
+                  <td>GC Content</td>
+                  <td>${seqGC.toFixed(2)}%</td>
+                  <td>Percentage of G and C nucleotides</td>
+                </tr>
+                <tr>
+                  <td>AT Content</td>
+                  <td>${(100 - seqGC).toFixed(2)}%</td>
+                  <td>Percentage of A and T nucleotides</td>
+                </tr>
+                <tr>
+                  <td>GC/AT Ratio</td>
+                  <td>${(seqGC / (100 - seqGC)).toFixed(2)}</td>
+                  <td>Ratio of GC to AT content</td>
+                </tr>
+                <tr>
+                  <td>Adenine (A)</td>
+                  <td>${counts.A} (${((counts.A / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(2)}%)</td>
+                  <td>Count and percentage</td>
+                </tr>
+                <tr>
+                  <td>Thymine (T)</td>
+                  <td>${counts.T} (${((counts.T / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(2)}%)</td>
+                  <td>Count and percentage</td>
+                </tr>
+                <tr>
+                  <td>Guanine (G)</td>
+                  <td>${counts.G} (${((counts.G / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(2)}%)</td>
+                  <td>Count and percentage</td>
+                </tr>
+                <tr>
+                  <td>Cytosine (C)</td>
+                  <td>${counts.C} (${((counts.C / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(2)}%)</td>
+                  <td>Count and percentage</td>
+                </tr>
+                <tr>
+                  <td>Total Bases</td>
+                  <td>${(counts.A + counts.T + counts.G + counts.C).toLocaleString()}</td>
+                  <td>Sum of all nucleotides</td>
+                </tr>
+                <tr>
+                  <td>ORF Count</td>
+                  <td>${seqOrfs.length}</td>
+                  <td>Number of open reading frames detected</td>
+                </tr>
+                ${seqOrfs.length > 0 ? `
+                <tr>
+                  <td>Longest ORF</td>
+                  <td>${Math.max(...seqOrfs.map(o => o.length))} bp</td>
+                  <td>Length of longest ORF</td>
+                </tr>
+                <tr>
+                  <td>Shortest ORF</td>
+                  <td>${Math.min(...seqOrfs.map(o => o.length))} bp</td>
+                  <td>Length of shortest ORF</td>
+                </tr>
+                <tr>
+                  <td>Average ORF Length</td>
+                  <td>${Math.round(seqOrfs.reduce((sum, o) => sum + o.length, 0) / seqOrfs.length)} bp</td>
+                  <td>Mean ORF length</td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td>Purine Count (A+G)</td>
+                  <td>${counts.A + counts.G} (${(((counts.A + counts.G) / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(2)}%)</td>
+                  <td>Total purines</td>
+                </tr>
+                <tr>
+                  <td>Pyrimidine Count (C+T)</td>
+                  <td>${counts.C + counts.T} (${(((counts.C + counts.T) / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(2)}%)</td>
+                  <td>Total pyrimidines</td>
+                </tr>
+                <tr>
+                  <td>Melting Temperature (Tm)</td>
+                  <td>${seqLength < 14 ? ((counts.A + counts.T) * 2 + (counts.G + counts.C) * 4).toFixed(1) : (64.9 + 41 * (counts.G + counts.C - 16.4) / (counts.A + counts.T + counts.G + counts.C)).toFixed(1)}°C</td>
+                  <td>Estimated DNA melting point</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <h5 class="info-section-title">Nucleotide Composition</h5>
+            <div class="nucleotide-list">
+              <p>Adenine (A): ${counts.A} (${((counts.A / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(1)}%)</p>
+              <p>Thymine (T): ${counts.T} (${((counts.T / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(1)}%)</p>
+              <p>Guanine (G): ${counts.G} (${((counts.G / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(1)}%)</p>
+              <p>Cytosine (C): ${counts.C} (${((counts.C / (counts.A + counts.T + counts.G + counts.C)) * 100).toFixed(1)}%)</p>
+            </div>
+            
+            ${seqOrfs.length > 0 ? `
+            <h5 class="info-section-title">Open Reading Frames (ORFs)</h5>
+            <div class="orf-list">
+              ${seqOrfs.slice(0, 3).map((orf, orfIndex) => `
+                <p>ORF ${orfIndex + 1}: Position ${orf.start}-${orf.end}, Length: ${orf.length} bp, Frame: ${orf.frame || 2}</p>
+              `).join('')}
+              ${seqOrfs.length > 3 ? `<p style="color: #6b7280; margin-top: 8px;">... and ${seqOrfs.length - 3} more ORF${seqOrfs.length - 3 > 1 ? 's' : ''}</p>` : ''}
+            </div>
+            ` : ''}
+            
+            <h5 class="info-section-title">Sequence Quality Assessment</h5>
+            <ul style="margin: 0; padding-left: 20px;">
+              <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqGC >= 40 && seqGC <= 60 ? 'Balanced GC content - optimal for most organisms' : seqGC > 60 ? 'High GC content - may indicate thermophilic origin' : 'Low GC content - AT-rich region'}</li>
+              <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqOrfs.length > 0 ? seqOrfs.length + ' potential protein-coding region' + (seqOrfs.length > 1 ? 's' : '') + ' detected' : 'No protein-coding regions detected'}</li>
+              <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqLength < 200 ? 'Short sequence (' + seqLength + ' bp) - limited analysis possible' : 'Adequate sequence length for comprehensive analysis'}</li>
+            </ul>
+          </div>
+        </div>
+        `;
+      }).join('')}
+    </div>
+    ` : ''}
+    
+    <div class="footer">
+      <div class="logo">Symbio-NLM</div>
+      <p>Advanced DNA Analysis & Bioinformatics Platform</p>
+      <p style="margin-top: 4px; font-size: 11px;">Generated on ${date} • Powered by AI-driven sequence analysis</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+/**
+ * Generate HTML content for the report (unchanged for HTML export)
  */
 function generateHTMLContent(sequences, stats, options) {
   const { title, includeAIAnalysis } = options;
