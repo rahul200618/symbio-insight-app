@@ -1,15 +1,16 @@
 // Report Generator Utilities with Real PDF Generation using html2canvas + jsPDF
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { generateSequenceAnalysis, generateAIAnnotation, predictSequenceQuality } from './aiService.js';
 
 /**
- * Generate a PDF report from sequence data
+ * Generate a PDF report with AI-powered analysis
  * @param {Array} sequences - Array of parsed sequences
  * @param {Object} options - Report generation options
  * @returns {Promise} - Resolves when PDF generation is complete
  */
 export async function generatePDFReport(sequences, options = {}) {
-  console.log('=== PDF Generation Started ===');
+  console.log('=== AI-Powered PDF Generation Started ===');
   console.log('Input sequences:', sequences);
   console.log('Number of sequences:', sequences?.length);
 
@@ -48,8 +49,28 @@ export async function generatePDFReport(sequences, options = {}) {
     throw new Error('No sequences available for report generation');
   }
 
-  // Generate HTML content
-  const htmlContent = generateHTMLContent(normalizedSequences, stats, {
+  // Generate AI Analysis
+  console.log('Generating AI analysis...');
+  const aiSummary = includeAIAnalysis ? await generateSequenceAnalysis(stats) : null;
+  
+  // Generate individual sequence analysis
+  const sequenceAnalyses = [];
+  if (includeAIAnalysis && normalizedSequences.length > 0) {
+    console.log('Generating individual sequence analyses...');
+    for (const seq of normalizedSequences) {
+      try {
+        const annotation = await generateAIAnnotation(seq);
+        const quality = await predictSequenceQuality(seq);
+        sequenceAnalyses.push({ sequence: seq, annotation, quality });
+      } catch (error) {
+        console.log('Error generating analysis for sequence:', seq.sequenceName, error);
+        sequenceAnalyses.push({ sequence: seq, annotation: null, quality: null });
+      }
+    }
+  }
+
+  // Generate HTML content with AI insights
+  const htmlContent = generateAIPoweredHTMLContent(normalizedSequences, stats, sequenceAnalyses, aiSummary, {
     title,
     includeCharts,
     includeRawSequence,
@@ -282,86 +303,93 @@ function generateHTMLContent(sequences, stats, options) {
     }
     
     .header {
-      background: linear-gradient(135deg, #7a3ef3 0%, #6366f1 100%);
-      color: white;
-      padding: 40px;
-      text-align: center;
+      background: white;
+      color: #1f2937;
+      padding: 40px 40px 20px 40px;
+      border-bottom: 3px solid #f3f4f6;
     }
     
     .header h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
+      font-size: 36px;
+      margin-bottom: 16px;
       font-weight: 700;
+      color: #111827;
     }
     
-    .header p {
-      opacity: 0.9;
+    .header .subtitle {
+      color: #6b7280;
       font-size: 14px;
+      margin-bottom: 4px;
     }
     
     .content {
-      padding: 40px;
+      padding: 0;
     }
     
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
+    .key-metrics {
+      padding: 24px 40px;
+      background: white;
+      border-bottom: 1px solid #f3f4f6;
     }
     
-    .metric-card {
-      background: linear-gradient(135deg, #f9f9ff 0%, #f3f4ff 100%);
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 24px;
-    }
-    
-    .metric-label {
-      font-size: 12px;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    
-    .metric-value {
-      font-size: 28px;
+    .key-metrics h2 {
+      font-size: 18px;
       font-weight: 700;
-      color: #7a3ef3;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+    
+    .key-metrics ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .key-metrics li {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 4px;
+      line-height: 1.6;
+    }
+    
+    .key-metrics li strong {
+      font-weight: 600;
     }
     
     .section {
-      margin-bottom: 40px;
-      page-break-inside: avoid;
+      padding: 24px 40px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .section:last-child {
+      border-bottom: none;
     }
     
     .section-title {
-      font-size: 24px;
+      font-size: 18px;
+      color: #111827;
+      margin-bottom: 16px;
       font-weight: 700;
-      margin-bottom: 20px;
-      color: #1f2937;
-      padding-bottom: 10px;
-      border-bottom: 3px solid #7a3ef3;
     }
     
     .ai-summary {
-      background: linear-gradient(135deg, #f9f9ff 0%, #ede9fe 100%);
-      border-left: 4px solid #7a3ef3;
-      padding: 24px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      background: white;
+      padding: 0;
+      margin-bottom: 16px;
     }
     
     .ai-summary h3 {
-      color: #7a3ef3;
-      font-size: 18px;
-      margin-bottom: 12px;
+      color: #111827;
+      font-size: 15px;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
     
     .ai-summary p {
-      color: #4b5563;
+      color: #374151;
       line-height: 1.8;
+      font-size: 14px;
+      text-align: justify;
     }
     
     .stats-table {
@@ -406,46 +434,76 @@ function generateHTMLContent(sequences, stats, options) {
     }
     
     .sequence-card {
-      background: #f9fafb;
+      background: white;
       border: 1px solid #e5e7eb;
-      border-radius: 12px;
+      border-radius: 8px;
       margin-bottom: 20px;
       overflow: hidden;
     }
     
     .sequence-header {
-      background: linear-gradient(135deg, #7a3ef3 0%, #6366f1 100%);
-      color: white;
+      background: white;
+      color: #1f2937;
       padding: 16px 20px;
       display: flex;
-      align-items: center;
-      gap: 16px;
+      align-items: flex-start;
+      gap: 12px;
+      border-bottom: 1px solid #e5e7eb;
     }
     
     .sequence-number {
-      background: rgba(255,255,255,0.2);
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+      background: #7c3aed;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       font-size: 14px;
+      flex-shrink: 0;
     }
     
     .sequence-info h4 {
       font-size: 16px;
-      margin-bottom: 4px;
+      margin-bottom: 0;
+      color: #7c3aed;
+      font-weight: 600;
+      text-decoration: underline;
     }
     
     .sequence-info .meta {
       font-size: 12px;
-      opacity: 0.9;
+      color: #6b7280;
+      margin-top: 4px;
     }
     
     .sequence-content {
       padding: 20px;
+      display: none;
+      background: #fafafa;
+    }
+    
+    .info-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+    
+    .info-section-title:first-child {
+      margin-top: 0;
+    }
+    
+    .sequence-header {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .sequence-header:hover {
+      background: linear-gradient(135deg, #f0e8ff 0%, #e8e0ff 100%);
     }
     
     .sequence-stats {
@@ -605,28 +663,22 @@ function generateHTMLContent(sequences, stats, options) {
   <div class="container">
     <div class="header">
       <h1>${title}</h1>
-      <p>Generated on ${date}</p>
-      <p>${stats.totalSequences} sequences analyzed</p>
+      <p class="subtitle">${date}</p>
+      <p class="subtitle">${stats.totalSequences} sequences analyzed</p>
     </div>
     
     <div class="content">
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-label">Total Sequences</div>
-          <div class="metric-value">${stats.totalSequences}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">GC Content</div>
-          <div class="metric-value">${stats.avgGC.toFixed(1)}%</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">ORFs Found</div>
-          <div class="metric-value">${stats.totalORFs}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Total Length</div>
-          <div class="metric-value">${stats.totalLength.toLocaleString()} bp</div>
-        </div>
+      <div class="key-metrics">
+        <h2>Key Metrics</h2>
+        <ul>
+          <li><strong>Total Sequences:</strong> ${stats.totalSequences}</li>
+          <li><strong>GC Content:</strong> ${stats.avgGC.toFixed(1)}%</li>
+          <li><strong>ORFs Found:</strong> ${stats.totalORFs}</li>
+          <li><strong>Total Length:</strong> ${stats.totalLength.toLocaleString()} bp</li>
+          <li><strong>Average Length:</strong> ${stats.avgLength} bp</li>
+          <li><strong>Longest Sequence:</strong> ${stats.longestSequence.toLocaleString()} bp</li>
+          <li><strong>Shortest Sequence:</strong> ${stats.shortestSequence} bp</li>
+        </ul>
       </div>
       
       ${includeAIAnalysis ? `
@@ -634,18 +686,23 @@ function generateHTMLContent(sequences, stats, options) {
         <h2 class="section-title">AI-Generated Summary</h2>
         
         <div class="ai-summary">
-          <h3>✅ Sequence Quality Assessment</h3>
-          <p>The uploaded FASTA file contains ${stats.totalSequences} high-quality sequences with an average length of ${stats.avgLength} base pairs. The GC content of ${stats.avgGC.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.</p>
+          <h3>% Sequence Quality Assessment</h3>
+          <p>The ${stats.totalSequences === 1 ? 'single sequence' : stats.totalSequences + ' sequences'} exhibit${stats.totalSequences === 1 ? 's' : ''} a respectable average length of ${stats.avgLength} bp, suggesting adequate coverage and minimal fragmentation. While overall length is not a definitive indicator of sequence accuracy, it provides a reasonable starting point for further analysis.</p>
         </div>
         
         <div class="ai-summary">
-          <h3>📊 Nucleotide Composition</h3>
-          <p>The nucleotide distribution shows balanced representation across all bases: Adenine (${stats.nucleotideDistribution.A.toFixed(1)}%), Thymine (${stats.nucleotideDistribution.T.toFixed(1)}%), Guanine (${stats.nucleotideDistribution.G.toFixed(1)}%), and Cytosine (${stats.nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.</p>
+          <h3>% Nucleotide Composition Analysis</h3>
+          <p>The GC content of ${stats.avgGC.toFixed(1)}% is ${stats.avgGC > 52 ? 'relatively high' : stats.avgGC < 45 ? 'relatively low' : 'well-balanced'}, indicating a ${stats.avgGC > 52 ? 'possible preference for guanine and cytosine' : stats.avgGC < 45 ? 'possible preference for adenine and thymine' : 'balanced nucleotide composition'} in this particular sequence, which can influence factors like melting temperature and DNA stability. Further examination of base distribution would be beneficial to confirm any significant biases.</p>
         </div>
         
         <div class="ai-summary">
-          <h3>🧬 Open Reading Frame Analysis</h3>
-          <p>${stats.totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions. The longest ORF spans ${stats.longestSequence.toLocaleString()} base pairs, which may represent a significant functional gene.</p>
+          <h3>% Open Reading Frame Analysis</h3>
+          <p>The presence of ${stats.totalORFs === 0 ? 'no identified ORFs' : stats.totalORFs === 1 ? 'a single identified ORF' : stats.totalORFs + ' identified ORFs'} ${stats.totalORFs > 0 ? 'suggests the potential for a coding region within this sequence. However, without further information on the ORF\'s length, start/stop codons, and frame, its biological significance remains speculative.' : 'indicates that no clear protein-coding regions were detected using standard ORF prediction criteria.'}</p>
+        </div>
+        
+        <div class="ai-summary">
+          <h3>% Recommendations</h3>
+          <p>To enhance understanding, it is recommended to perform a BLAST search against relevant databases to identify potential homologous sequences or known genes. Further analysis, including codon usage and potential protein domain prediction for the identified ORF${stats.totalORFs > 1 ? 's' : ''}, is also advised.</p>
         </div>
       </div>
       ` : ''}
@@ -680,6 +737,35 @@ function generateHTMLContent(sequences, stats, options) {
         <h2 class="section-title">Individual Sequence Analysis</h2>
         <p style="color: #6b7280; margin-bottom: 20px;">Detailed analytics for each of the ${sequences.length} sequences</p>
         
+        <!-- Search and Filter Controls -->
+        <div class="search-filter-controls" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 16px; background: #f9fafb; border-radius: 8px;">
+          <div style="flex: 1; min-width: 200px; position: relative;">
+            <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input type="text" id="sequenceSearch" placeholder="Search sequences..." 
+              style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; outline: none;"
+              onkeyup="filterSequences()">
+          </div>
+          <select id="sortSelect" onchange="sortSequences()" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white; min-width: 160px;">
+            <option value="default">Default Order</option>
+            <option value="name">Name (A-Z)</option>
+            <option value="length-desc">Length (High to Low)</option>
+            <option value="length-asc">Length (Low to High)</option>
+            <option value="gc-desc">GC Content (High to Low)</option>
+            <option value="gc-asc">GC Content (Low to High)</option>
+            <option value="orfs">ORFs (Most First)</option>
+          </select>
+          <button onclick="toggleAllSequences()" id="toggleAllBtn" style="padding: 8px 16px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+            Expand All
+          </button>
+        </div>
+        
+        <h2 class="individual-title">Individual Sequence Details</h2>
+        <div id="sequenceCardsContainer">
         ${sequences.map((seq, index) => {
           const seqLength = seq.sequenceLength || seq.length || 0;
           const seqGC = seq.gcPercentage || seq.gcContent || 0;
@@ -702,91 +788,157 @@ function generateHTMLContent(sequences, stats, options) {
             </div>
           </div>
           <div class="sequence-content">
+            <h5 class="info-section-title">Sequence Information</h5>
             <div class="sequence-stats">
               <div class="sequence-stat">
-                <div class="label">Sequence Length</div>
-                <div class="value">${seqLength.toLocaleString()} bp</div>
+                <div class="label">Length</div>
+                <div class="value">${seqLength} bp</div>
               </div>
               <div class="sequence-stat">
                 <div class="label">GC Content</div>
-                <div class="value">${seqGC.toFixed(1)}%</div>
+                <div class="value">${seqGC.toFixed(2)}%</div>
               </div>
               <div class="sequence-stat">
-                <div class="label">ORFs Detected</div>
+                <div class="label">AT Content</div>
+                <div class="value">${(100 - seqGC).toFixed(2)}%</div>
+              </div>
+              <div class="sequence-stat">
+                <div class="label">ORF Count</div>
                 <div class="value">${seqOrfs.length}</div>
               </div>
-              <div class="sequence-stat">
-                <div class="label">AT Content</div>
-                <div class="value">${(100 - seqGC).toFixed(1)}%</div>
-              </div>
             </div>
             
-            <h5 style="font-size: 14px; color: #374151; margin-bottom: 12px;">Nucleotide Distribution</h5>
-            <div class="nucleotide-bars">
-              <div class="nucleotide-bar">
-                <div class="bar-container">
-                  <div class="bar bar-a" style="height: ${(aPercent / maxPercent) * 100}%"></div>
-                </div>
-                <div class="percentage">${aPercent.toFixed(1)}%</div>
-                <div class="count">${counts.A.toLocaleString()}</div>
-                <div class="name">A</div>
-              </div>
-              <div class="nucleotide-bar">
-                <div class="bar-container">
-                  <div class="bar bar-t" style="height: ${(tPercent / maxPercent) * 100}%"></div>
-                </div>
-                <div class="percentage">${tPercent.toFixed(1)}%</div>
-                <div class="count">${counts.T.toLocaleString()}</div>
-                <div class="name">T</div>
-              </div>
-              <div class="nucleotide-bar">
-                <div class="bar-container">
-                  <div class="bar bar-g" style="height: ${(gPercent / maxPercent) * 100}%"></div>
-                </div>
-                <div class="percentage">${gPercent.toFixed(1)}%</div>
-                <div class="count">${counts.G.toLocaleString()}</div>
-                <div class="name">G</div>
-              </div>
-              <div class="nucleotide-bar">
-                <div class="bar-container">
-                  <div class="bar bar-c" style="height: ${(cPercent / maxPercent) * 100}%"></div>
-                </div>
-                <div class="percentage">${cPercent.toFixed(1)}%</div>
-                <div class="count">${counts.C.toLocaleString()}</div>
-                <div class="name">C</div>
-              </div>
-            </div>
-            
-            <div class="gc-content-row">
-              <div class="gc-box">
-                <div class="label">GC Content</div>
-                <div class="value">${seqGC.toFixed(1)}%</div>
-              </div>
-              <div class="gc-box">
-                <div class="label">AT Content</div>
-                <div class="value">${(100 - seqGC).toFixed(1)}%</div>
-              </div>
+            <h5 class="info-section-title">Nucleotide Composition</h5>
+            <div style="margin-bottom: 16px;">
+              <p style="font-size: 14px; color: #374151; margin-bottom: 4px;">Adenine (A): ${counts.A} (${aPercent.toFixed(1)}%)</p>
+              <p style="font-size: 14px; color: #374151; margin-bottom: 4px;">Thymine (T): ${counts.T} (${tPercent.toFixed(1)}%)</p>
+              <p style="font-size: 14px; color: #374151; margin-bottom: 4px;">Guanine (G): ${counts.G} (${gPercent.toFixed(1)}%)</p>
+              <p style="font-size: 14px; color: #374151; margin-bottom: 4px;">Cytosine (C): ${counts.C} (${cPercent.toFixed(1)}%)</p>
             </div>
             
             ${seqOrfs.length > 0 ? `
-            <div class="orf-section">
-              <h5>✓ Open Reading Frames (${seqOrfs.length} detected)</h5>
-              <div class="orf-grid">
-                ${seqOrfs.slice(0, 6).map((orf, orfIndex) => `
-                <div class="orf-item">
-                  <div class="orf-label">ORF ${orfIndex + 1}</div>
-                  <div class="orf-info">${orf.length} bp • Pos: ${orf.start}-${orf.end}</div>
-                </div>
-                `).join('')}
-              </div>
-              ${seqOrfs.length > 6 ? `<p style="font-size: 11px; color: #6b7280; margin-top: 8px; text-align: center;">+ ${seqOrfs.length - 6} more ORFs</p>` : ''}
+            <h5 class="info-section-title">Open Reading Frames (ORFs)</h5>
+            <div style="margin-bottom: 16px;">
+              ${seqOrfs.slice(0, 3).map((orf, orfIndex) => `
+                <p style="font-size: 14px; color: #374151; margin-bottom: 4px;">ORF ${orfIndex + 1}: Position ${orf.start}-${orf.end}, Length: ${orf.length} bp, Frame: ${orf.frame || 2}</p>
+              `).join('')}
+              ${seqOrfs.length > 3 ? `<p style="font-size: 14px; color: #6b7280; margin-top: 8px;">... and ${seqOrfs.length - 3} more ORF${seqOrfs.length - 3 > 1 ? 's' : ''}</p>` : ''}
             </div>
             ` : ''}
+            
+            <h5 class="info-section-title">Sequence Quality Assessment</h5>
+            <ul style="margin: 0; padding-left: 20px;">
+              <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqGC >= 40 && seqGC <= 60 ? 'Balanced GC content - optimal for most organisms' : seqGC > 60 ? 'High GC content - may indicate thermophilic origin' : 'Low GC content - AT-rich region'}</li>
+              <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqOrfs.length > 0 ? seqOrfs.length + ' potential protein-coding region' + (seqOrfs.length > 1 ? 's' : '') + ' detected' : 'No protein-coding regions detected'}</li>
+              <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqLength < 200 ? 'Short sequence (' + seqLength + ' bp) - limited analysis possible' : 'Adequate sequence length for comprehensive analysis'}</li>
+            </ul>
           </div>
         </div>
           `;
         }).join('')}
+        </div>
+        
+        <div id="noResultsMessage" style="display: none; text-align: center; padding: 40px; color: #6b7280;">
+          <svg style="width: 48px; height: 48px; margin: 0 auto 16px; color: #d1d5db;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <p>No sequences match your search</p>
+          <button onclick="clearFilters()" style="margin-top: 12px; color: #7a3ef3; background: none; border: none; cursor: pointer; text-decoration: underline;">Clear filters</button>
+        </div>
       </div>
+      
+      <script>
+        // Sequence data for filtering/sorting
+        const sequenceData = ${JSON.stringify(sequences.map((seq, index) => ({
+          index,
+          name: seq.sequenceName || seq.name || seq.header || 'Sequence ' + (index + 1),
+          length: seq.sequenceLength || seq.length || 0,
+          gc: seq.gcPercentage || seq.gcContent || 0,
+          orfs: (seq.orfs || []).length
+        })))};
+        
+        let allExpanded = false;
+        
+        function filterSequences() {
+          const query = document.getElementById('sequenceSearch').value.toLowerCase();
+          const cards = document.querySelectorAll('.sequence-card');
+          let visibleCount = 0;
+          
+          cards.forEach((card, index) => {
+            const seqInfo = sequenceData[index];
+            const matches = seqInfo.name.toLowerCase().includes(query);
+            card.style.display = matches ? 'block' : 'none';
+            if (matches) visibleCount++;
+          });
+          
+          document.getElementById('noResultsMessage').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+        
+        function sortSequences() {
+          const sortBy = document.getElementById('sortSelect').value;
+          const container = document.getElementById('sequenceCardsContainer');
+          const cards = Array.from(container.querySelectorAll('.sequence-card'));
+          
+          cards.sort((a, b) => {
+            const indexA = parseInt(a.dataset.index);
+            const indexB = parseInt(b.dataset.index);
+            const seqA = sequenceData[indexA];
+            const seqB = sequenceData[indexB];
+            
+            switch(sortBy) {
+              case 'name': return seqA.name.localeCompare(seqB.name);
+              case 'length-desc': return seqB.length - seqA.length;
+              case 'length-asc': return seqA.length - seqB.length;
+              case 'gc-desc': return seqB.gc - seqA.gc;
+              case 'gc-asc': return seqA.gc - seqB.gc;
+              case 'orfs': return seqB.orfs - seqA.orfs;
+              default: return indexA - indexB;
+            }
+          });
+          
+          cards.forEach(card => container.appendChild(card));
+        }
+        
+        function toggleAllSequences() {
+          allExpanded = !allExpanded;
+          const cards = document.querySelectorAll('.sequence-card');
+          const btn = document.getElementById('toggleAllBtn');
+          
+          cards.forEach(card => {
+            const content = card.querySelector('.sequence-content');
+            if (content) {
+              content.style.display = allExpanded ? 'block' : 'none';
+            }
+          });
+          
+          btn.innerHTML = allExpanded ? 
+            '<svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg> Collapse All' :
+            '<svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> Expand All';
+        }
+        
+        function clearFilters() {
+          document.getElementById('sequenceSearch').value = '';
+          document.getElementById('sortSelect').value = 'default';
+          filterSequences();
+          sortSequences();
+        }
+        
+        // Add click handlers for sequence cards
+        document.addEventListener('DOMContentLoaded', function() {
+          const cards = document.querySelectorAll('.sequence-card');
+          cards.forEach((card, index) => {
+            card.dataset.index = index;
+            const header = card.querySelector('.sequence-header');
+            const content = card.querySelector('.sequence-content');
+            if (header && content) {
+              header.style.cursor = 'pointer';
+              header.addEventListener('click', function() {
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+              });
+            }
+          });
+        });
+      </script>
       ` : ''}
     </div>
     

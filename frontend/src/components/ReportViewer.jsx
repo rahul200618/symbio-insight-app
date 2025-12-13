@@ -13,10 +13,32 @@ export function ReportViewer({ parsedSequences = [] }) {
   const [aiSummary, setAiSummary] = useState(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [expandedSequence, setExpandedSequence] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('index'); // 'index', 'length', 'gc', 'orfs'
 
   const stats = parsedSequences.length > 0
     ? calculateAggregateStats(parsedSequences)
     : null;
+
+  // Filter and sort sequences
+  const filteredSequences = parsedSequences
+    .filter(seq => {
+      if (!searchQuery) return true;
+      const name = (seq.sequenceName || seq.name || seq.header || '').toLowerCase();
+      return name.includes(searchQuery.toLowerCase());
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'length':
+          return (b.sequenceLength || b.length || 0) - (a.sequenceLength || a.length || 0);
+        case 'gc':
+          return (b.gcPercentage || b.gcContent || 0) - (a.gcPercentage || a.gcContent || 0);
+        case 'orfs':
+          return (b.orfs?.length || 0) - (a.orfs?.length || 0);
+        default:
+          return 0;
+      }
+    });
 
   // Fetch AI summary when sequences change
   useEffect(() => {
@@ -368,63 +390,146 @@ export function ReportViewer({ parsedSequences = [] }) {
       {/* Individual Sequence Analysis Section */}
       {parsedSequences.length > 0 && (
         <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center shadow-sm">
-              <Icons.BarChart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Individual Sequence Analysis</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Detailed analytics for each of the {parsedSequences.length} sequences</p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center shadow-sm">
+                <Icons.BarChart className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Individual Sequence Analysis</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {filteredSequences.length === parsedSequences.length 
+                    ? `Detailed analytics for each of the ${parsedSequences.length} sequences`
+                    : `Showing ${filteredSequences.length} of ${parsedSequences.length} sequences`
+                  }
+                </p>
+              </div>
             </div>
           </div>
 
+          {/* Search and Filter Bar */}
+          <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+            {/* Search Input */}
+            <div className="flex-1 relative">
+              <Icons.Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search sequences by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <Icons.X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="index">Default Order</option>
+                <option value="length">Length (Longest)</option>
+                <option value="gc">GC Content (Highest)</option>
+                <option value="orfs">ORFs (Most)</option>
+              </select>
+            </div>
+
+            {/* Expand/Collapse All */}
+            <button
+              onClick={() => setExpandedSequence(expandedSequence === 'all' ? null : 'all')}
+              className="px-4 py-2.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center gap-2"
+            >
+              {expandedSequence === 'all' ? (
+                <>
+                  <Icons.ChevronRight className="w-4 h-4 rotate-90" />
+                  Collapse All
+                </>
+              ) : (
+                <>
+                  <Icons.ChevronRight className="w-4 h-4" />
+                  Expand All
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Results Count */}
+          {searchQuery && (
+            <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              Found {filteredSequences.length} sequence{filteredSequences.length !== 1 ? 's' : ''} matching "{searchQuery}"
+            </div>
+          )}
+
           {/* Sequence Cards */}
           <div className="space-y-4">
-            {parsedSequences.map((seq, index) => {
-              const isExpanded = expandedSequence === index;
-              const seqNucleotideData = getSequenceNucleotideData(seq);
-              const seqGCData = getSequenceGCData(seq);
-              const seqLength = seq.sequenceLength || seq.length || 0;
-              const seqGC = seq.gcPercentage || seq.gcContent || 0;
-              const seqOrfs = seq.orfs || [];
-              
-              return (
-                <motion.div
-                  key={seq.id || index}
-                  className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+            {filteredSequences.length === 0 ? (
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <Icons.Search className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400">No sequences found matching "{searchQuery}"</p>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="mt-3 text-purple-600 dark:text-purple-400 text-sm font-medium hover:underline"
                 >
-                  {/* Sequence Header - Always visible */}
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              filteredSequences.map((seq, index) => {
+                const originalIndex = parsedSequences.indexOf(seq);
+                const isExpanded = expandedSequence === 'all' || expandedSequence === originalIndex;
+                const seqNucleotideData = getSequenceNucleotideData(seq);
+                const seqGCData = getSequenceGCData(seq);
+                const seqLength = seq.sequenceLength || seq.length || 0;
+                const seqGC = seq.gcPercentage || seq.gcContent || 0;
+                const seqOrfs = seq.orfs || [];
+              
+                return (
                   <motion.div
-                    className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                    onClick={() => setExpandedSequence(isExpanded ? null : index)}
+                    key={seq.id || originalIndex}
+                    className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
-                            {seq.sequenceName || seq.name || seq.header || `Sequence ${index + 1}`}
-                          </h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            <span>{seqLength.toLocaleString()} bp</span>
-                            <span>GC: {seqGC.toFixed(1)}%</span>
-                            <span>{seqOrfs.length} ORFs</span>
+                    {/* Sequence Header - Always visible */}
+                    <motion.div
+                      className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      onClick={() => setExpandedSequence(isExpanded && expandedSequence !== 'all' ? null : originalIndex)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                            {originalIndex + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
+                              {seq.sequenceName || seq.name || seq.header || `Sequence ${originalIndex + 1}`}
+                            </h4>
+                            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              <span>{seqLength.toLocaleString()} bp</span>
+                              <span>GC: {seqGC.toFixed(1)}%</span>
+                              <span>{seqOrfs.length} ORFs</span>
+                            </div>
                           </div>
                         </div>
+                        <motion.div
+                          animate={{ rotate: isExpanded ? 90 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Icons.ChevronRight className="w-5 h-5 text-gray-400" />
+                        </motion.div>
                       </div>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 90 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Icons.ChevronRight className="w-5 h-5 text-gray-400" />
-                      </motion.div>
-                    </div>
-                  </motion.div>
+                    </motion.div>
 
                   {/* Expanded Content */}
                   <AnimatePresence>
@@ -537,7 +642,8 @@ export function ReportViewer({ parsedSequences = [] }) {
                   </AnimatePresence>
                 </motion.div>
               );
-            })}
+            })
+            )}
           </div>
         </div>
       )}
