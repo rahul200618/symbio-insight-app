@@ -6,27 +6,40 @@ import { AnimatedPage } from '../components/AnimatedPage';
 import { MetadataCards } from '../components/MetadataCards';
 import { Icons } from '../components/Icons';
 import { getSequences, getSequenceById } from '../utils/sequenceApi';
-import { extractMetadata, generateUniqueId } from '../utils/fastaParser';
+import { extractMetadata, generateUniqueId, calculateCodonFrequency } from '../utils/fastaParser';
 
 const transformToFrontendFormat = (data) => {
     if (!data) return [];
 
     // Handle array input
     let inputs = Array.isArray(data) ? data : [data];
-    
+
     // If the input has a sequences array (from backend multi-sequence file), use that
     if (!Array.isArray(data) && data.sequences && Array.isArray(data.sequences) && data.sequences.length > 0) {
         inputs = data.sequences;
     }
 
     return inputs.map(item => {
-        // If it already looks correct (from frontend parser), return it
-        if (item.sequenceLength !== undefined && item.nucleotideCounts && item.orfs) {
+        // If it already looks correct (from frontend parser) and has codonFrequency, return it
+        if (item.sequenceLength !== undefined && item.nucleotideCounts && item.orfs && item.codonFrequency) {
             return item;
+        }
+
+        // If it already has structure but missing codonFrequency, add it
+        if (item.sequenceLength !== undefined && item.nucleotideCounts && item.orfs) {
+            const rawSeq = item.rawSequence || item.sequence || '';
+            const { codonFrequency, codonStats } = rawSeq ? calculateCodonFrequency(rawSeq) : { codonFrequency: {}, codonStats: {} };
+            return {
+                ...item,
+                codonFrequency,
+                codonStats,
+            };
         }
 
         // If it has backend format (length instead of sequenceLength), transform it
         if (item.length !== undefined && item.nucleotideCounts) {
+            const rawSeq = item.sequence || '';
+            const { codonFrequency, codonStats } = rawSeq ? calculateCodonFrequency(rawSeq) : { codonFrequency: {}, codonStats: {} };
             return {
                 id: item._id || item.id || generateUniqueId(),
                 sequenceName: item.header || item.name || 'Untitled Sequence',
@@ -34,7 +47,9 @@ const transformToFrontendFormat = (data) => {
                 gcPercentage: item.gcContent || 0,
                 nucleotideCounts: item.nucleotideCounts,
                 orfs: item.orfs || [],
-                rawSequence: item.sequence || '',
+                rawSequence: rawSeq,
+                codonFrequency,
+                codonStats,
                 timestamp: item.createdAt || new Date().toISOString(),
             };
         }
@@ -43,7 +58,7 @@ const transformToFrontendFormat = (data) => {
         const seq = item.sequence || item.seq || item.rawSequence || '';
         const header = item.header || item.filename || item.name || 'Untitled Sequence';
 
-        // Use the centralized parser logic
+        // Use the centralized parser logic (extractMetadata already includes codonFrequency)
         const metadata = extractMetadata(header, seq);
 
         // Merge with any existing IDs or timestamps

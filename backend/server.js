@@ -2,10 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const compression = require('compression');
-const { connectDB } = require('./config/database');
 
 dotenv.config();
 const app = express();
+
+// Storage mode: 'sqlite' (local) or 'atlas' (cloud MongoDB)
+const STORAGE_MODE = process.env.STORAGE_MODE || 'sqlite';
+console.log(`📦 Storage Mode: ${STORAGE_MODE.toUpperCase()}`);
 
 // Allow configuring frontend origin via env for dev (support both common ports)
 const allowedOrigins = [
@@ -46,39 +49,66 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Compression middleware - compress all responses
 app.use(compression());
 
-// Connect to SQLite database
-connectDB();
+// Connect to database based on STORAGE_MODE
+const initializeDatabase = async () => {
+  if (STORAGE_MODE === 'atlas') {
+    // Use MongoDB Atlas
+    const { connectMongoDB } = require('./config/mongodb');
+    const connected = await connectMongoDB('atlas');
+    if (!connected) {
+      console.error('❌ Failed to connect to MongoDB Atlas. Falling back to SQLite...');
+      const { connectDB } = require('./config/database');
+      await connectDB();
+    }
+  } else {
+    // Use SQLite (default)
+    const { connectDB } = require('./config/database');
+    await connectDB();
+  }
+};
+
+// Initialize database connection
+initializeDatabase();
 
 const sequencesRouter = require('./routes/sequences');
 const authRouter = require('./routes/auth');
 const aiRouter = require('./routes/ai');
+const storageRouter = require('./routes/storage');
 
 app.use('/api/sequences', sequencesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/storage', storageRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
     message: 'Symbio-NLM Backend API',
     version: '1.0.0',
-    database: 'SQLite',
+    storageMode: STORAGE_MODE,
     endpoints: {
       health: '/api/health',
       sequences: '/api/sequences',
       auth: '/api/auth',
-      ai: '/api/ai'
+      ai: '/api/ai',
+      storage: '/api/storage'
     }
   });
 });
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
-  const { sequelize } = require('./config/database');
   let dbStatus = 'disconnected';
+  
   try {
-    await sequelize.authenticate();
-    dbStatus = 'connected';
+    if (STORAGE_MODE === 'atlas') {
+      const { getConnectionStatus } = require('./config/mongodb');
+      dbStatus = getConnectionStatus().isConnected ? 'connected' : 'disconnected';
+    } else {
+      const { sequelize } = require('./config/database');
+      await sequelize.authenticate();
+      dbStatus = 'connected';
+    }
   } catch (error) {
     dbStatus = 'disconnected';
   }
@@ -87,7 +117,7 @@ app.get('/api/health', async (req, res) => {
     status: 'ok',
     time: new Date().toISOString(),
     database: dbStatus,
-    databaseType: 'SQLite',
+    storageMode: STORAGE_MODE,
     version: '1.0.0',
     uptime: process.uptime()
   });

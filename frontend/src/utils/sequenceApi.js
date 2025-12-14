@@ -406,3 +406,72 @@ export function getStoredUser() {
     const user = localStorage.getItem('symbio_nlm_user');
     return user ? JSON.parse(user) : null;
 }
+
+// ============================================================================
+// STORAGE ENDPOINTS (MongoDB Local/Atlas)
+// ============================================================================
+
+/**
+ * Get storage connection status
+ * @returns {Promise<Object>} Connection status
+ */
+export async function getStorageStatus() {
+    return apiCall('/storage/status', { method: 'GET' });
+}
+
+/**
+ * Connect to MongoDB storage
+ * @param {string} type - 'local' or 'atlas'
+ * @returns {Promise<Object>} Connection result
+ */
+export async function connectStorage(type = 'local') {
+    return apiCall('/storage/connect', {
+        method: 'POST',
+        body: JSON.stringify({ type })
+    });
+}
+
+/**
+ * Disconnect from MongoDB storage
+ * @returns {Promise<Object>} Disconnect result
+ */
+export async function disconnectStorage() {
+    return apiCall('/storage/disconnect', { method: 'POST' });
+}
+
+/**
+ * Save sequences to MongoDB
+ * @param {Array} sequences - Array of sequence objects
+ * @param {string} storageType - 'local' or 'atlas'
+ * @returns {Promise<Object>} Save result
+ */
+export async function saveSequencesToStorage(sequences, storageType = 'local') {
+    return apiCall('/storage/save', {
+        method: 'POST',
+        body: JSON.stringify({ sequences, storageType })
+    });
+}
+
+/**
+ * Get sequences from MongoDB
+ * @param {Object} options - Query options
+ * @param {string} options.storageType - 'local' or 'atlas'
+ * @param {number} options.limit - Max results
+ * @param {number} options.skip - Skip count
+ * @returns {Promise<Object>} Sequences list
+ */
+export async function getSequencesFromStorage(options = {}) {
+    const { storageType = 'local', limit = 50, skip = 0 } = options;
+    return apiCall(`/storage/sequences?storageType=${storageType}&limit=${limit}&skip=${skip}`, {
+        method: 'GET'
+    });
+}
+
+/**
+ * Delete sequence from MongoDB
+ * @param {string} id - Sequence ID
+ * @returns {Promise<Object>} Delete result
+ */
+export async function deleteSequenceFromStorage(id) {
+    return apiCall(`/storage/sequences/${id}`, { method: 'DELETE' });
+}

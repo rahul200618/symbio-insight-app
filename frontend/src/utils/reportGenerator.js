@@ -122,73 +122,141 @@ export async function generatePDFReport(sequences, options = {}) {
 
   console.log('HTML content generated, length:', htmlContent.length);
 
-  // Create a temporary container to render the HTML
-  const container = document.createElement('div');
-  container.innerHTML = htmlContent;
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.top = '0';
-  container.style.width = '1200px';
-  container.style.backgroundColor = 'white';
-  document.body.appendChild(container);
+  // Create an iframe to completely isolate the PDF content from page styles
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.left = '-9999px';
+  iframe.style.top = '0';
+  iframe.style.width = '900px';
+  iframe.style.height = '5000px';
+  iframe.style.border = 'none';
+  iframe.style.visibility = 'hidden';
+  iframe.style.zIndex = '-9999';
+  document.body.appendChild(iframe);
+
+  // Write the HTML content to the iframe
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    document.body.removeChild(iframe);
+    throw new Error('Could not access iframe document');
+  }
+  
+  iframeDoc.open();
+  iframeDoc.write(htmlContent);
+  iframeDoc.close();
+
+  // Wait for content to render
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Get the container from iframe
+  const container = iframeDoc.body;
+  iframe.style.visibility = 'visible';
 
   try {
-    console.log('Starting canvas rendering with html2canvas...');
+    console.log('Starting PDF generation with page-per-sequence...');
     
-    // Convert HTML to canvas with optimized settings for compression
-    const canvas = await html2canvas(container, {
-      scale: 1.5, // Reduced from 2 for smaller file size
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      width: 1200,
-      height: container.scrollHeight,
-    });
-
-    console.log('Canvas created, dimensions:', canvas.width, 'x', canvas.height);
-
-    // Create PDF from canvas with compression
-    const imgData = canvas.toDataURL('image/jpeg', 0.85); // JPEG with 85% quality for compression
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
-      compress: true // Enable PDF compression
+      compress: true
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const contentWidth = pdfWidth - (margin * 2);
     
-    // Calculate scaling to fit the image to PDF width
-    const imgWidth = pdfWidth - 20; // 10mm margin on each side
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    // Get all the page sections
+    const headerSection = container.querySelector('.header');
+    const keyMetricsSection = container.querySelector('.key-metrics');
+    const sections = container.querySelectorAll('.section');
+    const sequencePages = container.querySelectorAll('.sequence-page');
+    const footer = container.querySelector('.footer');
     
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    // Add multiple pages if needed
-    pdf.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight, undefined, 'FAST'); // FAST compression
-    heightLeft -= (pdfHeight - 30); // Account for margins
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
+    let currentY = margin;
+    let pageNum = 1;
+    
+    // Helper function to add element to PDF
+    const addElementToPDF = async (element, startNewPage = false) => {
+      if (!element) return;
+      
+      if (startNewPage && pageNum > 1) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: 900,
+        windowWidth: 900,
+        // Use the iframe's window for proper style isolation
+        foreignObjectRendering: false,
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.9);
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+      
+      // Check if we need a new page
+      if (currentY + imgHeight > pdfHeight - margin && currentY > margin) {
+        pdf.addPage();
+        currentY = margin;
+        pageNum++;
+      }
+      
+      pdf.addImage(imgData, 'JPEG', margin, currentY, contentWidth, imgHeight, undefined, 'MEDIUM');
+      currentY += imgHeight;
+      
+      return imgHeight;
+    };
+    
+    // Add header
+    if (headerSection) {
+      await addElementToPDF(headerSection);
+    }
+    
+    // Add key metrics
+    if (keyMetricsSection) {
+      await addElementToPDF(keyMetricsSection);
+    }
+    
+    // Add other sections (charts, AI summary)
+    for (const section of sections) {
+      await addElementToPDF(section);
+    }
+    
+    // Add each sequence on a new page
+    for (let i = 0; i < sequencePages.length; i++) {
       pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight, undefined, 'FAST');
-      heightLeft -= pdfHeight;
+      currentY = margin;
+      pageNum++;
+      await addElementToPDF(sequencePages[i]);
+    }
+    
+    // Add footer on the last page
+    if (footer) {
+      if (currentY + 100 > pdfHeight - margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      await addElementToPDF(footer);
     }
 
     // Save the PDF
     const filename = `symbio-nlm-report-${Date.now()}.pdf`;
     pdf.save(filename);
-    console.log('PDF saved successfully:', filename);
+    console.log('PDF saved successfully:', filename, 'with', pageNum, 'pages');
 
     return true;
   } catch (error) {
     console.error('Error during PDF generation:', error);
     throw error;
   } finally {
-    // Clean up
-    document.body.removeChild(container);
+    // Clean up - remove the iframe
+    document.body.removeChild(iframe);
   }
 }
 
@@ -337,7 +405,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
     }
     
     .container {
-      max-width: 1000px;
+      max-width: 900px;
       margin: 0 auto;
       background: white;
     }
@@ -347,10 +415,11 @@ function generatePDFHTMLContent(sequences, stats, options) {
       color: #1f2937;
       padding: 40px 40px 20px 40px;
       border-bottom: 3px solid #f3f4f6;
+      text-align: center;
     }
     
     .header h1 {
-      font-size: 36px;
+      font-size: 32px;
       margin-bottom: 16px;
       font-weight: 700;
       color: #111827;
@@ -366,12 +435,13 @@ function generatePDFHTMLContent(sequences, stats, options) {
       padding: 24px 40px;
       background: white;
       border-bottom: 1px solid #f3f4f6;
+      text-align: center;
     }
     
     .key-metrics h2 {
       font-size: 18px;
       font-weight: 700;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       color: #111827;
     }
     
@@ -379,12 +449,15 @@ function generatePDFHTMLContent(sequences, stats, options) {
       list-style: none;
       padding: 0;
       margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 32px;
     }
     
     .key-metrics li {
       font-size: 14px;
       color: #374151;
-      margin-bottom: 4px;
       line-height: 1.6;
     }
     
@@ -396,6 +469,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
       padding: 28px 40px;
       border-bottom: 1px solid #e5e7eb;
       page-break-inside: avoid;
+      text-align: center;
     }
     
     .section:last-child {
@@ -409,12 +483,17 @@ function generatePDFHTMLContent(sequences, stats, options) {
       font-weight: 700;
       padding-bottom: 8px;
       border-bottom: 2px solid #e5e7eb;
+      text-align: center;
     }
     
     .ai-summary {
       background: white;
       padding: 0;
       margin-bottom: 20px;
+      text-align: left;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
     
     .ai-summary h3 {
@@ -438,17 +517,19 @@ function generatePDFHTMLContent(sequences, stats, options) {
       margin-bottom: 24px;
       padding-bottom: 12px;
       border-bottom: 2px solid #f3f4f6;
+      text-align: center;
     }
     
     .sequence-card {
       background: white;
       border: 2px solid #e5e7eb;
       border-radius: 8px;
-      margin-bottom: 30px;
+      margin: 0 auto 30px auto;
       overflow: hidden;
       page-break-before: always;
       page-break-inside: avoid;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
     }
     
     .sequence-card:first-child {
@@ -460,6 +541,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
       color: #1f2937;
       padding: 20px 24px;
       border-bottom: 2px solid #e5e7eb;
+      text-align: center;
     }
     
     .sequence-header h4 {
@@ -479,6 +561,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
     .sequence-content {
       padding: 20px;
       background: #fafafa;
+      text-align: left;
     }
     
     .info-section-title {
@@ -487,6 +570,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
       color: #111827;
       margin-bottom: 8px;
       margin-top: 16px;
+      text-align: center;
     }
     
     .info-section-title:first-child {
@@ -513,6 +597,9 @@ function generatePDFHTMLContent(sequences, stats, options) {
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       margin-bottom: 16px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
     }
     
     .stat-item {
@@ -520,6 +607,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
       border: 1px solid #e5e7eb;
       border-radius: 6px;
       padding: 12px;
+      text-align: center;
     }
     
     .stat-item .label {
@@ -534,10 +622,22 @@ function generatePDFHTMLContent(sequences, stats, options) {
       color: #111827;
     }
     
+    .nucleotide-list {
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
     .nucleotide-list p {
       font-size: 14px;
       color: #374151;
       margin-bottom: 4px;
+    }
+    
+    .orf-list {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
     }
     
     .orf-list p {
@@ -548,9 +648,9 @@ function generatePDFHTMLContent(sequences, stats, options) {
     
     .detailed-metrics-table {
       width: 100%;
+      max-width: 700px;
+      margin: 12px auto 16px auto;
       border-collapse: collapse;
-      margin-top: 12px;
-      margin-bottom: 16px;
       font-size: 13px;
     }
     
@@ -571,12 +671,39 @@ function generatePDFHTMLContent(sequences, stats, options) {
       background: #fafafa;
     }
     
+    .footer {
+      background: #f9fafb;
+      padding: 30px 40px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 40px;
+    }
+    
+    .footer .logo {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #7a3ef3 0%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    
     @media print {
       body {
         padding: 0;
       }
-      .section, .sequence-card {
+      .section {
         page-break-inside: avoid;
+      }
+      .sequence-card {
+        page-break-before: always;
+        page-break-inside: avoid;
+      }
+      .sequence-card:first-child {
+        page-break-before: avoid;
       }
     }
   </style>
@@ -586,7 +713,7 @@ function generatePDFHTMLContent(sequences, stats, options) {
     <div class="header">
       <h1>${title}</h1>
       <p class="subtitle">${date}</p>
-      <p class="subtitle">${stats.totalSequences} sequences analyzed</p>
+      <p class="subtitle">${stats.totalSequences} sequence${stats.totalSequences !== 1 ? 's' : ''} analyzed</p>
     </div>
     
     <div class="key-metrics">
@@ -596,10 +723,86 @@ function generatePDFHTMLContent(sequences, stats, options) {
         <li><strong>GC Content:</strong> ${stats.avgGC.toFixed(1)}%</li>
         <li><strong>ORFs Found:</strong> ${stats.totalORFs}</li>
         <li><strong>Total Length:</strong> ${stats.totalLength.toLocaleString()} bp</li>
-        <li><strong>Average Length:</strong> ${stats.avgLength} bp</li>
-        <li><strong>Longest Sequence:</strong> ${stats.longestSequence.toLocaleString()} bp</li>
-        <li><strong>Shortest Sequence:</strong> ${stats.shortestSequence} bp</li>
+        <li><strong>Avg Length:</strong> ${stats.avgLength} bp</li>
+        <li><strong>Longest:</strong> ${stats.longestSequence.toLocaleString()} bp</li>
+        <li><strong>Shortest:</strong> ${stats.shortestSequence} bp</li>
       </ul>
+    </div>
+    
+    <!-- Visual Charts Section -->
+    <div class="section">
+      <h2 class="section-title">Visual Analysis</h2>
+      <div style="display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; margin-top: 20px;">
+        
+        <!-- GC/AT Pie Chart -->
+        <div style="text-align: center;">
+          <h4 style="margin-bottom: 12px; color: #374151; font-size: 14px;">GC/AT Content</h4>
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#e5e7eb" stroke-width="30"/>
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#8b5cf6" stroke-width="30"
+              stroke-dasharray="${stats.avgGC * 4.4} ${(100 - stats.avgGC) * 4.4}"
+              stroke-dashoffset="110" transform="rotate(-90 90 90)"/>
+            <text x="90" y="85" text-anchor="middle" font-size="24" font-weight="bold" fill="#1f2937">${stats.avgGC.toFixed(1)}%</text>
+            <text x="90" y="105" text-anchor="middle" font-size="12" fill="#6b7280">GC Content</text>
+          </svg>
+          <div style="display: flex; gap: 16px; justify-content: center; margin-top: 8px;">
+            <span style="display: flex; align-items: center; gap: 4px; font-size: 12px;"><span style="width: 12px; height: 12px; background: #8b5cf6; border-radius: 2px;"></span> GC</span>
+            <span style="display: flex; align-items: center; gap: 4px; font-size: 12px;"><span style="width: 12px; height: 12px; background: #e5e7eb; border-radius: 2px;"></span> AT</span>
+          </div>
+        </div>
+        
+        <!-- Nucleotide Distribution Bar Chart -->
+        <div style="text-align: center;">
+          <h4 style="margin-bottom: 12px; color: #374151; font-size: 14px;">Nucleotide Distribution</h4>
+          <svg width="200" height="180" viewBox="0 0 200 180">
+            ${(() => {
+              const nucleotides = stats.nucleotideCounts || { A: 25, T: 25, G: 25, C: 25 };
+              const total = nucleotides.A + nucleotides.T + nucleotides.G + nucleotides.C;
+              const percentages = {
+                A: total > 0 ? (nucleotides.A / total) * 100 : 25,
+                T: total > 0 ? (nucleotides.T / total) * 100 : 25,
+                G: total > 0 ? (nucleotides.G / total) * 100 : 25,
+                C: total > 0 ? (nucleotides.C / total) * 100 : 25
+              };
+              const maxPercent = Math.max(...Object.values(percentages));
+              const colors = { A: '#3b82f6', T: '#10b981', G: '#f59e0b', C: '#ef4444' };
+              let bars = '';
+              let x = 20;
+              for (const [base, pct] of Object.entries(percentages)) {
+                const height = (pct / maxPercent) * 120;
+                bars += `<rect x="${x}" y="${150 - height}" width="35" height="${height}" fill="${colors[base]}" rx="4"/>`;
+                bars += `<text x="${x + 17}" y="170" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">${base}</text>`;
+                bars += `<text x="${x + 17}" y="${145 - height}" text-anchor="middle" font-size="10" fill="#6b7280">${pct.toFixed(1)}%</text>`;
+                x += 45;
+              }
+              return bars;
+            })()}
+          </svg>
+        </div>
+        
+        <!-- Sequence Length Bar Chart (if multiple sequences) -->
+        ${sequences.length > 1 ? `
+        <div style="text-align: center;">
+          <h4 style="margin-bottom: 12px; color: #374151; font-size: 14px;">Sequence Lengths</h4>
+          <svg width="220" height="180" viewBox="0 0 220 180">
+            ${(() => {
+              const maxLen = Math.max(...sequences.slice(0, 5).map(s => s.sequenceLength || s.length || 0));
+              const colors = ['#8b5cf6', '#6366f1', '#3b82f6', '#10b981', '#f59e0b'];
+              let bars = '';
+              sequences.slice(0, 5).forEach((seq, i) => {
+                const len = seq.sequenceLength || seq.length || 0;
+                const height = maxLen > 0 ? (len / maxLen) * 110 : 0;
+                const x = 15 + i * 42;
+                bars += `<rect x="${x}" y="${145 - height}" width="32" height="${height}" fill="${colors[i]}" rx="4"/>`;
+                bars += `<text x="${x + 16}" y="165" text-anchor="middle" font-size="10" fill="#374151">S${i + 1}</text>`;
+                bars += `<text x="${x + 16}" y="${140 - height}" text-anchor="middle" font-size="9" fill="#6b7280">${(len / 1000).toFixed(1)}k</text>`;
+              });
+              return bars;
+            })()}
+          </svg>
+        </div>
+        ` : ''}
+      </div>
     </div>
     
     ${includeAIAnalysis && overallAIAnalysis ? `
@@ -636,10 +839,12 @@ function generatePDFHTMLContent(sequences, stats, options) {
     ` : ''}
     
     ${sequences.length > 0 ? `
-    <div class="section">
+    <div class="section" style="page-break-after: always;">
       <h2 class="individual-title">Individual Sequence Details</h2>
-      
-      ${sequences.map((seq, index) => {
+      <p style="text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 20px;">Each sequence is displayed on its own page for clarity.</p>
+    </div>
+    
+    ${sequences.map((seq, index) => {
         const seqLength = seq.sequenceLength || seq.length || 0;
         const seqGC = seq.gcPercentage || seq.gcContent || 0;
         const seqOrfs = seq.orfs || [];
@@ -647,10 +852,11 @@ function generatePDFHTMLContent(sequences, stats, options) {
         const aiAnalysis = sequenceAIAnalyses[index];
         
         return `
+        <div class="sequence-page" style="page-break-before: always; page-break-after: always; padding: 20px 0;">
         <div class="sequence-card">
           <div class="sequence-header">
-            <h4>Sequence ${index + 1}: ${seq.sequenceName || seq.name || seq.header || 'Unnamed'}</h4>
-            <div class="meta">Length: ${seqLength} bp | GC Content: ${seqGC.toFixed(2)}% | AT Content: ${(100 - seqGC).toFixed(2)}% | ORF Count: ${seqOrfs.length}</div>
+            <h4>Sequence ${index + 1} of ${sequences.length}: ${seq.sequenceName || seq.name || seq.header || 'Unnamed'}</h4>
+            <div class="meta">Length: ${seqLength.toLocaleString()} bp | GC Content: ${seqGC.toFixed(2)}% | AT Content: ${(100 - seqGC).toFixed(2)}% | ORFs: ${seqOrfs.length}</div>
           </div>
           <div class="sequence-content">
             ${aiAnalysis ? `
@@ -792,23 +998,94 @@ function generatePDFHTMLContent(sequences, stats, options) {
             </div>
             ` : ''}
             
+            ${seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0 ? `
+            <h5 class="info-section-title">Codon Frequency Analysis</h5>
+            <div class="codon-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+              <div class="stat-item">
+                <div class="label">Total Codons</div>
+                <div class="value">${seq.codonStats?.totalCodons || Object.values(seq.codonFrequency).reduce((sum, d) => sum + d.count, 0)}</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">Unique Codons</div>
+                <div class="value">${seq.codonStats?.uniqueCodons || Object.keys(seq.codonFrequency).length}/64</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">Start Codons</div>
+                <div class="value">${seq.codonStats?.startCodons || seq.codonFrequency['ATG']?.count || 0}</div>
+              </div>
+              <div class="stat-item">
+                <div class="label">Stop Codons</div>
+                <div class="value">${seq.codonStats?.stopCodons || 0}</div>
+              </div>
+            </div>
+            
+            <!-- Codon Frequency Bar Chart -->
+            <div style="margin: 16px 0;">
+              <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Top 8 Codons Visualization:</p>
+              <svg width="100%" height="120" viewBox="0 0 500 120" style="max-width: 500px;">
+                ${(() => {
+                  const topCodons = Object.entries(seq.codonFrequency)
+                    .sort((a, b) => b[1].count - a[1].count)
+                    .slice(0, 8);
+                  const maxCount = topCodons[0]?.[1]?.count || 1;
+                  const colors = ['#8b5cf6', '#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6'];
+                  let bars = '';
+                  topCodons.forEach(([codon, data], i) => {
+                    const width = (data.count / maxCount) * 320;
+                    const y = i * 14;
+                    bars += `<text x="0" y="${y + 10}" font-size="10" font-family="monospace" font-weight="600" fill="#7c3aed">${codon}</text>`;
+                    bars += `<rect x="35" y="${y}" width="${width}" height="11" fill="${colors[i]}" rx="2"/>`;
+                    bars += `<text x="${40 + width}" y="${y + 9}" font-size="9" fill="#6b7280">${data.count} (${data.percentage}%)</text>`;
+                  });
+                  return bars;
+                })()}
+              </svg>
+            </div>
+            
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Top 10 Most Frequent Codons:</p>
+            <table class="detailed-metrics-table" style="font-size: 11px;">
+              <thead>
+                <tr>
+                  <th>Codon</th>
+                  <th>Amino Acid</th>
+                  <th>Count</th>
+                  <th>Frequency</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.entries(seq.codonFrequency)
+                  .sort((a, b) => b[1].count - a[1].count)
+                  .slice(0, 10)
+                  .map(([codon, data]) => `
+                    <tr>
+                      <td style="font-family: monospace; font-weight: 600; color: #7c3aed;">${codon}</td>
+                      <td>${data.symbol} (${data.aminoAcid})</td>
+                      <td>${data.count}</td>
+                      <td>${data.percentage}%</td>
+                    </tr>
+                  `).join('')}
+              </tbody>
+            </table>
+            ` : ''}
+            
             <h5 class="info-section-title">Sequence Quality Assessment</h5>
-            <ul style="margin: 0; padding-left: 20px;">
+            <ul style="margin: 0 auto; padding-left: 20px; max-width: 600px; text-align: left;">
               <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqGC >= 40 && seqGC <= 60 ? 'Balanced GC content - optimal for most organisms' : seqGC > 60 ? 'High GC content - may indicate thermophilic origin' : 'Low GC content - AT-rich region'}</li>
               <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqOrfs.length > 0 ? seqOrfs.length + ' potential protein-coding region' + (seqOrfs.length > 1 ? 's' : '') + ' detected' : 'No protein-coding regions detected'}</li>
               <li style="font-size: 14px; color: #374151; margin-bottom: 4px;">${seqLength < 200 ? 'Short sequence (' + seqLength + ' bp) - limited analysis possible' : 'Adequate sequence length for comprehensive analysis'}</li>
             </ul>
           </div>
         </div>
+        </div>
         `;
       }).join('')}
-    </div>
     ` : ''}
     
-    <div class="footer">
+    <div class="footer" style="page-break-before: always;">
       <div class="logo">Symbio-NLM</div>
       <p>Advanced DNA Analysis & Bioinformatics Platform</p>
       <p style="margin-top: 4px; font-size: 11px;">Generated on ${date} • Powered by AI-driven sequence analysis</p>
+      <p style="margin-top: 12px; font-size: 12px; color: #9ca3af;">Report contains ${stats.totalSequences} sequence${stats.totalSequences !== 1 ? 's' : ''} • ${stats.totalLength.toLocaleString()} total base pairs</p>
     </div>
   </div>
 </body>
@@ -1380,6 +1657,52 @@ function generateHTMLContent(sequences, stats, options) {
               `).join('')}
               ${seqOrfs.length > 3 ? `<p style="font-size: 14px; color: #6b7280; margin-top: 8px;">... and ${seqOrfs.length - 3} more ORF${seqOrfs.length - 3 > 1 ? 's' : ''}</p>` : ''}
             </div>
+            ` : ''}
+            
+            ${seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0 ? `
+            <h5 class="info-section-title">Codon Frequency Analysis</h5>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+              <div style="background: #f3f4f6; padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 11px; color: #6b7280;">Total Codons</div>
+                <div style="font-size: 16px; font-weight: 600; color: #7c3aed;">${seq.codonStats?.totalCodons || Object.values(seq.codonFrequency).reduce((sum, d) => sum + d.count, 0)}</div>
+              </div>
+              <div style="background: #f3f4f6; padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 11px; color: #6b7280;">Unique Codons</div>
+                <div style="font-size: 16px; font-weight: 600; color: #7c3aed;">${seq.codonStats?.uniqueCodons || Object.keys(seq.codonFrequency).length}/64</div>
+              </div>
+              <div style="background: #f3f4f6; padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 11px; color: #6b7280;">Start Codons</div>
+                <div style="font-size: 16px; font-weight: 600; color: #10b981;">${seq.codonStats?.startCodons || seq.codonFrequency['ATG']?.count || 0}</div>
+              </div>
+              <div style="background: #f3f4f6; padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 11px; color: #6b7280;">Stop Codons</div>
+                <div style="font-size: 16px; font-weight: 600; color: #ef4444;">${seq.codonStats?.stopCodons || 0}</div>
+              </div>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Top 10 Most Frequent Codons:</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px;">
+              <thead>
+                <tr style="background: #f9fafb;">
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Codon</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Amino Acid</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">Count</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">Frequency</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.entries(seq.codonFrequency)
+                  .sort((a, b) => b[1].count - a[1].count)
+                  .slice(0, 10)
+                  .map(([codon, data]) => `
+                    <tr>
+                      <td style="padding: 8px; border: 1px solid #e5e7eb; font-family: monospace; font-weight: 600; color: #7c3aed;">${codon}</td>
+                      <td style="padding: 8px; border: 1px solid #e5e7eb;">${data.symbol} (${data.aminoAcid})</td>
+                      <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${data.count}</td>
+                      <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${data.percentage}%</td>
+                    </tr>
+                  `).join('')}
+              </tbody>
+            </table>
             ` : ''}
             
             <h5 class="info-section-title">Sequence Quality Assessment</h5>

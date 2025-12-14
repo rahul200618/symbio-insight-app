@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { Icons } from './Icons';
 import { useAuth } from '../context/AuthContext';
+import { forgotPassword } from '../utils/auth';
 
 export function Login({ onLoginSuccess, onSwitchToSignup }) {
     const [email, setEmail] = useState('');
@@ -10,6 +11,12 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
     const [showPassword, setShowPassword] = useState(false);
     const [isInteracting, setIsInteracting] = useState(false);
     const [localError, setLocalError] = useState('');
+    
+    // Forgot password state
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotSent, setForgotSent] = useState(false);
 
     const { login, loading, error: authError } = useAuth();
 
@@ -135,7 +142,11 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                         >
                             <div className="flex justify-between items-center ml-1">
                                 <label className="text-xs font-semibold text-gray-700">Password</label>
-                                <button type="button" className="text-[10px] text-purple-600 font-medium hover:underline">
+                                <button 
+                                    type="button" 
+                                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); }}
+                                    className="text-[10px] text-purple-600 font-medium hover:underline"
+                                >
                                     Forgot password?
                                 </button>
                             </div>
@@ -203,6 +214,120 @@ export function Login({ onLoginSuccess, onSwitchToSignup }) {
                     </form>
                 </div>
             </motion.div>
+
+            {/* Forgot Password Modal */}
+            <AnimatePresence>
+                {showForgotPassword && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                backdropFilter: 'blur(4px)',
+                                zIndex: 9999
+                            }}
+                            onClick={() => { setShowForgotPassword(false); setForgotSent(false); }}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            style={{
+                                position: 'fixed',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: '100%',
+                                maxWidth: '400px',
+                                zIndex: 10000,
+                                padding: '16px'
+                            }}
+                        >
+                            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                                <div className="p-6">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                                            <Icons.Mail className="w-6 h-6 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">Reset Password</h3>
+                                            <p className="text-sm text-gray-500">We'll send you reset instructions</p>
+                                        </div>
+                                    </div>
+
+                                    {forgotSent ? (
+                                        <div className="text-center py-4">
+                                            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                                <Icons.CheckCircle className="w-8 h-8 text-green-600" />
+                                            </div>
+                                            <h4 className="text-lg font-semibold text-gray-900 mb-2">Check Your Email</h4>
+                                            <p className="text-sm text-gray-600 mb-4">
+                                                If an account exists with <strong>{forgotEmail}</strong>, you'll receive password reset instructions.
+                                            </p>
+                                            <button
+                                                onClick={() => { setShowForgotPassword(false); setForgotSent(false); }}
+                                                style={{ backgroundColor: '#7c3aed', color: '#ffffff', padding: '10px 20px', borderRadius: '8px', fontWeight: '500', border: 'none', cursor: 'pointer' }}
+                                            >
+                                                Back to Login
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <p className="text-sm text-gray-600 mb-4">
+                                                Enter your email address and we'll send you a link to reset your password.
+                                            </p>
+                                            <input
+                                                type="email"
+                                                value={forgotEmail}
+                                                onChange={(e) => setForgotEmail(e.target.value)}
+                                                placeholder="your@email.com"
+                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-purple-500 focus:ring-0 transition-all duration-300 outline-none text-sm text-gray-900 placeholder-gray-400 mb-4"
+                                            />
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={() => { setShowForgotPassword(false); setForgotSent(false); }}
+                                                    style={{ flex: 1, padding: '10px', backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '8px', fontWeight: '500', cursor: 'pointer' }}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!forgotEmail) {
+                                                            toast.error('Please enter your email');
+                                                            return;
+                                                        }
+                                                        setForgotLoading(true);
+                                                        try {
+                                                            await forgotPassword(forgotEmail);
+                                                            setForgotSent(true);
+                                                            toast.success('Reset email sent!');
+                                                        } catch (err) {
+                                                            toast.error(err.message);
+                                                        } finally {
+                                                            setForgotLoading(false);
+                                                        }
+                                                    }}
+                                                    disabled={forgotLoading}
+                                                    style={{ flex: 1, padding: '10px', backgroundColor: '#7c3aed', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '500', cursor: forgotLoading ? 'not-allowed' : 'pointer', opacity: forgotLoading ? 0.7 : 1 }}
+                                                >
+                                                    {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

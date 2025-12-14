@@ -11,6 +11,22 @@ const {
   validateBulkDelete
 } = require('../middleware/validation');
 
+// Helper function to retry database operations on SQLITE_BUSY
+const withRetry = async (operation, maxRetries = 5, delay = 500) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error.message && error.message.includes('SQLITE_BUSY') && attempt < maxRetries) {
+        console.log(`Database busy, retrying (attempt ${attempt}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+        continue;
+      }
+      throw error;
+    }
+  }
+};
+
 // Configure multer for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -71,16 +87,29 @@ function parseFastaToMetadata(fasta) {
   const totalOrfs = sequences.reduce((sum, s) => sum + s.orfCount, 0);
   const avgGC = sequences.length > 0 ? sequences.reduce((sum, s) => sum + s.gcContent, 0) / sequences.length : 0;
 
+  // Limit stored sequence for very large files (>500KB total)
+  const maxStoredLength = 500000;
+  let combinedSequence = sequences.map(s => s.sequence).join('');
+  if (combinedSequence.length > maxStoredLength) {
+    combinedSequence = combinedSequence.substring(0, maxStoredLength) + '...[truncated]';
+  }
+  
+  // Also truncate individual sequences for storage
+  const truncatedSequences = sequences.map(s => ({
+    ...s,
+    sequence: s.sequence.length > 50000 ? s.sequence.substring(0, 50000) + '...[truncated]' : s.sequence
+  }));
+
   // Return combined result with all sequences
   return {
     name: sequences[0].name,
     header: sequences[0].header,
-    sequence: sequences.map(s => s.sequence).join(''), // Combined sequence for backward compatibility
+    sequence: combinedSequence, // Combined sequence for backward compatibility
     length: totalLength,
     gcContent: Math.round(avgGC * 10) / 10,
     orfDetected: totalOrfs > 0,
     orfCount: totalOrfs,
-    orfs: sequences.flatMap(s => s.orfs),
+    orfs: sequences.flatMap(s => s.orfs).slice(0, 100), // Limit to 100 ORFs
     nucleotideCounts: { A: totalA, T: totalT, G: totalG, C: totalC },
     filename: `${sequences[0].name}.fasta`,
     metrics: {
@@ -89,7 +118,7 @@ function parseFastaToMetadata(fasta) {
       orfDetected: totalOrfs > 0,
       orfCount: totalOrfs
     },
-    sequences: sequences, // Array of all individual sequences
+    sequences: truncatedSequences, // Array of all individual sequences
     sequenceCount: sequences.length
   };
 }
@@ -119,18 +148,23 @@ function createSequenceMetadata(header, seq) {
   };
 }
 
-// Enhanced ORF detection - finds all ORFs
+// Enhanced ORF detection - finds all ORFs (optimized for speed)
 function detectAllORFs(seq) {
   const startCodon = 'ATG';
   const stopCodons = ['TAA', 'TAG', 'TGA'];
   const seqUpper = seq.toUpperCase();
   const orfs = [];
+  
+  // Limit detection for very large sequences (>100KB) for performance
+  const maxLength = Math.min(seqUpper.length, 100000);
+  const maxOrfs = 50; // Limit number of ORFs to find
 
   // Check all three reading frames
   for (let frame = 0; frame < 3; frame++) {
-    for (let i = frame; i < seqUpper.length - 5; i += 3) {
+    for (let i = frame; i < maxLength - 5; i += 3) {
+      if (orfs.length >= maxOrfs) break;
       if (seqUpper.substring(i, i + 3) === startCodon) {
-        for (let j = i + 3; j < seqUpper.length - 2; j += 3) {
+        for (let j = i + 3; j < maxLength - 2; j += 3) {
           const codon = seqUpper.substring(j, j + 3);
           if (stopCodons.includes(codon)) {
             const orfSeq = seqUpper.substring(i, j + 3);
@@ -138,7 +172,7 @@ function detectAllORFs(seq) {
               start: i,
               end: j + 3,
               length: orfSeq.length,
-              sequence: orfSeq,
+              sequence: orfSeq.substring(0, 100) + (orfSeq.length > 100 ? '...' : ''), // Truncate for storage
               frame: frame
             });
             break;
@@ -261,7 +295,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     const meta = parseFastaToMetadata(fileContent);
     meta.filename = req.file.originalname;
 
-    const doc = await Sequence.create(meta);
+    // Use retry wrapper for database operation
+    const doc = await withRetry(() => Sequence.create(meta));
 
     res.status(201).json({
       id: doc.id,
@@ -276,6 +311,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       createdAt: doc.createdAt
     });
   } catch (err) {
+    console.error('Upload error:', err.message);
     res.status(400).json({ error: err.message });
   }
 });
@@ -389,13 +425,14 @@ router.post('/:id/generate-report', async (req, res) => {
 // DELETE sequence
 router.delete('/:id', async (req, res) => {
   try {
-    const doc = await Sequence.findByPk(req.params.id);
+    const doc = await withRetry(() => Sequence.findByPk(req.params.id));
     if (!doc) {
       return res.status(404).json({ error: 'Sequence not found' });
     }
-    await doc.destroy();
+    await withRetry(() => doc.destroy());
     res.json({ message: 'Deleted', id: doc.id });
   } catch (err) {
+    console.error('Delete error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

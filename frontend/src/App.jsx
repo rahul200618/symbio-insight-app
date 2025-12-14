@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
@@ -9,6 +9,7 @@ import { ScrollProgressBar } from './components/AnimatedPage';
 import { initAnimeJS } from './utils/animations.js';
 import { useScrollProgress } from './hooks/useScrollAnimation.js';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Page imports
@@ -25,6 +26,7 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
   const [showRightPanel, setShowRightPanel] = useState(false);
   const scrollProgress = useScrollProgress();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     initAnimeJS();
@@ -40,6 +42,16 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
       setParsedSequences(file.data);
     }
   };
+
+  // Handler for generating report from chatbot
+  const handleGenerateReport = useCallback(() => {
+    navigate('/report');
+    // Trigger report download after navigation
+    setTimeout(() => {
+      const downloadBtn = document.querySelector('[data-report-download]');
+      if (downloadBtn) downloadBtn.click();
+    }, 500);
+  }, [navigate]);
 
   // Get current view from location pathname
   const getCurrentView = () => {
@@ -80,8 +92,13 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
         onClose={() => setShowRightPanel(false)}
       />
 
-      {/* AI Chatbot */}
-      <ChatbotAssistant sequences={parsedSequences} currentView={getCurrentView()} />
+      {/* AI Chatbot with action handlers */}
+      <ChatbotAssistant 
+        sequences={parsedSequences} 
+        currentView={getCurrentView()} 
+        onGenerateReport={handleGenerateReport}
+        onSequenceInput={(seqs) => setParsedSequences(seqs)}
+      />
     </div>
   );
 }
@@ -155,9 +172,11 @@ function RootRedirect() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <NotificationProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

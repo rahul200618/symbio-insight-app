@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchSequences, getSequences } from '../utils/sequenceApi';
+import { useNotifications } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
 export function TopBar({ selectedFile, onInfoClick }) {
@@ -19,6 +21,35 @@ export function TopBar({ selectedFile, onInfoClick }) {
   const searchRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const navigate = useNavigate();
+  
+  // Get notifications from context
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    clearNotification,
+    getRelativeTime,
+    pushPermission,
+    requestPushPermission
+  } = useNotifications();
+  
+  // Get user from AuthContext
+  const { user, logout } = useAuth();
+  
+  // Get saved profile data from localStorage
+  const getSavedProfile = () => {
+    try {
+      const saved = localStorage.getItem('symbio-user-profile');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  };
+  
+  const savedProfile = getSavedProfile();
+  const displayName = user?.name || savedProfile?.name || 'Researcher';
+  const displayEmail = user?.email || savedProfile?.email || 'researcher@symbio.com';
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -108,17 +139,6 @@ export function TopBar({ selectedFile, onInfoClick }) {
       { type: 'action', label: 'Compare Sequences', icon: 'GitCompare', path: '/recent' },
       { type: 'action', label: 'Generate New Report', icon: 'FileDown', path: '/reports' },
     ];
-  };
-
-  const notifications = [
-    { id: 1, title: 'Sequence Analysis Complete', message: 'Your FASTA file analysis is ready', time: '2m ago', type: 'success' },
-    { id: 2, title: 'New Report Generated', message: 'PDF report downloaded successfully', time: '1h ago', type: 'info' },
-    { id: 3, title: 'Upload Completed', message: '2 sequences uploaded', time: '3h ago', type: 'success' },
-  ];
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
   };
 
   return (
@@ -291,7 +311,11 @@ export function TopBar({ selectedFile, onInfoClick }) {
             whileTap={{ scale: 0.95 }}
           >
             <Icons.Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </motion.button>
 
           <AnimatePresence>
@@ -304,32 +328,78 @@ export function TopBar({ selectedFile, onInfoClick }) {
                 className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
               >
                 {/* Header */}
-                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                  <div className="flex items-center gap-2">
+                    {pushPermission !== 'granted' && (
+                      <button 
+                        onClick={requestPushPermission}
+                        className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium"
+                        title="Enable push notifications"
+                      >
+                        Enable Push
+                      </button>
+                    )}
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={markAllAsRead}
+                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Notifications List */}
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notif) => (
-                    <div key={notif.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 cursor-pointer">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 ${notif.type === 'success' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{notif.message}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{notif.time}</p>
+                  {notifications.length > 0 ? (
+                    notifications.slice(0, 10).map((notif) => (
+                      <div 
+                        key={notif.id} 
+                        onClick={() => markAsRead(notif.id)}
+                        className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 cursor-pointer ${!notif.read ? 'bg-purple-50/50 dark:bg-purple-900/10' : ''}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                            notif.type === 'success' ? 'bg-green-500' : 
+                            notif.type === 'error' ? 'bg-red-500' : 
+                            notif.type === 'warning' ? 'bg-amber-500' : 
+                            'bg-blue-500'
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${!notif.read ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{notif.title}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">{notif.message}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{getRelativeTime(notif.createdAt)}</p>
+                          </div>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); clearNotification(notif.id); }}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-8 text-center">
+                      <Icons.Bell className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No notifications yet</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Upload a file or generate a report</p>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-                  <button className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
-                    View all notifications
-                  </button>
-                </div>
+                {notifications.length > 0 && (
+                  <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                      {pushPermission === 'granted' ? '🔔 Push notifications enabled' : 'Push notifications disabled'}
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -344,7 +414,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
             whileTap={{ scale: 0.98 }}
           >
             <Icons.User className="w-4 h-4" />
-            <span className="text-sm font-medium">Researcher</span>
+            <span className="text-sm font-medium">{displayName.split(' ')[0]}</span>
           </motion.button>
 
           <AnimatePresence>
@@ -358,8 +428,8 @@ export function TopBar({ selectedFile, onInfoClick }) {
               >
                 {/* User Info */}
                 <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">DNA Researcher</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">researcher@symbio.com</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{displayName}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{displayEmail}</p>
                 </div>
 
                 {/* Menu Items */}
@@ -383,7 +453,11 @@ export function TopBar({ selectedFile, onInfoClick }) {
                 {/* Logout */}
                 <div className="border-t border-gray-200 dark:border-gray-700 py-2">
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      logout();
+                      toast.success('Logged out successfully');
+                    }}
                     className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
                   >
                     <Icons.LogOut className="w-4 h-4" />

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { parseFastaFile, calculateAggregateStats } from '../utils/fastaParser.js';
 import { useScrollAnimation } from '../hooks/useScrollAnimation.js';
 import { animeAnimations } from '../utils/animations.js';
+import { useNotifications } from '../context/NotificationContext';
 
 export function UploadSection({ onUploadComplete }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -15,6 +16,11 @@ export function UploadSection({ onUploadComplete }) {
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState(null);
   const [showReview, setShowReview] = useState(false);
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [sequenceText, setSequenceText] = useState('');
+  
+  // Notifications
+  const { notifyUploadComplete, notifyAnalysisComplete } = useNotifications();
 
   const uploadBoxRef = useScrollAnimation('scale-up', 0);
 
@@ -97,27 +103,93 @@ export function UploadSection({ onUploadComplete }) {
     }
   };
 
+  // Parse sequence from text input
+  const handleParseSequence = () => {
+    if (sequenceText.trim()) {
+      const sequences = parseFastaFile(sequenceText);
+      if (sequences.length > 0) {
+        const stats = calculateAggregateStats(sequences);
+        setUploadedFile({
+          name: 'Pasted Sequence',
+          size: (sequenceText.length / 1024).toFixed(2) + ' KB',
+          sizeBytes: sequenceText.length,
+          sequences: sequences.length,
+          stats,
+          file: null,
+          rawText: sequenceText, // Store raw text for .fasta download
+        });
+        setParsedData(sequences);
+        setShowReview(true);
+        setShowTextInput(false);
+        toast.success(`Parsed ${sequences.length} sequence(s) successfully`);
+      } else {
+        toast.error('Could not parse sequence. Check the format.');
+      }
+    }
+  };
+
+  // Download parsed sequences as .fasta file
+  const downloadAsFasta = () => {
+    if (!parsedData || parsedData.length === 0) return;
+    
+    let fastaContent = '';
+    parsedData.forEach(seq => {
+      const header = seq.sequenceName || seq.name || 'Sequence';
+      const rawSeq = seq.rawSequence || '';
+      // Format sequence with 80 characters per line
+      const formattedSeq = rawSeq.match(/.{1,80}/g)?.join('\n') || rawSeq;
+      fastaContent += `>${header}\n${formattedSeq}\n`;
+    });
+    
+    const blob = new Blob([fastaContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sequences_${Date.now()}.fasta`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Downloaded as .fasta file');
+  };
+
   const handleAccept = async () => {
     if (!parsedData || !uploadedFile) return;
 
     try {
-      toast.loading('Uploading to server...', { id: 'upload-backend' });
+      // Check if this is a pasted sequence (no file) or an uploaded file
+      if (uploadedFile.file) {
+        // File upload flow
+        toast.loading('Uploading to server...', { id: 'upload-backend' });
 
-      // Import the API function
-      const { uploadSequenceFile } = await import('../utils/sequenceApi.js');
+        // Import the API function
+        const { uploadSequenceFile } = await import('../utils/sequenceApi.js');
 
-      // Upload the file to the backend
-      const result = await uploadSequenceFile(uploadedFile.file);
+        // Upload the file to the backend
+        const result = await uploadSequenceFile(uploadedFile.file);
 
-      toast.success('File uploaded successfully!', { id: 'upload-backend' });
-
-      // Call the onUploadComplete with both parsed data and backend result
-      if (onUploadComplete) {
-        onUploadComplete({
-          parsedSequences: parsedData,
-          uploadedSequence: result,
-        });
+        toast.success('File uploaded successfully!', { id: 'upload-backend' });
+        
+        // Send notification
+        notifyUploadComplete(uploadedFile.name, parsedData.length);
+      } else {
+        // Pasted sequence flow - no file to upload to server
+        // Just save locally and proceed
+        toast.success('Sequence accepted successfully!', { id: 'upload-backend' });
+        
+        // Send notification for pasted sequence
+        notifyUploadComplete('Pasted Sequence', parsedData.length);
       }
+
+      // Call the onUploadComplete with parsed sequences array
+      if (onUploadComplete) {
+        onUploadComplete(parsedData); // Pass the sequences array directly
+      }
+      
+      // Notify that analysis is ready
+      setTimeout(() => {
+        notifyAnalysisComplete(uploadedFile.name || 'Pasted Sequence');
+      }, 1000);
 
       setShowReview(false);
 
@@ -125,6 +197,7 @@ export function UploadSection({ onUploadComplete }) {
       setTimeout(() => {
         setUploadedFile(null);
         setParsedData(null);
+        setSequenceText('');
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) {
           fileInput.value = '';
@@ -206,6 +279,71 @@ export function UploadSection({ onUploadComplete }) {
             </div>
           </div>
         </div>
+
+        {/* Text Input Toggle */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setShowTextInput(!showTextInput)}
+            className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium inline-flex items-center gap-2"
+          >
+            <Icons.Edit className="w-4 h-4" />
+            {showTextInput ? 'Hide text input' : 'Or paste sequence directly'}
+          </button>
+        </div>
+
+        {/* Text Input Area */}
+        <AnimatePresence>
+          {showTextInput && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 overflow-hidden"
+            >
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Paste your FASTA sequence:
+                </label>
+                <textarea
+                  value={sequenceText}
+                  onChange={(e) => setSequenceText(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Ctrl+Enter or Cmd+Enter to submit
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && sequenceText.trim()) {
+                      e.preventDefault();
+                      handleParseSequence();
+                    }
+                  }}
+                  placeholder={`>Sample_001 Example sequence\nATGCGTATCGATCGTACGATCGTAGCTAGCTAGCGATCGATAGCTAGCTACGATCGATCGTAA`}
+                  className="w-full h-40 p-3 text-sm font-mono bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                />
+                <div className="flex items-center justify-between mt-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Format: &gt;Header on first line, sequence on following lines (Ctrl+Enter to submit)
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setSequenceText('');
+                      }}
+                      className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={handleParseSequence}
+                      disabled={!sequenceText.trim()}
+                      className="px-4 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
+                    >
+                      <Icons.ChevronRight className="w-4 h-4" />
+                      Parse Sequence
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* States */}
         {error && (
@@ -299,6 +437,17 @@ export function UploadSection({ onUploadComplete }) {
                   <span style={{ color: '#ffffff', fontWeight: 'bold' }}>Accept & Continue</span>
                 </motion.button>
                 <motion.button
+                  onClick={downloadAsFasta}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="py-3 px-6 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
+                  style={{ color: '#ffffff' }}
+                  title="Download as .fasta file"
+                >
+                  <Icons.Download className="w-5 h-5" style={{ color: '#ffffff' }} />
+                  <span style={{ color: '#ffffff', fontWeight: 'bold' }}>.fasta</span>
+                </motion.button>
+                <motion.button
                   onClick={handleReject}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -306,7 +455,7 @@ export function UploadSection({ onUploadComplete }) {
                   style={{ color: '#ffffff !important', backgroundColor: '#ef4444' }}
                 >
                   <Icons.X className="w-5 h-5" style={{ color: '#ffffff', fill: '#ffffff', stroke: '#ffffff' }} />
-                  <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '14px' }}>Reject & Upload Again</span>
+                  <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '14px' }}>Reject</span>
                 </motion.button>
               </div>
             </motion.div>

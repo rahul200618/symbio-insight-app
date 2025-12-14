@@ -61,11 +61,19 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
     const [showComparison, setShowComparison] = useState(false);
     const [fileCount, setFileCount] = useState(0);
     const [sequences, setSequences] = useState([]);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Fetch file count from backend
     useEffect(() => {
         loadFileCount();
     }, []);
+
+    // Trigger refresh when parsedSequences changes (new upload)
+    useEffect(() => {
+        if (parsedSequences && parsedSequences.length > 0) {
+            setRefreshKey(prev => prev + 1);
+        }
+    }, [parsedSequences]);
 
     const loadFileCount = async () => {
         try {
@@ -154,7 +162,7 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
                         </motion.button>
                     </div>
 
-                    <RecentUploads onFileSelect={handleFileSelect} />
+                    <RecentUploads onFileSelect={handleFileSelect} refreshTrigger={refreshKey} />
                 </motion.div>
             </AnimatedPage>
 

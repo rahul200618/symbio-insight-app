@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useRef, useState, useMemo } from 'react';
 import { Icons } from './Icons';
 import { BarChart, PieChart } from './Charts';
+import { CodonFrequency } from './CodonFrequency';
 import { calculateAggregateStats } from '../utils/fastaParser.js';
 
 export function MetadataCards({ parsedSequences = [] }) {
@@ -125,6 +126,43 @@ export function MetadataCards({ parsedSequences = [] }) {
 
   return (
     <div className="space-y-6">
+      {/* Empty State - No Sequences Loaded */}
+      {parsedSequences.length === 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-16 px-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+        >
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6">
+            <Icons.Database className="w-10 h-10 text-purple-500 dark:text-purple-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Sequences Loaded</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
+            Upload a FASTA file from the Dashboard to view sequence metadata, statistics, and codon frequency analysis.
+          </p>
+          <div className="flex gap-3">
+            <motion.a
+              href="/dashboard"
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icons.Upload className="w-4 h-4" />
+              Upload FASTA File
+            </motion.a>
+            <motion.a
+              href="/recent"
+              className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icons.Clock className="w-4 h-4" />
+              View Recent Files
+            </motion.a>
+          </div>
+        </motion.div>
+      )}
+
       {/* Data Source Indicator */}
       {parsedSequences.length > 0 && (
         <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
@@ -416,6 +454,10 @@ export function MetadataCards({ parsedSequences = [] }) {
               const seqGC = seq.gcPercentage || seq.gcContent || 0;
               const seqOrfs = seq.orfs || [];
               
+              // Debug: Log codon frequency data
+              console.log(`Sequence ${index + 1} codonFrequency:`, seq.codonFrequency);
+              console.log(`Sequence ${index + 1} has codon data:`, seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0);
+              
               return (
                 <motion.div
                   key={seq.id || originalIndex}
@@ -557,6 +599,24 @@ export function MetadataCards({ parsedSequences = [] }) {
                                   + {seqOrfs.length - 6} more ORFs
                                 </p>
                               )}
+                            </div>
+                          )}
+
+                          {/* Codon Frequency Analysis */}
+                          {seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0 ? (
+                            <div className="mt-6">
+                              <CodonFrequency 
+                                codonFrequency={seq.codonFrequency} 
+                                codonStats={seq.codonStats}
+                                sequenceName={seq.sequenceName || seq.name}
+                              />
+                            </div>
+                          ) : (
+                            <div className="mt-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                                ⚠️ Codon frequency data not available for this sequence.
+                                {seq.rawSequence ? ` (Sequence length: ${seq.rawSequence.length} bp)` : ' (No raw sequence data)'}
+                              </p>
                             </div>
                           )}
                         </div>

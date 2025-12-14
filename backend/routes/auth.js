@@ -107,11 +107,152 @@ router.get('/me', protect, async (req, res) => {
             id: req.user.id,
             name: req.user.name,
             email: req.user.email,
-            role: req.user.role
+            role: req.user.role,
+            createdAt: req.user.createdAt
         });
     } catch (error) {
         console.error('Get user error:', error);
         res.status(500).json({ message: error.message || 'Server error' });
+    }
+});
+
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+    try {
+        const { name, role, institution } = req.body;
+        
+        const user = await User.findByPk(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update fields
+        if (name) user.name = name;
+        // Store role and institution in a metadata field or localStorage for now
+        // as they aren't in the User model
+
+        await user.save();
+
+        res.json({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            createdAt: user.createdAt
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
+});
+
+// @route   PUT /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.put('/change-password', protect, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current password and new password are required' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'New password must be at least 6 characters' });
+        }
+
+        // Get user
+        const user = await User.findByPk(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verify current password
+        const isPasswordValid = await user.comparePassword(currentPassword);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Current password is incorrect' });
+        }
+
+        // Update password (will be hashed by the model hook)
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ message: error.message || 'Server error during password change' });
+    }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email (simulated)
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        // Check if user exists
+        const user = await User.findOne({ where: { email } });
+        
+        // Always return success to prevent email enumeration
+        // In production, you would send an actual email here
+        if (user) {
+            // Generate a reset token (in production, save this to DB and send via email)
+            const resetToken = require('crypto').randomBytes(32).toString('hex');
+            
+            // Log for development (in production, send email)
+            console.log(`Password reset requested for ${email}`);
+            console.log(`Reset token (dev only): ${resetToken}`);
+            
+            // Simulate email sending delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        res.json({ 
+            message: 'If an account exists with this email, you will receive password reset instructions shortly.' 
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
+});
+
+// @route   DELETE /api/auth/account
+// @desc    Delete user account with password confirmation
+// @access  Private
+router.delete('/account', protect, async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'Password is required to delete account' });
+        }
+
+        // Get user with password
+        const user = await User.findByPk(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verify password
+        const isPasswordValid = await user.comparePassword(password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Incorrect password' });
+        }
+
+        // Delete user
+        await user.destroy();
+
+        res.json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('Delete account error:', error);
+        res.status(500).json({ message: error.message || 'Server error during account deletion' });
     }
 });
 

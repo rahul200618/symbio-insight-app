@@ -4,6 +4,67 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 /**
+ * Fetch data from RCSB PDB API for protein/structure information
+ * @param {string} query - Search query or PDB ID
+ * @returns {Promise<Object|null>} RCSB data or null
+ */
+async function fetchRCSBData(query) {
+    try {
+        // Check if it's a PDB ID (4 characters, alphanumeric)
+        const pdbIdMatch = query.match(/\b([0-9][A-Za-z0-9]{3})\b/);
+        
+        if (pdbIdMatch) {
+            // Direct PDB ID lookup
+            const pdbId = pdbIdMatch[1].toUpperCase();
+            const response = await fetch(`https://data.rcsb.org/rest/v1/core/entry/${pdbId}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    type: 'entry',
+                    pdbId: pdbId,
+                    title: data.struct?.title,
+                    organism: data.rcsb_entry_info?.polymer_entity_count_protein ? 'Protein structure' : 'Structure',
+                    method: data.exptl?.[0]?.method,
+                    resolution: data.rcsb_entry_info?.resolution_combined?.[0],
+                    releaseDate: data.rcsb_accession_info?.initial_release_date,
+                    url: `https://www.rcsb.org/structure/${pdbId}`
+                };
+            }
+        }
+        
+        // Text search for proteins/structures
+        const searchQuery = encodeURIComponent(query);
+        const searchResponse = await fetch(`https://search.rcsb.org/rcsbsearch/v2/query?json=${JSON.stringify({
+            query: {
+                type: "terminal",
+                service: "full_text",
+                parameters: { value: query }
+            },
+            return_type: "entry",
+            request_options: { results_content_type: ["experimental"], paginate: { start: 0, rows: 3 } }
+        })}`);
+        
+        if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+            if (searchData.result_set && searchData.result_set.length > 0) {
+                const results = searchData.result_set.slice(0, 3).map(r => ({
+                    pdbId: r.identifier,
+                    score: r.score,
+                    url: `https://www.rcsb.org/structure/${r.identifier}`
+                }));
+                return { type: 'search', results, totalCount: searchData.total_count };
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('RCSB API Error:', error.message);
+        return null;
+    }
+}
+
+/**
  * Generate AI-powered sequence analysis summary
  * @param {Object} sequenceData - Sequence statistics and information
  * @returns {Promise<Object>} AI-generated analysis
@@ -84,6 +145,37 @@ async function generateChatbotResponse(userMessage, context = {}) {
 
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
+        // Check if user is asking about proteins, structures, or PDB
+        const lowerMessage = userMessage.toLowerCase();
+        const needsRCSB = lowerMessage.includes('protein') || 
+                          lowerMessage.includes('structure') || 
+                          lowerMessage.includes('pdb') ||
+                          lowerMessage.includes('3d') ||
+                          lowerMessage.includes('fold') ||
+                          lowerMessage.includes('crystal') ||
+                          lowerMessage.match(/\b[0-9][a-z0-9]{3}\b/i); // PDB ID pattern
+        
+        let rcsbInfo = '';
+        if (needsRCSB) {
+            console.log('Fetching RCSB data for query:', userMessage);
+            const rcsbData = await fetchRCSBData(userMessage);
+            
+            if (rcsbData) {
+                if (rcsbData.type === 'entry') {
+                    rcsbInfo = `\n\n**RCSB PDB Data Found:**
+- PDB ID: ${rcsbData.pdbId}
+- Title: ${rcsbData.title}
+- Method: ${rcsbData.method}
+${rcsbData.resolution ? `- Resolution: ${rcsbData.resolution} Å` : ''}
+- URL: ${rcsbData.url}`;
+                } else if (rcsbData.type === 'search' && rcsbData.results.length > 0) {
+                    const resultsList = rcsbData.results.map(r => `  - ${r.pdbId}: ${r.url}`).join('\n');
+                    rcsbInfo = `\n\n**RCSB PDB Search Results (${rcsbData.totalCount} total):**
+${resultsList}`;
+                }
+            }
+        }
+
         let contextInfo = '';
         
         if (context.hasSequences && context.sequences) {
@@ -101,14 +193,26 @@ ${context.avgStats ? `
 - Total ORFs: ${context.avgStats.totalORFs}` : ''}`;
         }
 
-        const prompt = `You are an expert bioinformatics assistant specializing in DNA/RNA sequence analysis. You help users understand their genetic data, identify species, determine sequence types, and guide them through analysis workflows.
+        const prompt = `You are an expert bioinformatics assistant specializing in DNA/RNA sequence analysis and protein structures. You help users understand their genetic data, identify species, determine sequence types, and guide them through analysis workflows.
+
+**Species Identification Guide (based on GC content):**
+- <30% GC: Plasmodium (malaria), Mycoplasma, AT-rich parasites
+- 30-40% GC: Bacillus subtilis, Staphylococcus, mammalian mitochondria
+- 40-50% GC: E. coli, Saccharomyces cerevisiae (yeast), human genomic DNA
+- 50-60% GC: Pseudomonas, Drosophila, plant chloroplast
+- 60-70% GC: Streptomyces, Actinobacteria (high-GC Gram-positive)
+- >70% GC: Thermus thermophilus, thermophiles
 
 **Instructions:**
 - Provide clear, concise responses (2-5 sentences)
-- When asked about species, use GC content patterns to suggest likely organisms
+- When asked about species or "what organism", analyze GC content and suggest likely species with confidence level
+- Include genome type classification (prokaryotic, eukaryotic, viral, organelle)
 - When asked about sequence type (DNA/RNA/protein), analyze nucleotide composition
+- When discussing proteins or structures, reference RCSB PDB data if available
+- Include relevant RCSB PDB links when discussing protein structures
 - Provide actionable next steps when appropriate
 - Be friendly and educational
+${rcsbInfo}
 
 **User Question:** ${userMessage}
 ${contextInfo}

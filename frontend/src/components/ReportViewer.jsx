@@ -7,6 +7,7 @@ import { generatePDFReport, downloadHTMLReport } from '../utils/reportGenerator.
 import { generatePDFReport as generateBackendPDF } from '../utils/sequenceApi.js';
 import { generateSequenceAnalysis } from '../utils/aiService.js';
 import { toast } from 'sonner';
+import { useNotifications } from '../context/NotificationContext';
 
 export function ReportViewer({ parsedSequences = [] }) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -15,6 +16,9 @@ export function ReportViewer({ parsedSequences = [] }) {
   const [expandedSequence, setExpandedSequence] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('index'); // 'index', 'length', 'gc', 'orfs'
+  
+  // Notifications
+  const { notifyReportGenerated } = useNotifications();
 
   const stats = parsedSequences.length > 0
     ? calculateAggregateStats(parsedSequences)
@@ -78,6 +82,7 @@ export function ReportViewer({ parsedSequences = [] }) {
         console.log('Attempting backend PDF generation...');
         await generateBackendPDF(sequenceIds, 'Symbio-NLM Sequence Analysis Report');
         toast.success('PDF downloaded successfully!');
+        notifyReportGenerated('Symbio-NLM Report');
       } catch (backendError) {
         // Fallback to client-side PDF generation if backend fails
         console.log('Backend PDF failed, using client-side generation:', backendError);
@@ -89,6 +94,7 @@ export function ReportViewer({ parsedSequences = [] }) {
           title: 'Symbio-NLM Sequence Analysis Report',
         });
         toast.success('PDF generated and downloaded successfully!');
+        notifyReportGenerated('Symbio-NLM Report');
       }
     } catch (error) {
       console.error('Error generating PDF:', error);

@@ -370,6 +370,53 @@ function getRuleBasedResponse(message, context) {
         return response;
     }
     
+    // Codon and amino acid related queries
+    if (msg.includes('codon') || msg.includes('amino acid') || msg.includes('translation') || msg.includes('triplet')) {
+        if (sequences.length > 0) {
+            const firstSeq = sequences[0];
+            const codonStats = firstSeq.codonStats;
+            const codonFreq = firstSeq.codonFrequency;
+            
+            if (codonStats && codonStats.totalCodons > 0) {
+                // Get top 3 codons
+                const topCodons = codonFreq ? Object.entries(codonFreq)
+                    .sort((a, b) => b[1].count - a[1].count)
+                    .slice(0, 3)
+                    .map(([codon, data]) => `${codon} → ${data.symbol} (${data.count})`)
+                    .join(', ') : '';
+                
+                let response = `🧬 **Codon Analysis for "${firstSeq.sequenceName || 'Sequence 1'}":**\n\n`;
+                response += `• Total Codons: ${codonStats.totalCodons}\n`;
+                response += `• Unique Codons Used: ${codonStats.uniqueCodons}/64\n`;
+                response += `• Start Codons (ATG): ${codonStats.startCodons}\n`;
+                response += `• Stop Codons: ${codonStats.stopCodons}\n\n`;
+                
+                if (topCodons) {
+                    response += `**Most Frequent:** ${topCodons}\n\n`;
+                }
+                
+                response += `*Codons are 3-nucleotide sequences that code for amino acids. The genetic code uses 64 codons to specify 20 amino acids plus stop signals.*\n\n`;
+                response += `💡 **Tip:** Ask me to "show codon chart" for a visual breakdown!`;
+                
+                return response;
+            }
+        }
+        
+        // General codon information
+        return `🧬 **About Codons:**
+
+Codons are triplets of nucleotides that specify amino acids during protein synthesis. Key facts:
+
+• **64 possible codons** encode for 20 amino acids + 3 stop signals
+• **Start codon:** ATG (Methionine) - initiates translation
+• **Stop codons:** TAA, TAG, TGA - terminate translation
+• **Degeneracy:** Multiple codons can code for the same amino acid
+
+**Codon Bias:** Different organisms prefer certain codons over others, which affects gene expression efficiency.
+
+${sequences.length > 0 ? '💡 Upload sequences to see their codon frequency analysis!' : '📁 Upload a FASTA file to analyze codon usage!'}`;
+    }
+    
     if (msg.includes('next') || msg.includes('what should') || msg.includes('recommend')) {
         if (context.currentView === 'upload') {
             return 'Upload your FASTA file to begin analysis. Once uploaded, you can view detailed metadata, generate reports, and compare sequences.';
@@ -383,6 +430,11 @@ function getRuleBasedResponse(message, context) {
         return 'Sequence quality can be assessed by several factors: 1) Balanced nucleotide distribution, 2) Appropriate GC content for the organism, 3) Absence of unusual patterns or repeats, 4) Presence of expected features like ORFs. Would you like me to analyze the quality of your sequences?';
     }
 
+    // Protein structure and PDB queries
+    if (msg.includes('protein') || msg.includes('structure') || msg.includes('pdb') || msg.includes('3d') || msg.includes('fold')) {
+        return `For protein structure information, I can search the RCSB Protein Data Bank (https://www.rcsb.org/). ${sequences.length > 0 ? 'If your sequences encode proteins, you can translate ORFs and search for similar structures. ' : ''}You can ask me about specific PDB IDs (e.g., "Tell me about 1HHO") or search for proteins by name (e.g., "Find hemoglobin structures").`;
+    }
+
     if (msg.includes('help') || msg.includes('what can')) {
         return `I can help you with:
     
@@ -390,6 +442,7 @@ function getRuleBasedResponse(message, context) {
 • Explaining genetic terms (ORF, GC content, etc.)
 • Interpreting charts and statistics
 • Identifying species and sequence types (DNA/RNA/protein)
+• Protein structure lookup via RCSB PDB
 • Suggesting next steps in your analysis
 • Answering questions about your uploaded sequences
 
@@ -400,5 +453,11 @@ Just ask me anything about DNA sequence analysis!`;
         return 'FASTA is a text-based format for representing nucleotide or protein sequences. Each sequence begins with a ">" character followed by a description line (header), then the sequence data on subsequent lines. It\'s one of the most widely used formats in bioinformatics.';
     }
 
-    return `I'm here to help with DNA sequence analysis! ${sequences.length ? `You currently have ${sequences.length} sequences loaded with an average GC content of ${(sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length).toFixed(1)}%.` : 'Upload a FASTA file to get started.'} Feel free to ask me about species identification, sequence types, ORFs, GC content, or any other bioinformatics concepts.`;
+    // Check for PDB ID pattern (e.g., 1HHO, 4HHB)
+    const pdbIdMatch = msg.match(/\b([0-9][a-z0-9]{3})\b/i);
+    if (pdbIdMatch) {
+        return `I can look up PDB ID "${pdbIdMatch[1].toUpperCase()}" from the RCSB Protein Data Bank. This database contains 3D structures of proteins, nucleic acids, and complex assemblies. Visit https://www.rcsb.org/structure/${pdbIdMatch[1].toUpperCase()} for detailed structural information.`;
+    }
+
+    return `I'm here to help with DNA sequence analysis! ${sequences.length ? `You currently have ${sequences.length} sequences loaded with an average GC content of ${(sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length).toFixed(1)}%.` : 'Upload a FASTA file to get started.'} Feel free to ask me about species identification, sequence types, ORFs, GC content, protein structures (RCSB PDB), or any other bioinformatics concepts.`;
 }

@@ -1,20 +1,26 @@
 import { Icons } from './Icons';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getSequences, deleteSequence, generatePDFReport } from '../utils/sequenceApi.js';
+import { ConfirmDialog } from './ConfirmDialog';
+import { useNotifications } from '../context/NotificationContext';
 
-export function RecentUploads({ onFileSelect }) {
+export function RecentUploads({ onFileSelect, refreshTrigger }) {
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Confirm dialog state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
+  
+  // Notifications
+  const { notifyReportGenerated } = useNotifications();
 
-  // Fetch sequences from backend
-  useEffect(() => {
-    loadSequences();
-  }, []);
-
-  const loadSequences = async () => {
+  // Memoize loadSequences to prevent unnecessary recreations
+  const loadSequences = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await getSequences({ page: 1, limit: 50, sort: '-createdAt' });
 
@@ -22,7 +28,7 @@ export function RecentUploads({ onFileSelect }) {
       const transformedFiles = response.data.map(seq => ({
         id: seq.id.toString(),
         name: seq.filename,
-        sequences: seq.sequenceCount || seq.sequences?.length || 1, // Use sequenceCount from backend
+        sequences: seq.sequenceCount || seq.sequences?.length || 1,
         date: new Date(seq.createdAt).toLocaleString('en-US', {
           month: 'short',
           day: 'numeric',
@@ -31,18 +37,33 @@ export function RecentUploads({ onFileSelect }) {
           minute: '2-digit'
         }),
         size: `${seq.length} bp`,
-        backendData: seq, // Store the full backend data
+        backendData: seq,
       }));
 
       setFiles(transformedFiles);
     } catch (error) {
       console.error('Failed to load sequences:', error);
+      setError(error.message);
       toast.error('Failed to load sequences: ' + error.message);
       setFiles([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch sequences from backend on mount and when refreshTrigger changes
+  useEffect(() => {
+    loadSequences();
+  }, [loadSequences, refreshTrigger]);
+
+  // Also refresh when window regains focus (user comes back to tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadSequences();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadSequences]);
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return bytes + ' B';
@@ -58,20 +79,27 @@ export function RecentUploads({ onFileSelect }) {
 
   const handleDelete = async (file, e) => {
     e.stopPropagation();
+    
+    // Show custom confirm dialog instead of browser confirm
+    setFileToDelete(file);
+    setShowDeleteConfirm(true);
+  };
 
-    if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
-      return;
-    }
-
+  const confirmDelete = async () => {
+    if (!fileToDelete) return;
+    
     try {
-      await deleteSequence(file.id);
+      await deleteSequence(fileToDelete.id);
       toast.success('File deleted successfully');
 
       // Remove from local state
-      setFiles(files.filter(f => f.id !== file.id));
+      setFiles(files.filter(f => f.id !== fileToDelete.id));
     } catch (error) {
       console.error('Delete error:', error);
       toast.error('Failed to delete file: ' + error.message);
+    } finally {
+      setShowDeleteConfirm(false);
+      setFileToDelete(null);
     }
   };
 
@@ -282,6 +310,18 @@ export function RecentUploads({ onFileSelect }) {
           </div>
         )}
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => { setShowDeleteConfirm(false); setFileToDelete(null); }}
+        onConfirm={confirmDelete}
+        title="Delete File"
+        message={`Are you sure you want to delete "${fileToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 }
