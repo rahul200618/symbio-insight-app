@@ -1,20 +1,51 @@
 # Symbio-NLM - DNA Sequence Analysis Platform
 
-A modern, full-stack bioinformatics application for FASTA file analysis, sequence comparison, and comprehensive report generation.
+A modern, full-stack bioinformatics application for FASTA file analysis, sequence comparison, AI-powered insights, and comprehensive report generation.
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Node](https://img.shields.io/badge/node-18%2B-brightgreen)
+
+---
+
+## 🧬 Features
 
 ### Core Functionality
 - **FASTA File Upload & Analysis** - Parse and analyze DNA sequences with automatic metrics calculation
+- **Multi-Sequence Support** - Handle files with multiple sequences, aggregate stats
 - **Sequence Comparison** - Compare multiple sequences with detailed mutation analysis
-- **Report Generation** - Create comprehensive PDF and HTML reports
+- **Report Generation** - Create comprehensive PDF reports with charts and analysis
 - **Metadata Dashboard** - View detailed sequence statistics and visualizations
-- **Recent Uploads** - Track and manage all uploaded sequences with batch PDF export
+- **Recent Uploads** - Track and manage all uploaded sequences with batch operations
+
+### AI & Intelligence
+- **AI Chatbot Assistant** - Gemini-powered context-aware DNA analysis help
+- **Sequence Analysis AI** - Get AI-generated insights about your sequences
+- **Smart Suggestions** - Automatic recommendations based on sequence patterns
+
+### User Management
+- **User Authentication** - Secure signup/login with JWT tokens
+- **Profile Management** - Edit name, role, institution
+- **Change Password** - Update password with current password verification
+- **Forgot Password** - Email-based password reset flow
+- **Delete Account** - Account deletion with password confirmation
+- **Preferences** - Email notifications, auto-save reports, advanced features toggle
 
 ### Advanced Features
-- **AI Chatbot Assistant** - Context-aware help and analysis suggestions
+- **Codon Usage Analysis** - Analyze codon frequency and bias
+- **ORF Prediction** - Find open reading frames in sequences
+- **Protein Translation** - Translate DNA to amino acids
+- **GC Skew Analysis** - Analyze GC distribution patterns
+- **RCSB PDB Integration** - Fetch protein structures (coming soon)
+- **Sequence Alignment** - Align multiple sequences (coming soon)
+- **BLAST Integration** - Search NCBI databases (coming soon)
+
+### UI/UX
 - **Dark Mode** - Seamless light/dark theme switching
-- **User Profiles** - Complete user management with preferences and settings
-- **Real-time Notifications** - Status updates and error handling
+- **Real-time Notifications** - Push notifications and in-app alerts
 - **Responsive Design** - Works on desktop, tablet, and mobile
+- **Animated Transitions** - Smooth motion/react animations
+- **Draggable Chatbot** - Resizable and moveable chat interface
 
 ## ?? Quick Start
 

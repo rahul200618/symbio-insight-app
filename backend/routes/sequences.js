@@ -295,8 +295,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     const meta = parseFastaToMetadata(fileContent);
     meta.filename = req.file.originalname;
 
-    // Use retry wrapper for database operation
-    const doc = await withRetry(() => Sequence.create(meta));
+    // Direct database create
+    const doc = await Sequence.create(meta);
 
     res.status(201).json({
       id: doc.id,
@@ -425,11 +425,11 @@ router.post('/:id/generate-report', async (req, res) => {
 // DELETE sequence
 router.delete('/:id', async (req, res) => {
   try {
-    const doc = await withRetry(() => Sequence.findByPk(req.params.id));
+    const doc = await Sequence.findByPk(req.params.id);
     if (!doc) {
       return res.status(404).json({ error: 'Sequence not found' });
     }
-    await withRetry(() => doc.destroy());
+    await doc.destroy();
     res.json({ message: 'Deleted', id: doc.id });
   } catch (err) {
     console.error('Delete error:', err.message);

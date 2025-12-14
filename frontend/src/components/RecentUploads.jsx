@@ -2,17 +2,12 @@ import { Icons } from './Icons';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getSequences, deleteSequence, generatePDFReport } from '../utils/sequenceApi.js';
-import { ConfirmDialog } from './ConfirmDialog';
 import { useNotifications } from '../context/NotificationContext';
 
 export function RecentUploads({ onFileSelect, refreshTrigger }) {
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Confirm dialog state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState(null);
   
   // Notifications
   const { notifyReportGenerated } = useNotifications();
@@ -80,26 +75,20 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
   const handleDelete = async (file, e) => {
     e.stopPropagation();
     
-    // Show custom confirm dialog instead of browser confirm
-    setFileToDelete(file);
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!fileToDelete) return;
+    // Use browser's native confirm dialog
+    if (!window.confirm(`Are you sure you want to delete "${file.name}"? This action cannot be undone.`)) {
+      return;
+    }
     
     try {
-      await deleteSequence(fileToDelete.id);
+      await deleteSequence(file.id);
       toast.success('File deleted successfully');
 
       // Remove from local state
-      setFiles(files.filter(f => f.id !== fileToDelete.id));
+      setFiles(files.filter(f => f.id !== file.id));
     } catch (error) {
       console.error('Delete error:', error);
       toast.error('Failed to delete file: ' + error.message);
-    } finally {
-      setShowDeleteConfirm(false);
-      setFileToDelete(null);
     }
   };
 
@@ -310,18 +299,6 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
           </div>
         )}
       </div>
-      
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={showDeleteConfirm}
-        onClose={() => { setShowDeleteConfirm(false); setFileToDelete(null); }}
-        onConfirm={confirmDelete}
-        title="Delete File"
-        message={`Are you sure you want to delete "${fileToDelete?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        type="danger"
-      />
     </div>
   );
 }
