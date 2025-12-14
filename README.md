@@ -363,18 +363,163 @@ npx kill-port 3000
 ### Manage Profile
 1. Click profile icon (top-right)
 2. View/edit account information
-3. Adjust preferences
-4. Logout when done
+3. Change password in Security section
+4. Adjust preferences (notifications, advanced features)
+5. Delete account in Danger Zone (requires password)
 
-## ?? License
+---
+
+## 🚀 Production Readiness Checklist
+
+### ✅ Completed Features
+- [x] User authentication (signup, login, JWT)
+- [x] Password management (change, forgot password flow)
+- [x] FASTA file parsing with multi-sequence support
+- [x] Sequence analysis (GC content, ORF detection, nucleotide counts)
+- [x] PDF report generation
+- [x] AI chatbot assistant (Gemini integration)
+- [x] Dark/light mode
+- [x] Notifications system
+- [x] Profile management with preferences
+- [x] Account deletion with password confirmation
+- [x] Responsive design
+- [x] Error handling and validation
+
+### 🔧 Required for Production
+
+#### Security
+- [ ] **HTTPS/SSL** - Enable HTTPS in production (use nginx or cloud provider)
+- [ ] **Environment Variables** - Move all secrets to `.env` file
+  - `JWT_SECRET` - Strong random secret (32+ chars)
+  - `GEMINI_API_KEY` - Your Google AI API key
+  - `DATABASE_URL` - Production database connection
+- [ ] **Rate Limiting** - Add express-rate-limit to prevent abuse
+- [ ] **Helmet.js** - Add security headers
+- [ ] **Input Sanitization** - Sanitize all user inputs
+- [ ] **CORS Configuration** - Restrict to your domain only
+
+#### Database
+- [ ] **PostgreSQL/MySQL** - Migrate from SQLite to production database
+- [ ] **Connection Pooling** - Configure proper pool settings
+- [ ] **Backups** - Set up automated database backups
+- [ ] **Migrations** - Use Sequelize migrations instead of sync
+
+#### Email Service
+- [ ] **Email Provider** - Integrate SendGrid, Mailgun, or AWS SES
+- [ ] **Password Reset Emails** - Actually send reset emails
+- [ ] **Email Notifications** - Implement when preference is enabled
+- [ ] **Email Templates** - Create HTML email templates
+
+#### Performance
+- [ ] **CDN** - Use CDN for static assets (Cloudflare, AWS CloudFront)
+- [ ] **Caching** - Add Redis for session/API caching
+- [ ] **Compression** - Enable gzip/brotli compression
+- [ ] **Image Optimization** - Optimize any images
+- [ ] **Code Splitting** - Already done with Vite, verify chunks
+
+#### Monitoring & Logging
+- [ ] **Error Tracking** - Add Sentry or similar
+- [ ] **Logging** - Add Winston or Pino for structured logging
+- [ ] **Health Checks** - Add `/health` endpoint
+- [ ] **Metrics** - Add Prometheus/Grafana for monitoring
+- [ ] **Uptime Monitoring** - Set up uptime checks
+
+#### Deployment
+- [ ] **CI/CD Pipeline** - GitHub Actions, GitLab CI, or Vercel
+- [ ] **Docker** - Containerize the application
+- [ ] **Environment Configs** - Separate dev/staging/prod configs
+- [ ] **Domain Setup** - Configure custom domain
+- [ ] **Load Balancer** - For high availability
+
+### 💡 Suggested Improvements
+
+#### Features to Add
+1. **Two-Factor Authentication (2FA)** - TOTP/SMS verification
+2. **Team/Organization Support** - Share sequences with team members
+3. **API Keys** - Allow programmatic access
+4. **Export Formats** - CSV, JSON, GenBank format export
+5. **Sequence Annotations** - Add notes and tags to sequences
+6. **Search & Filter** - Advanced search with filters
+7. **Batch Upload** - Upload multiple files at once
+8. **Webhook Integrations** - Notify external services
+
+#### AI Enhancements
+1. **Sequence Similarity Search** - Find similar sequences
+2. **Mutation Impact Prediction** - Predict effect of mutations
+3. **Primer Design** - AI-assisted PCR primer design
+4. **Phylogenetic Analysis** - Tree generation
+
+#### Integrations
+1. **NCBI BLAST** - Direct BLAST searches
+2. **UniProt** - Protein database integration
+3. **Ensembl** - Genome browser integration
+4. **OAuth** - Google/GitHub login
+
+### 📦 Deployment Options
+
+#### Vercel (Frontend)
+```bash
+cd frontend
+npm run build
+vercel --prod
+```
+
+#### Railway/Render (Backend)
+```bash
+# Push to GitHub, connect to Railway/Render
+# Set environment variables in dashboard
+```
+
+#### Docker Compose
+```yaml
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+```
+
+### 🔐 Environment Variables Template
+
+Create `.env` files:
+
+**Backend (.env)**
+```
+NODE_ENV=production
+PORT=3002
+JWT_SECRET=your-super-secret-key-change-this-in-production
+JWT_EXPIRE=7d
+DATABASE_URL=postgresql://user:pass@host:5432/symbio
+GEMINI_API_KEY=your-gemini-api-key
+SENDGRID_API_KEY=your-sendgrid-key
+FRONTEND_URL=https://your-domain.com
+```
+
+**Frontend (.env)**
+```
+VITE_API_URL=https://api.your-domain.com/api
+VITE_APP_NAME=Symbio-NLM
+```
+
+---
+
+## 📄 License
 
 MIT License
 
-## ????? Author
+## 👨‍💻 Author
 
 Created as a comprehensive bioinformatics analysis platform.
 
-## ?? Support
+## 🆘 Support
 
 1. Check troubleshooting section above
 2. Review console error messages
@@ -383,6 +528,6 @@ Created as a comprehensive bioinformatics analysis platform.
 
 ---
 
-**Last Updated**: January 2025
+**Last Updated**: December 2025
 **Version**: 1.0.0
-**Status**: Production Ready
+**Status**: Development Complete - Ready for Production Hardening
