@@ -1,0 +1,54 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type Sequence @table {
+  user: User!
+  name: String!
+  sequenceData: String!
+  createdAt: Timestamp!
+  description: String
+  source: String
+  length: Int
+}
+
+type Analysis @table {
+  user: User!
+  sequence: Sequence
+  analysisType: String!
+  createdAt: Timestamp!
+  parameters: String
+  results: String
+  name: String
+}
+
+type Annotation @table {
+  user: User!
+  sequence: Sequence!
+  startPosition: Int!
+  endPosition: Int!
+  label: String!
+  createdAt: Timestamp!
+  notes: String
+  color: String
+}
+
+type SequenceComparison @table {
+  user: User!
+  name: String!
+  createdAt: Timestamp!
+  description: String
+}
+
+type AnalysisSequenceLink @table(key: ["analysis", "sequence"]) {
+  analysis: Analysis!
+  sequence: Sequence!
+}
+
+type SequenceComparisonSequenceLink @table(key: ["sequenceComparison", "sequence"]) {
+  sequenceComparison: SequenceComparison!
+  sequence: Sequence!
+}

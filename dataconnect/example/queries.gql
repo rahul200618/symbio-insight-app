@@ -1,0 +1,5 @@
+type User @table(key: "uid") {
+  uid: String!
+  displayName: String
+  email: String!
+}

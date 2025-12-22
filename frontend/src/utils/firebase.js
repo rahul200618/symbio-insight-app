@@ -24,13 +24,22 @@ import {
 
 // Firebase configuration
 // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAur8NW0xkkWHPQyrJs8HFul6tTjpDW48c",
+  authDomain: "symbio-f5507.firebaseapp.com",
+  projectId: "symbio-f5507",
+  storageBucket: "symbio-f5507.firebasestorage.app",
+  messagingSenderId: "483344695660",
+  appId: "1:483344695660:web:3f155286ce68c059073349",
+  measurementId: "G-YHND62ZXQ5"
 };
 
 // Initialize Firebase
@@ -40,9 +49,7 @@ const db = getFirestore(app);
 // Collection name
 const SEQUENCES_COLLECTION = 'sequences';
 
-/**
- * Store sequence metadata in Firebase
- */
+
 export async function storeSequence(metadata) {
     try {
         const docRef = await addDoc(collection(db, SEQUENCES_COLLECTION), {
@@ -56,9 +63,7 @@ export async function storeSequence(metadata) {
     }
 }
 
-/**
- * Store multiple sequences in Firebase
- */
+
 export async function storeMultipleSequences(sequences) {
     try {
         const promises = sequences.map(seq => storeSequence(seq));
