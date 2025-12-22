@@ -6,6 +6,15 @@ A modern, full-stack bioinformatics application for FASTA file analysis, sequenc
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-18%2B-brightgreen)
 
+## 🚀 Quick Deploy
+
+**Ready to deploy?** See [QUICKSTART.md](./QUICKSTART.md) for fast deployment options:
+- **Vercel** (5 min) - Recommended for production
+- **Docker** (2 min) - One command deployment
+- **Local** (3 min) - Development setup
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)
+
 ---
 
 ## 🧬 Features
@@ -528,6 +537,6 @@ Created as a comprehensive bioinformatics analysis platform.
 
 ---
 
-**Last Updated**: December 2025
+**Last Updated**: December 2024
 **Version**: 1.0.0
 **Status**: Development Complete - Ready for Production Hardening
