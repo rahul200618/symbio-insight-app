@@ -13,6 +13,11 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 
+# Exception: Track .env.production templates for deployment reference
+!.env.production
+!backend/.env.production
+!frontend/.env.production
+
 # Build outputs
 dist/
 build/
