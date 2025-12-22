@@ -145,3 +145,4 @@ sessions/
 # Build outputs
 build/
 dist/
+.vercel

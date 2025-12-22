@@ -124,4 +124,10 @@ app.get('/api/health', async (req, res) => {
 });
 
 const port = process.env.PORT || 3002;
-app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));
+
+// On Vercel, export the Express app instead of starting a listener
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));
+}

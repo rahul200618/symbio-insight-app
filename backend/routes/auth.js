@@ -1,7 +1,12 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
+
+// Dynamically load the correct User model based on storage mode
+const STORAGE_MODE = process.env.STORAGE_MODE || 'sqlite';
+const User = STORAGE_MODE === 'atlas' 
+  ? require('../models/UserMongo') 
+  : require('../models/User');
 
 const router = express.Router();
 
@@ -18,15 +23,19 @@ const generateToken = (id) => {
 // @access  Public
 router.post('/signup', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, institution } = req.body;
 
         // Validate input
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'Please provide all required fields' });
         }
 
-        // Check if user already exists
-        const userExists = await User.findOne({ where: { email } });
+        // Check if user already exists (works for both Sequelize and Mongoose)
+        const query = STORAGE_MODE === 'atlas' 
+            ? { email } 
+            : { where: { email } };
+        const userExists = await User.findOne(query);
+        
         if (userExists) {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
@@ -35,19 +44,27 @@ router.post('/signup', async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password
+            password,
+            institution: institution || ''
         });
 
-        // Generate token
-        const token = generateToken(user.id);
+        // Generate token - use _id for MongoDB, id for SQLite
+        const userId = user._id || user.id;
+        const token = generateToken(userId);
 
         // Return user data and token
         res.status(201).json({
-            id: user.id,
+            id: userId,
             name: user.name,
             email: user.email,
             role: user.role,
-            token
+            token,
+            user: {
+                id: userId,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
         });
     } catch (error) {
         console.error('Signup error:', error);
@@ -67,8 +84,15 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: 'Please provide email and password' });
         }
 
-        // Find user (password is excluded by default via toJSON, but we need it here)
-        const user = await User.findOne({ where: { email } });
+        // Find user - different query for MongoDB vs SQLite
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            // For MongoDB, we need to explicitly select password field
+            user = await User.findOne({ email }).select('+password');
+        } else {
+            // For SQLite
+            user = await User.findOne({ where: { email } });
+        }
 
         if (!user) {
             return res.status(401).json({ message: 'Invalid email or password' });
@@ -81,18 +105,23 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Generate token
-        const token = generateToken(user.id);
+        // Generate token - use _id for MongoDB, id for SQLite
+        const userId = user._id || user.id;
+        const token = generateToken(userId);
 
         // Return user data and token
         res.json({
-            id: user.id,
+            id: userId,
             name: user.name,
             email: user.email,
             role: user.role,
             token
         });
     } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: error.message || 'Server error during login' });
+    }
+});
         console.error('Login error:', error);
         res.status(500).json({ message: error.message || 'Server error during login' });
     }
