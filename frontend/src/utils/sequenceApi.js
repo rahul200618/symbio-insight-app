@@ -4,7 +4,15 @@
  * Version: 2.0
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+// Resolve API base with safe local fallback
+function resolveApiBase() {
+    const envUrl = import.meta.env?.VITE_API_URL;
+    if (envUrl && /^https?:\/\//.test(envUrl)) return envUrl.replace(/\/$/, '');
+    // Prefer explicit localhost in development
+    return 'http://localhost:3002/api';
+}
+
+let API_BASE_URL = resolveApiBase();
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -54,6 +62,12 @@ async function apiCall(endpoint, options = {}) {
             const text = await response.text();
             // Common dev pitfall: hitting the frontend (index.html) instead of the backend
             if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                // Attempt one automatic fallback to local backend
+                if (API_BASE_URL !== 'http://localhost:3002/api') {
+                    API_BASE_URL = 'http://localhost:3002/api';
+                    const retry = await apiCall(endpoint, { ...options, headers });
+                    return retry;
+                }
                 throw new Error('Received HTML instead of JSON. Check API base URL and route.');
             }
             if (!response.ok) {
@@ -254,6 +268,23 @@ export async function uploadSequenceFile(file) {
         } else {
             const text = await response.text();
             if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                if (API_BASE_URL !== 'http://localhost:3002/api') {
+                    API_BASE_URL = 'http://localhost:3002/api';
+                    // Retry once against local backend
+                    const retryResponse = await fetch(`${API_BASE_URL}/sequences/upload`, {
+                        method: 'POST',
+                        headers,
+                        body: formData
+                    });
+                    const retryType = retryResponse.headers.get('content-type') || '';
+                    if (retryType.includes('application/json')) {
+                        const retryData = await retryResponse.json();
+                        if (!retryResponse.ok) {
+                            throw new Error(retryData.error || retryData.message || 'Upload failed');
+                        }
+                        return retryData;
+                    }
+                }
                 throw new Error('Upload failed: backend returned HTML. Verify API URL points to the backend.');
             }
             if (!response.ok) {

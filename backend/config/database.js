@@ -3,12 +3,26 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-// Use temp directory to avoid OneDrive sync issues
-const tempDir = path.join(os.tmpdir(), 'symbio-nlm');
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
+// Resolve SQLite file path with env override; default to temp to avoid OneDrive sync issues
+function resolveDbPath() {
+  const envPath = process.env.SQLITE_PATH || process.env.DB_PATH;
+  if (envPath) {
+    const absolute = path.isAbsolute(envPath) ? envPath : path.resolve(envPath);
+    const dir = path.dirname(absolute);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    return absolute;
+  }
+
+  const tempDir = path.join(os.tmpdir(), 'symbio-nlm');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+  return path.join(tempDir, 'database.sqlite');
 }
-const dbPath = path.join(tempDir, 'database.sqlite');
+
+const dbPath = resolveDbPath();
 
 // Create SQLite database with simple config
 const sequelize = new Sequelize({
