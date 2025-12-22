@@ -6,10 +6,19 @@ on:
       - main
   workflow_dispatch:
 
+# Set minimal permissions at workflow level
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    
+    # Explicit permissions for this job
+    permissions:
+      contents: read
+      actions: read
     
     strategy:
       matrix:
@@ -57,6 +66,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
+    # Explicit permissions for deployment
+    permissions:
+      contents: read
+      deployments: write
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -96,6 +110,11 @@ jobs:
     name: Build and Test Docker Images
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    
+    # Explicit permissions for Docker build
+    permissions:
+      contents: read
+      packages: read
     
     steps:
       - name: Checkout code
