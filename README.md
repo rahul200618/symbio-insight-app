@@ -1,14 +1,32 @@
-# Symbio-NLM - DNA Sequence Analysis Platform
+# 🧬 Symbio-NLM - DNA Sequence Analysis Platform
+
+<div align="center">
+
+![Symbio-NLM Banner](screenshots/banner.png)
 
 A modern, full-stack bioinformatics application for FASTA file analysis, sequence comparison, AI-powered insights, and comprehensive report generation.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Node](https://img.shields.io/badge/node-18%2B-brightgreen)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](https://github.com/yourusername/symbio-insight-app)
+[![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
+[![Node](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge)](https://nodejs.org)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org)
+[![Vite](https://img.shields.io/badge/Vite-6.3-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev)
+
+[Demo](#-demo) • [Features](#-features) • [Screenshots](#-screenshots) • [Installation](#-quick-start) • [API](#-api-reference-18-endpoints) • [Contributing](#-contributing)
+## 🧬 Features
+
+<details>
+<summary><b>📱 Mobile Responsive</b></summary>
+
+| Mobile Dashboard | Mobile Menu |
+|:----------------:|:-----------:|
+| ![Mobile Dashboard](screenshots/mobile-dashboard.png) | ![Mobile Menu](screenshots/mobile-menu.png) |
+
+</details>
 
 ---
 
-## 🧬 Features
+## �🧬 Features
 
 ### Core Functionality
 - **FASTA File Upload & Analysis** - Parse and analyze DNA sequences with automatic metrics calculation
@@ -511,23 +529,82 @@ VITE_APP_NAME=Symbio-NLM
 
 ---
 
-## 📄 License
+---
 
-MIT License
+## 🤝 Contributing
 
-## 👨‍💻 Author
+Contributions are welcome! Here's how you can help:
 
-Created as a comprehensive bioinformatics analysis platform.
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** changes: `git commit -m 'Add amazing feature'`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
 
-## 🆘 Support
-
-1. Check troubleshooting section above
-2. Review console error messages
-3. Check Network tab for API responses
-4. See `api-test.html` for API examples
+### Development Guidelines
+- Follow existing code style
+- Add tests for new features
+- Update documentation as needed
+- Keep commits atomic and well-described
 
 ---
 
-**Last Updated**: December 2025
-**Version**: 1.0.0
-**Status**: Development Complete - Ready for Production Hardening
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2025 Symbio-NLM
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software.
+```
+
+---
+
+## 👨‍💻 Author
+
+<div align="center">
+
+**Symbio-NLM** - A comprehensive bioinformatics analysis platform
+
+Built with ❤️ for the scientific community
+
+</div>
+
+---
+
+## 🆘 Support
+
+Having issues? Here's how to get help:
+
+| Issue | Solution |
+|-------|----------|
+| 🐛 **Bug Report** | [Open an Issue](https://github.com/yourusername/symbio-insight-app/issues) |
+| 💡 **Feature Request** | [Start a Discussion](https://github.com/yourusername/symbio-insight-app/discussions) |
+| 📖 **Documentation** | Check the [Wiki](https://github.com/yourusername/symbio-insight-app/wiki) |
+| ❓ **Questions** | See [Troubleshooting](#-troubleshooting) section |
+
+### Quick Troubleshooting
+1. Check troubleshooting section above
+2. Review browser console for errors
+3. Check Network tab for API responses
+4. Test API with `api-test.html`
+
+---
+
+<div align="center">
+
+### ⭐ Star this repo if you find it useful!
+
+![GitHub Stars](https://img.shields.io/github/stars/yourusername/symbio-insight-app?style=social)
+![GitHub Forks](https://img.shields.io/github/forks/yourusername/symbio-insight-app?style=social)
+
+**Last Updated**: December 2025 | **Version**: 1.0.0 | **Status**: ✅ Production Ready
+
+</div>

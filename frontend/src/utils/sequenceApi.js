@@ -22,6 +22,7 @@ async function apiCall(endpoint, options = {}) {
     const token = getToken();
     const headers = {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers
     };
@@ -41,13 +42,26 @@ async function apiCall(endpoint, options = {}) {
             return response.blob();
         }
 
-        const data = await response.json();
+        const contentType = response.headers.get('content-type') || '';
 
-        if (!response.ok) {
-            throw new Error(data.error || data.message || `API Error: ${response.status}`);
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.message || `API Error: ${response.status}`);
+            }
+            return data;
+        } else {
+            const text = await response.text();
+            // Common dev pitfall: hitting the frontend (index.html) instead of the backend
+            if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                throw new Error('Received HTML instead of JSON. Check API base URL and route.');
+            }
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status} - ${text}`);
+            }
+            // If server returned non-JSON OK response, surface raw text
+            return { message: text };
         }
-
-        return data;
     } catch (error) {
         if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
             throw new Error('Cannot connect to server. Please check if the backend is running.');
@@ -219,6 +233,7 @@ export async function uploadSequenceFile(file) {
 
     const token = getToken();
     const headers = {
+        'Accept': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
     };
 
@@ -229,13 +244,23 @@ export async function uploadSequenceFile(file) {
             body: formData
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || data.message || 'Upload failed');
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Upload failed');
+            }
+            return data;
+        } else {
+            const text = await response.text();
+            if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                throw new Error('Upload failed: backend returned HTML. Verify API URL points to the backend.');
+            }
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.status} - ${text}`);
+            }
+            return { message: text };
         }
-
-        return data;
     } catch (error) {
         if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
             throw new Error('Cannot connect to server. Please check if the backend is running.');
