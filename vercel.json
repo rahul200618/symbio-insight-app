@@ -47,6 +47,7 @@
     "NODE_ENV": "production"
   },
   "regions": ["iad1"],
+  "comment": "Region can be changed via VERCEL_REGION env var or removed for auto-selection",
   "functions": {
     "backend/server.js": {
       "memory": 1024,

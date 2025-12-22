@@ -218,7 +218,14 @@ health_check() {
             print_error "Health check failed - backend may not be running"
         else
             print_success "Backend is healthy"
-            echo "$RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$RESPONSE"
+            # Try to pretty print JSON if jq or python3 available
+            if command -v jq &> /dev/null; then
+                echo "$RESPONSE" | jq
+            elif command -v python3 &> /dev/null; then
+                echo "$RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$RESPONSE"
+            else
+                echo "$RESPONSE"
+            fi
         fi
     else
         print_warning "curl not found - skipping health check"
