@@ -122,10 +122,6 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: error.message || 'Server error during login' });
     }
 });
-        console.error('Login error:', error);
-        res.status(500).json({ message: error.message || 'Server error during login' });
-    }
-});
 
 // @route   GET /api/auth/me
 // @desc    Get current user
@@ -133,7 +129,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', protect, async (req, res) => {
     try {
         res.json({
-            id: req.user.id,
+            id: req.user._id || req.user.id,
             name: req.user.name,
             email: req.user.email,
             role: req.user.role,
@@ -152,23 +148,30 @@ router.put('/profile', protect, async (req, res) => {
     try {
         const { name, role, institution } = req.body;
         
-        const user = await User.findByPk(req.user.id);
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findById(req.user._id || req.user.id);
+        } else {
+            user = await User.findByPk(req.user.id);
+        }
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
         // Update fields
         if (name) user.name = name;
-        // Store role and institution in a metadata field or localStorage for now
-        // as they aren't in the User model
+        if (role) user.role = role;
+        if (institution !== undefined) user.institution = institution;
 
         await user.save();
 
         res.json({
-            id: user.id,
+            id: user._id || user.id,
             name: user.name,
             email: user.email,
             role: user.role,
+            institution: user.institution,
             createdAt: user.createdAt
         });
     } catch (error) {
@@ -192,8 +195,14 @@ router.put('/change-password', protect, async (req, res) => {
             return res.status(400).json({ message: 'New password must be at least 6 characters' });
         }
 
-        // Get user
-        const user = await User.findByPk(req.user.id);
+        // Get user with password
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findById(req.user._id || req.user.id).select('+password');
+        } else {
+            user = await User.findByPk(req.user.id);
+        }
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -204,7 +213,7 @@ router.put('/change-password', protect, async (req, res) => {
             return res.status(401).json({ message: 'Current password is incorrect' });
         }
 
-        // Update password (will be hashed by the model hook)
+        // Update password (will be hashed by the model hook / pre-save)
         user.password = newPassword;
         await user.save();
 
@@ -227,19 +236,15 @@ router.post('/forgot-password', async (req, res) => {
         }
 
         // Check if user exists
-        const user = await User.findOne({ where: { email } });
+        const user = STORAGE_MODE === 'atlas'
+            ? await User.findOne({ email })
+            : await User.findOne({ where: { email } });
         
         // Always return success to prevent email enumeration
-        // In production, you would send an actual email here
         if (user) {
-            // Generate a reset token (in production, save this to DB and send via email)
             const resetToken = require('crypto').randomBytes(32).toString('hex');
-            
-            // Log for development (in production, send email)
             console.log(`Password reset requested for ${email}`);
             console.log(`Reset token (dev only): ${resetToken}`);
-            
-            // Simulate email sending delay
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
@@ -264,7 +269,13 @@ router.delete('/account', protect, async (req, res) => {
         }
 
         // Get user with password
-        const user = await User.findByPk(req.user.id);
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findById(req.user._id || req.user.id).select('+password');
+        } else {
+            user = await User.findByPk(req.user.id);
+        }
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -276,7 +287,11 @@ router.delete('/account', protect, async (req, res) => {
         }
 
         // Delete user
-        await user.destroy();
+        if (STORAGE_MODE === 'atlas') {
+            await user.deleteOne();
+        } else {
+            await user.destroy();
+        }
 
         res.json({ message: 'Account deleted successfully' });
     } catch (error) {
