@@ -5,6 +5,7 @@ Node.js + Express + MongoDB + Firebase backend for the Symbio-NLM DNA Analysis P
 ## 🚀 Features
 
 - ✅ FASTA sequence storage and retrieval
+- ✅ BioPython integration for advanced FASTA parsing
 - ✅ Metadata extraction and storage
 - ✅ MongoDB database integration
 - ✅ Optional Firebase integration
@@ -19,19 +20,34 @@ Node.js + Express + MongoDB + Firebase backend for the Symbio-NLM DNA Analysis P
 ## 📋 Prerequisites
 
 - Node.js (v16 or higher)
+- Python 3.8+ (for BioPython features)
 - MongoDB (local or Atlas)
 - npm or yarn
 
 ## 🔧 Installation
 
-### 1. Install Dependencies
+### 1. Install Node.js Dependencies
 
 ```bash
 cd backend
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 2. Install Python Dependencies (BioPython)
+
+```bash
+pip install -r requirements.txt
+```
+
+Or if using Python 3:
+
+```bash
+pip3 install -r requirements.txt
+```
+
+**Note**: BioPython is required for advanced FASTA parsing. If you skip this step, the BioPython endpoints won't work, but the standard JavaScript parser will still function.
+
+### 3. Configure Environment Variables
 
 Copy `.env.example` to `.env`:
 
@@ -82,7 +98,9 @@ Server will run on http://localhost:3001
 GET /api/health
 ```
 
-### Upload Sequences
+### Standard FASTA Parsing (JavaScript)
+
+#### Upload Sequences
 ```
 POST /api/sequences/upload
 Content-Type: application/json
@@ -93,6 +111,41 @@ Content-Type: application/json
   "fileSize": 1024
 }
 ```
+
+### BioPython FASTA Parsing (Advanced)
+
+#### Check BioPython Installation
+```
+GET /api/biopython/check
+```
+
+#### Parse FASTA File with BioPython
+```
+POST /api/biopython/parse
+Content-Type: multipart/form-data
+
+file: <FASTA file>
+```
+
+#### Upload and Save with BioPython
+```
+POST /api/biopython/upload
+Content-Type: multipart/form-data
+
+file: <FASTA file>
+```
+
+#### Parse FASTA Text with BioPython
+```
+POST /api/biopython/parse-text
+Content-Type: application/json
+
+{
+  "content": ">seq1\nATGCGCTA..."
+}
+```
+
+### Sequence Management
 
 ### Get All Sequences
 ```

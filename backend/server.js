@@ -74,11 +74,13 @@ const sequencesRouter = require('./routes/sequences');
 const authRouter = require('./routes/auth');
 const aiRouter = require('./routes/ai');
 const storageRouter = require('./routes/storage');
+const bioPythonRouter = require('./routes/biopython');
 
 app.use('/api/sequences', sequencesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/storage', storageRouter);
+app.use('/api/biopython', bioPythonRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
