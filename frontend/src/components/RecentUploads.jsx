@@ -151,12 +151,6 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
 
   return (
     <div className="space-y-6">
-      {/* Main Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Recent Uploads</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">View and manage your uploaded sequences</p>
-      </div>
-
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         {/* Card Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">

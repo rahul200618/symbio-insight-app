@@ -165,11 +165,24 @@ export function UploadSection({ onUploadComplete }) {
         // Import the API function
         const { uploadSequenceFile } = await import('../utils/sequenceApi.js');
 
-        // Upload the file to the backend
-        const result = await uploadSequenceFile(uploadedFile.file);
+        // Get parser preference from localStorage
+        const parser = localStorage.getItem('fasta_parser_preference') || 'js';
+        // Patch: send parser as a form field
+        const formData = new FormData();
+        formData.append('file', uploadedFile.file);
+        formData.append('parser', parser);
+
+        // Direct fetch to backend /api/fasta/parse
+        const apiBase = import.meta.env?.VITE_API_URL || 'http://localhost:3002/api';
+        const response = await fetch(`${apiBase}/fasta/parse`, {
+          method: 'POST',
+          body: formData,
+          headers: { 'Accept': 'application/json' },
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || result.message || 'Upload failed');
 
         toast.success('File uploaded successfully!', { id: 'upload-backend' });
-        
         // Send notification
         notifyUploadComplete(uploadedFile.name, parsedData.length);
       } else {

@@ -70,15 +70,18 @@ const initializeDatabase = async () => {
 // Initialize database connection
 initializeDatabase();
 
+
 const sequencesRouter = require('./routes/sequences');
 const authRouter = require('./routes/auth');
 const aiRouter = require('./routes/ai');
 const storageRouter = require('./routes/storage');
+const fastaRouter = require('./routes/fasta');
 
 app.use('/api/sequences', sequencesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/storage', storageRouter);
+app.use('/api/fasta', fastaRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {

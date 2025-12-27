@@ -444,7 +444,13 @@ export function TopBar({ selectedFile, onInfoClick }) {
                     <Icons.User className="w-4 h-4" />
                     View Profile
                   </button>
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      navigate('/settings');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  >
                     <Icons.Settings className="w-4 h-4" />
                     Settings
                   </button>

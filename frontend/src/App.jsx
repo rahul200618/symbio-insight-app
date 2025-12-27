@@ -20,6 +20,7 @@ import { RecentPage } from './pages/RecentPage';
 import { MetadataPage } from './pages/MetadataPage';
 import { ReportPage } from './pages/ReportPage';
 import { ProfilePage } from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 
 // Main Layout Component (for authenticated pages)
 function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSelectedFile }) {
@@ -63,42 +64,17 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <ScrollProgressBar progress={scrollProgress} />
-
-      {/* Left Sidebar */}
-      <Sidebar activeView={getCurrentView()} />
-
-      {/* Main Content */}
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar />
       <div className="flex-1 flex flex-col">
-        <TopBar
-          selectedFile={selectedFile}
-          onInfoClick={() => setShowRightPanel(!showRightPanel)}
-        />
-
-        <div className="flex-1 overflow-auto p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <AnimatePresence mode="wait">
-              <Outlet context={{ parsedSequences, onUploadComplete: handleUploadComplete, onFileSelect: handleFileSelect }} />
-            </AnimatePresence>
-          </div>
-        </div>
+        <TopBar />
+        <ScrollProgressBar progress={scrollProgress} />
+        <main className="flex-1 p-6 md:p-10">
+          <Outlet />
+        </main>
+        {showRightPanel && <RightPanel onClose={() => setShowRightPanel(false)} />}
+        <ChatbotAssistant />
       </div>
-
-      {/* Right Panel */}
-      <RightPanel
-        selectedFile={selectedFile}
-        isOpen={showRightPanel}
-        onClose={() => setShowRightPanel(false)}
-      />
-
-      {/* AI Chatbot with action handlers */}
-      <ChatbotAssistant 
-        sequences={parsedSequences} 
-        currentView={getCurrentView()} 
-        onGenerateReport={handleGenerateReport}
-        onSequenceInput={(seqs) => setParsedSequences(seqs)}
-      />
     </div>
   );
 }
@@ -125,6 +101,7 @@ function AppRoutes() {
 
         {/* Protected Routes */}
         <Route
+          path="/*"
           element={
             <ProtectedRoute>
               <MainLayout
@@ -136,11 +113,12 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
-          <Route path="/recent" element={<RecentPage onFileSelect={handleFileSelect} parsedSequences={parsedSequences} />} />
-          <Route path="/metadata" element={<MetadataPage parsedSequences={parsedSequences} selectedFile={selectedFile} onFileSelect={handleFileSelect} />} />
-          <Route path="/report" element={<ReportPage parsedSequences={parsedSequences} />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
+          <Route path="recent" element={<RecentPage onFileSelect={handleFileSelect} parsedSequences={parsedSequences} />} />
+          <Route path="metadata" element={<MetadataPage parsedSequences={parsedSequences} selectedFile={selectedFile} onFileSelect={handleFileSelect} />} />
+          <Route path="report" element={<ReportPage parsedSequences={parsedSequences} />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         {/* Root redirect */}

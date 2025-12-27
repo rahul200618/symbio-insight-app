@@ -1,4 +1,7 @@
 const express = require('express');
+const { spawnSync } = require('child_process');
+const path = require('path');
+require('dotenv').config();
 const router = express.Router();
 const Sequence = require('../models/Sequence');
 const { Op } = require('sequelize');
@@ -33,94 +36,122 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// Enhanced FASTA parser with multiple sequence support - parses ALL sequences
+// Parser selection logic
+const FASTA_PARSER = process.env.FASTA_PARSER || 'js';
+
 function parseFastaToMetadata(fasta) {
-  const lines = fasta.split(/\r?\n/);
-  const sequences = [];
-  let currentHeader = '';
-  let currentSeq = '';
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('>')) {
-      // Save previous sequence if exists
-      if (currentHeader && currentSeq) {
-        sequences.push(createSequenceMetadata(currentHeader, currentSeq));
-      }
-      currentHeader = trimmedLine.replace(/^>\s*/, '').trim();
-      currentSeq = '';
-    } else if (trimmedLine.length > 0) {
-      currentSeq += trimmedLine.toUpperCase();
+  if (FASTA_PARSER === 'biopython') {
+    // Write FASTA to temp file
+    const fs = require('fs');
+    const os = require('os');
+    const tmpPath = path.join(os.tmpdir(), `fasta_${Date.now()}.fasta`);
+    fs.writeFileSync(tmpPath, fasta, 'utf-8');
+    // Call Python script
+    const pyPath = path.join(__dirname, '../utils/biopython_fasta_parser.py');
+    const result = spawnSync('python', [pyPath, tmpPath], { encoding: 'utf-8' });
+    fs.unlinkSync(tmpPath);
+    if (result.error) throw new Error('Biopython parser failed: ' + result.error.message);
+    if (result.status !== 0) throw new Error('Biopython parser error: ' + result.stderr);
+    try {
+      const parsed = JSON.parse(result.stdout);
+      // Return in compatible format (minimal, for now)
+      if (!parsed.length) return {
+        name: 'Empty', header: '', sequence: '', length: 0, gcContent: 0, orfDetected: false, orfCount: 0, orfs: [], nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 }, filename: 'empty.fasta', metrics: { length: 0, gcContent: 0, orfDetected: false, orfCount: 0 }, sequences: [], sequenceCount: 0
+      };
+      // Only basic fields from Biopython, rest can be extended
+      const seqs = parsed.map(s => ({
+        name: s.id,
+        header: s.description,
+        sequence: s.sequence,
+        length: s.sequence.length,
+        gcContent: 0,
+        orfDetected: false,
+        orfCount: 0,
+        orfs: [],
+        nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 }
+      }));
+      const totalLength = seqs.reduce((sum, s) => sum + s.length, 0);
+      return {
+        name: seqs[0].name,
+        header: seqs[0].header,
+        sequence: seqs.map(s => s.sequence).join(''),
+        length: totalLength,
+        gcContent: 0,
+        orfDetected: false,
+        orfCount: 0,
+        orfs: [],
+        nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 },
+        filename: `${seqs[0].name}.fasta`,
+        metrics: { length: totalLength, gcContent: 0, orfDetected: false, orfCount: 0 },
+        sequences: seqs,
+        sequenceCount: seqs.length
+      };
+    } catch (e) {
+      throw new Error('Failed to parse Biopython output: ' + e.message);
     }
-  }
-
-  // Don't forget the last sequence
-  if (currentHeader && currentSeq) {
-    sequences.push(createSequenceMetadata(currentHeader, currentSeq));
-  }
-
-  // If no sequences found, return empty structure
-  if (sequences.length === 0) {
+  } else {
+    // ...existing code...
+    const lines = fasta.split(/\r?\n/);
+    const sequences = [];
+    let currentHeader = '';
+    let currentSeq = '';
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('>')) {
+        if (currentHeader && currentSeq) {
+          sequences.push(createSequenceMetadata(currentHeader, currentSeq));
+        }
+        currentHeader = trimmedLine.replace(/^>\s*/, '').trim();
+        currentSeq = '';
+      } else if (trimmedLine.length > 0) {
+        currentSeq += trimmedLine.toUpperCase();
+      }
+    }
+    if (currentHeader && currentSeq) {
+      sequences.push(createSequenceMetadata(currentHeader, currentSeq));
+    }
+    if (sequences.length === 0) {
+      return {
+        name: 'Empty', header: '', sequence: '', length: 0, gcContent: 0, orfDetected: false, orfCount: 0, orfs: [], nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 }, filename: 'empty.fasta', metrics: { length: 0, gcContent: 0, orfDetected: false, orfCount: 0 }, sequences: [], sequenceCount: 0
+      };
+    }
+    const totalLength = sequences.reduce((sum, s) => sum + s.length, 0);
+    const totalA = sequences.reduce((sum, s) => sum + s.nucleotideCounts.A, 0);
+    const totalT = sequences.reduce((sum, s) => sum + s.nucleotideCounts.T, 0);
+    const totalG = sequences.reduce((sum, s) => sum + s.nucleotideCounts.G, 0);
+    const totalC = sequences.reduce((sum, s) => sum + s.nucleotideCounts.C, 0);
+    const totalOrfs = sequences.reduce((sum, s) => sum + s.orfCount, 0);
+    const avgGC = sequences.length > 0 ? sequences.reduce((sum, s) => sum + s.gcContent, 0) / sequences.length : 0;
+    const maxStoredLength = 500000;
+    let combinedSequence = sequences.map(s => s.sequence).join('');
+    if (combinedSequence.length > maxStoredLength) {
+      combinedSequence = combinedSequence.substring(0, maxStoredLength) + '...[truncated]';
+    }
+    const truncatedSequences = sequences.map(s => ({
+      ...s,
+      sequence: s.sequence.length > 50000 ? s.sequence.substring(0, 50000) + '...[truncated]' : s.sequence
+    }));
     return {
-      name: 'Empty',
-      header: '',
-      sequence: '',
-      length: 0,
-      gcContent: 0,
-      orfDetected: false,
-      orfCount: 0,
-      orfs: [],
-      nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 },
-      filename: 'empty.fasta',
-      metrics: { length: 0, gcContent: 0, orfDetected: false, orfCount: 0 },
-      sequences: [],
-      sequenceCount: 0
-    };
-  }
-
-  // Calculate aggregate stats for all sequences
-  const totalLength = sequences.reduce((sum, s) => sum + s.length, 0);
-  const totalA = sequences.reduce((sum, s) => sum + s.nucleotideCounts.A, 0);
-  const totalT = sequences.reduce((sum, s) => sum + s.nucleotideCounts.T, 0);
-  const totalG = sequences.reduce((sum, s) => sum + s.nucleotideCounts.G, 0);
-  const totalC = sequences.reduce((sum, s) => sum + s.nucleotideCounts.C, 0);
-  const totalOrfs = sequences.reduce((sum, s) => sum + s.orfCount, 0);
-  const avgGC = sequences.length > 0 ? sequences.reduce((sum, s) => sum + s.gcContent, 0) / sequences.length : 0;
-
-  // Limit stored sequence for very large files (>500KB total)
-  const maxStoredLength = 500000;
-  let combinedSequence = sequences.map(s => s.sequence).join('');
-  if (combinedSequence.length > maxStoredLength) {
-    combinedSequence = combinedSequence.substring(0, maxStoredLength) + '...[truncated]';
-  }
-  
-  // Also truncate individual sequences for storage
-  const truncatedSequences = sequences.map(s => ({
-    ...s,
-    sequence: s.sequence.length > 50000 ? s.sequence.substring(0, 50000) + '...[truncated]' : s.sequence
-  }));
-
-  // Return combined result with all sequences
-  return {
-    name: sequences[0].name,
-    header: sequences[0].header,
-    sequence: combinedSequence, // Combined sequence for backward compatibility
-    length: totalLength,
-    gcContent: Math.round(avgGC * 10) / 10,
-    orfDetected: totalOrfs > 0,
-    orfCount: totalOrfs,
-    orfs: sequences.flatMap(s => s.orfs).slice(0, 100), // Limit to 100 ORFs
-    nucleotideCounts: { A: totalA, T: totalT, G: totalG, C: totalC },
-    filename: `${sequences[0].name}.fasta`,
-    metrics: {
+      name: sequences[0].name,
+      header: sequences[0].header,
+      sequence: combinedSequence,
       length: totalLength,
       gcContent: Math.round(avgGC * 10) / 10,
       orfDetected: totalOrfs > 0,
-      orfCount: totalOrfs
-    },
-    sequences: truncatedSequences, // Array of all individual sequences
-    sequenceCount: sequences.length
-  };
+      orfCount: totalOrfs,
+      orfs: sequences.flatMap(s => s.orfs).slice(0, 100),
+      nucleotideCounts: { A: totalA, T: totalT, G: totalG, C: totalC },
+      filename: `${sequences[0].name}.fasta`,
+      metrics: {
+        length: totalLength,
+        gcContent: Math.round(avgGC * 10) / 10,
+        orfDetected: totalOrfs > 0,
+        orfCount: totalOrfs
+      },
+      sequences: truncatedSequences,
+      sequenceCount: sequences.length
+    };
+  }
 }
 
 // Helper function to create metadata for a single sequence
@@ -258,7 +289,18 @@ router.post('/', validateFasta, async (req, res) => {
       return res.status(400).json({ error: 'fasta string required' });
     }
 
-    const meta = parseFastaToMetadata(fasta);
+    // Allow parser override via header
+    const parserHeader = req.headers['x-fasta-parser'];
+    let meta;
+    if (parserHeader && ['js', 'biopython'].includes(parserHeader)) {
+      // Temporarily override process.env for this call
+      const prev = process.env.FASTA_PARSER;
+      process.env.FASTA_PARSER = parserHeader;
+      meta = parseFastaToMetadata(fasta);
+      process.env.FASTA_PARSER = prev;
+    } else {
+      meta = parseFastaToMetadata(fasta);
+    }
 
     // Override with custom values if provided
     if (name) meta.name = name;
@@ -292,7 +334,17 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
 
     const fileContent = req.file.buffer.toString('utf-8');
-    const meta = parseFastaToMetadata(fileContent);
+    // Allow parser override via header
+    const parserHeader = req.headers['x-fasta-parser'];
+    let meta;
+    if (parserHeader && ['js', 'biopython'].includes(parserHeader)) {
+      const prev = process.env.FASTA_PARSER;
+      process.env.FASTA_PARSER = parserHeader;
+      meta = parseFastaToMetadata(fileContent);
+      process.env.FASTA_PARSER = prev;
+    } else {
+      meta = parseFastaToMetadata(fileContent);
+    }
     meta.filename = req.file.originalname;
 
     // Direct database create

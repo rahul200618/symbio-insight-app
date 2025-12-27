@@ -221,77 +221,30 @@ export async function searchSequences(query, limit = 20) {
 // SEQUENCE ENDPOINTS - CREATE OPERATIONS
 // ============================================================================
 
-/**
- * Create sequence from FASTA text
- * @param {Object} data - Sequence data
- * @param {string} data.fasta - FASTA formatted text
- * @param {string} data.name - Optional custom name
- * @param {string} data.description - Optional description
- * @returns {Promise<Object>} Created sequence
- */
-export async function createSequence({ fasta, name, description }) {
-    return apiCall('/sequences', {
-        method: 'POST',
-        body: JSON.stringify({ fasta, name, description })
-    });
-}
+
 
 /**
- * Upload FASTA file
+ * Upload FASTA file (with parser selection)
  * @param {File} file - FASTA file to upload
- * @returns {Promise<Object>} Created sequence from file
+ * @returns {Promise<Object>} Parsed sequence(s) from file
  */
 export async function uploadSequenceFile(file) {
     const formData = new FormData();
     formData.append('file', file);
-
-    const token = getToken();
-    const headers = {
-        'Accept': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-    };
-
+    // Use new settings key for parser preference
+    const parser = localStorage.getItem('fasta_parser_preference') || 'js';
     try {
-        const response = await fetch(`${API_BASE_URL}/sequences/upload`, {
+        const response = await fetch(`${API_BASE_URL}/fasta/parse`, {
             method: 'POST',
-            headers,
-            body: formData
+            body: formData,
+            headers: { 'Accept': 'application/json' },
+            // parser is sent as a form field, not header
         });
-
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || data.message || 'Upload failed');
-            }
-            return data;
-        } else {
-            const text = await response.text();
-            if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
-                if (API_BASE_URL !== 'http://localhost:3002/api') {
-                    API_BASE_URL = 'http://localhost:3002/api';
-                    // Retry once against local backend
-                    const retryResponse = await fetch(`${API_BASE_URL}/sequences/upload`, {
-                        method: 'POST',
-                        headers,
-                        body: formData
-                    });
-                    const retryType = retryResponse.headers.get('content-type') || '';
-                    if (retryType.includes('application/json')) {
-                        const retryData = await retryResponse.json();
-                        if (!retryResponse.ok) {
-                            throw new Error(retryData.error || retryData.message || 'Upload failed');
-                        }
-                        return retryData;
-                    }
-                }
-                throw new Error('Upload failed: backend returned HTML. Verify API URL points to the backend.');
-            }
-            if (!response.ok) {
-                throw new Error(`Upload failed: ${response.status} - ${text}`);
-            }
-            return { message: text };
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Upload failed');
         }
+        return data;
     } catch (error) {
         if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
             throw new Error('Cannot connect to server. Please check if the backend is running.');
