@@ -1,0 +1,30 @@
+✅ Connected to MongoDB Atlas
+
+📚 Collections in database:
+  - sequences
+  - users
+
+👥 Users: 2 documents
+
+User documents:
+
+  1. ID: 694904f0d6d4ef7b7ba38e86
+     Name: Rahul
+     Email: rahuldheeraj.anil@gmail.com
+     Institution: N/A
+     Created: Mon Dec 22 2025 14:14:32 GMT+0530 (India Standard Time)
+
+  2. ID: 69776b0f59ac58848a12ce50
+     Name: test
+     Email: test@example.com
+     Institution: na
+     Created: Mon Jan 26 2026 18:54:31 GMT+0530 (India Standard Time)
+
+
+🧬 Sequences: 1 documents
+
+Sequence documents (sample):
+
+  1. Name: Test Sequence, Length: 16
+
+✅ Connection closed

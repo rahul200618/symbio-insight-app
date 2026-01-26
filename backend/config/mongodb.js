@@ -76,11 +76,18 @@ const getConnectionStatus = () => ({
   readyState: mongoose.connection.readyState
 });
 
-// Handle graceful shutdown
-process.on('SIGINT', async () => {
-  await disconnectMongoDB();
-  process.exit(0);
-});
+// Handle graceful shutdown (commented out to prevent interfering with testing)
+// process.on('SIGINT', async () => {
+//   console.log('[DEBUG] SIGINT received, disconnecting...');
+//   await disconnectMongoDB();
+//   process.exit(0);
+// });
+
+// process.on('SIGTERM', async () => {
+//   console.log('[DEBUG] SIGTERM received, disconnecting...');
+//   await disconnectMongoDB();
+//   process.exit(0);
+// });
 
 module.exports = {
   connectMongoDB,

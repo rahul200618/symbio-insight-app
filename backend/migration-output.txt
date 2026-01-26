@@ -1,0 +1,5 @@
+Before: [ { _id: 'atlas', count: 1 } ]
+After : [ { _id: 'atlas', count: 1 } ]
+Total documents: 1
+Matched: 1, Modified: 0
+✅ All sequences now have storageType: atlas

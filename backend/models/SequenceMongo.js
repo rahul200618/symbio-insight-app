@@ -93,7 +93,7 @@ const SequenceMongoSchema = new mongoose.Schema({
   storageType: {
     type: String,
     enum: ['local', 'atlas'],
-    default: 'local'
+    default: 'atlas'
   }
 }, {
   timestamps: true,

@@ -3,6 +3,9 @@ const router = express.Router();
 const { connectMongoDB, disconnectMongoDB, getConnectionStatus } = require('../config/mongodb');
 const SequenceMongo = require('../models/SequenceMongo');
 
+const STORAGE_MODE = process.env.STORAGE_MODE || 'sqlite';
+const DEFAULT_STORAGE = STORAGE_MODE === 'atlas' ? 'atlas' : 'local';
+
 /**
  * GET /api/storage/status
  * Get current storage connection status
@@ -29,7 +32,7 @@ router.get('/status', (req, res) => {
  */
 router.post('/connect', async (req, res) => {
   try {
-    const { type = 'local' } = req.body;
+    const { type = DEFAULT_STORAGE } = req.body;
     
     if (!['local', 'atlas'].includes(type)) {
       return res.status(400).json({ error: 'Invalid storage type. Use "local" or "atlas"' });
@@ -77,7 +80,7 @@ router.post('/disconnect', async (req, res) => {
  */
 router.post('/save', async (req, res) => {
   try {
-    const { sequences, storageType = 'local' } = req.body;
+    const { sequences, storageType = DEFAULT_STORAGE } = req.body;
     
     if (!sequences || !Array.isArray(sequences) || sequences.length === 0) {
       return res.status(400).json({ error: 'No sequences provided' });
@@ -110,7 +113,7 @@ router.post('/save', async (req, res) => {
       codonStats: seq.codonStats || {},
       filename: seq.filename || 'pasted_sequence.fasta',
       fileSize: seq.rawSequence?.length || seq.sequence?.length || 0,
-      storageType
+      storageType: DEFAULT_STORAGE
     }));
     
     // Insert into MongoDB
@@ -136,7 +139,7 @@ router.post('/save', async (req, res) => {
  */
 router.get('/sequences', async (req, res) => {
   try {
-    const { storageType = 'local', limit = 50, skip = 0 } = req.query;
+    const { storageType = DEFAULT_STORAGE, limit = 50, skip = 0 } = req.query;
     
     // Ensure we're connected
     const status = getConnectionStatus();

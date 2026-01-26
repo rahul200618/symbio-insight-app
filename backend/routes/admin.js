@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { connectMongoDB } = require('../config/mongodb');
 
 // Dynamically load models based on storage mode
 const STORAGE_MODE = process.env.STORAGE_MODE || 'sqlite';
@@ -9,6 +10,9 @@ const User = STORAGE_MODE === 'atlas'
 const Sequence = STORAGE_MODE === 'atlas'
   ? require('../models/SequenceMongo')
   : require('../models/Sequence');
+
+// Helper to normalize count result from mongoose
+const getModifiedCount = (result) => result?.modifiedCount ?? result?.nModified ?? result?.matchedCount ?? 0;
 
 // @route   GET /api/admin/database-info
 // @desc    Get database information (users and sequences count)
@@ -77,6 +81,28 @@ router.get('/health', (req, res) => {
     storageMode: STORAGE_MODE,
     timestamp: new Date().toISOString()
   });
+});
+
+// @route   POST /api/admin/force-storage-atlas
+// @desc    Force all sequences storageType to 'atlas' (Mongo only)
+// @access  Public (should be protected in production)
+router.post('/force-storage-atlas', async (req, res) => {
+  if (STORAGE_MODE !== 'atlas') {
+    return res.status(400).json({ message: 'STORAGE_MODE must be atlas to enforce atlas storage type.' });
+  }
+
+  try {
+    await connectMongoDB('atlas');
+    const result = await Sequence.updateMany({}, { $set: { storageType: 'atlas' } });
+    res.json({
+      success: true,
+      message: 'All sequences storageType set to atlas',
+      modified: getModifiedCount(result)
+    });
+  } catch (error) {
+    console.error('force-storage-atlas error:', error);
+    res.status(500).json({ message: 'Failed to enforce storageType atlas', error: error.message });
+  }
 });
 
 module.exports = router;
