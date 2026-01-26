@@ -66,10 +66,10 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
-      <div className="flex-1 flex flex-col w-full md:w-auto">
+      <div className="flex-1 flex flex-col">
         <TopBar />
         <ScrollProgressBar progress={scrollProgress} />
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 pt-16 md:pt-6">
+        <main className="flex-1 p-6 md:p-10">
           <Outlet />
         </main>
         {showRightPanel && <RightPanel onClose={() => setShowRightPanel(false)} />}
