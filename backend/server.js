@@ -57,32 +57,37 @@ app.use(compression());
 
 // Connect to database based on STORAGE_MODE
 const initializeDatabase = async () => {
-  if (STORAGE_MODE === 'atlas') {
-    // Use MongoDB Atlas
-    const { connectMongoDB } = require('./config/mongodb');
-    const connected = await connectMongoDB('atlas');
-    if (!connected) {
-      console.error('❌ Failed to connect to MongoDB Atlas. Falling back to SQLite...');
+  console.log('🔄 Initializing database...');
+  try {
+    if (STORAGE_MODE === 'atlas') {
+      // Use MongoDB Atlas
+      const { connectMongoDB } = require('./config/mongodb');
+      const connected = await connectMongoDB('atlas');
+      if (!connected) {
+        console.error('❌ Failed to connect to MongoDB Atlas. Falling back to SQLite...');
+        const { connectDB } = require('./config/database');
+        await connectDB();
+      }
+    } else {
+      // Use SQLite (default)
       const { connectDB } = require('./config/database');
       await connectDB();
     }
-  } else {
-    // Use SQLite (default)
-    const { connectDB } = require('./config/database');
-    await connectDB();
+    console.log('✅ Database initialization complete');
+  } catch (error) {
+    console.error('❌ Database initialization error:', error.message);
+    throw error;
   }
 };
 
-// Initialize database connection
-initializeDatabase();
-
-
+console.log('📦 Loading routes...');
 const sequencesRouter = require('./routes/sequences');
 const authRouter = require('./routes/auth');
 const aiRouter = require('./routes/ai');
 const storageRouter = require('./routes/storage');
 const fastaRouter = require('./routes/fasta');
 const adminRouter = require('./routes/admin');
+console.log('✅ Routes loaded');
 
 app.use('/api/sequences', sequencesRouter);
 app.use('/api/auth', authRouter);
@@ -145,5 +150,33 @@ const port = process.env.PORT || 3002;
 if (process.env.VERCEL) {
   module.exports = app;
 } else {
-  app.listen(port, () => console.log(`🚀 Backend server running on port ${port}`));
+  // Wait for database initialization before starting server
+  initializeDatabase()
+    .then(() => {
+      const server = app.listen(port, () => {
+        console.log(`🚀 Backend server running on port ${port}`);
+      });
+
+      server.on('error', (error) => {
+        console.error('❌ Server error:', error.message);
+        if (error.code === 'EADDRINUSE') {
+          console.error(`❌ Port ${port} is already in use`);
+        }
+        process.exit(1);
+      });
+
+      // Handle uncaught exceptions
+      process.on('uncaughtException', (error) => {
+        console.error('❌ Uncaught Exception:', error);
+        process.exit(1);
+      });
+
+      process.on('unhandledRejection', (reason, promise) => {
+        console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+      });
+    })
+    .catch(err => {
+      console.error('❌ Fatal database error:', err);
+      process.exit(1);
+    });
 }

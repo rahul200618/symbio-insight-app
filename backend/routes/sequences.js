@@ -3,7 +3,10 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 require('dotenv').config();
 const router = express.Router();
-const Sequence = require('../models/Sequence');
+const STORAGE_MODE = process.env.STORAGE_MODE || 'sqlite';
+const Sequence = STORAGE_MODE === 'atlas' ? null : require('../models/Sequence');
+const SequenceMongo = STORAGE_MODE === 'atlas' ? require('../models/SequenceMongo') : null;
+const mongoose = STORAGE_MODE === 'atlas' ? require('mongoose') : undefined;
 const { Op } = require('sequelize');
 const multer = require('multer');
 const { generatePDFReport } = require('../utils/pdfGenerator');
@@ -231,51 +234,94 @@ router.get('/', validatePagination, async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    // Build query with search
-    const whereClause = search
-      ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${search}%` } },
-          { header: { [Op.like]: `%${search}%` } },
-          { filename: { [Op.like]: `%${search}%` } }
-        ]
-      }
-      : {};
+    if (STORAGE_MODE === 'atlas') {
+      // MongoDB branch
+      const query = search
+        ? { $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { header: { $regex: search, $options: 'i' } },
+            { filename: { $regex: search, $options: 'i' } }
+          ] }
+        : {};
 
-    // Parse sort parameter (e.g., '-createdAt' for DESC, 'createdAt' for ASC)
-    const sortField = sort.startsWith('-') ? sort.substring(1) : sort;
-    const sortOrder = sort.startsWith('-') ? 'DESC' : 'ASC';
+      const sortField = sort.startsWith('-') ? sort.substring(1) : sort;
+      const sortDir = sort.startsWith('-') ? -1 : 1;
 
-    const { count, rows } = await Sequence.findAndCountAll({
-      where: whereClause,
-      order: [[sortField, sortOrder]],
-      limit: limit,
-      offset: offset
-    });
+      const [count, rows] = await Promise.all([
+        SequenceMongo.countDocuments(query),
+        SequenceMongo.find(query)
+          .sort({ [sortField]: sortDir })
+          .skip(offset)
+          .limit(limit)
+          .lean()
+      ]);
 
-    res.json({
-      data: rows.map((d) => ({
-        id: d.id,
-        filename: d.filename,
-        header: d.header,
-        name: d.name,
-        length: d.length,
-        gcPercent: d.gcContent,
-        orfDetected: d.orfDetected,
-        orfCount: d.orfCount || 0,
-        nucleotideCounts: d.nucleotideCounts,
-        sequences: d.sequences || [],
-        sequenceCount: d.sequenceCount || 1,
-        createdAt: d.createdAt,
-        updatedAt: d.updatedAt
-      })),
-      meta: {
-        page,
-        limit,
-        total: count,
-        totalPages: Math.ceil(count / limit)
-      }
-    });
+      res.json({
+        data: rows.map((d) => ({
+          id: d._id,
+          filename: d.filename,
+          header: d.header,
+          name: d.name,
+          length: d.length,
+          gcPercent: d.gcContent,
+          orfDetected: d.orfDetected,
+          orfCount: d.orfCount || 0,
+          nucleotideCounts: d.nucleotideCounts,
+          sequences: d.sequences || [],
+          sequenceCount: d.sequenceCount || 1,
+          createdAt: d.createdAt,
+          updatedAt: d.updatedAt
+        })),
+        meta: { page, limit, total: count, totalPages: Math.ceil(count / limit) }
+      });
+    } else {
+      // SQLite branch
+      // Build query with search
+      const whereClause = search
+        ? {
+          [Op.or]: [
+            { name: { [Op.like]: `%${search}%` } },
+            { header: { [Op.like]: `%${search}%` } },
+            { filename: { [Op.like]: `%${search}%` } }
+          ]
+        }
+        : {};
+
+      // Parse sort parameter (e.g., '-createdAt' for DESC, 'createdAt' for ASC)
+      const sortField = sort.startsWith('-') ? sort.substring(1) : sort;
+      const sortOrder = sort.startsWith('-') ? 'DESC' : 'ASC';
+
+      const { count, rows } = await Sequence.findAndCountAll({
+        where: whereClause,
+        order: [[sortField, sortOrder]],
+        limit: limit,
+        offset: offset
+      });
+
+      res.json({
+        data: rows.map((d) => ({
+          id: d.id,
+          filename: d.filename,
+          header: d.header,
+          name: d.name,
+          length: d.length,
+          gcPercent: d.gcContent,
+          orfDetected: d.orfDetected,
+          orfCount: d.orfCount || 0,
+          nucleotideCounts: d.nucleotideCounts,
+          sequences: d.sequences || [],
+          sequenceCount: d.sequenceCount || 1,
+          createdAt: d.createdAt,
+          updatedAt: d.updatedAt
+        })),
+        meta: {
+          page,
+          limit,
+          total: count,
+          totalPages: Math.ceil(count / limit)
+        }
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -306,21 +352,40 @@ router.post('/', validateFasta, async (req, res) => {
     if (name) meta.name = name;
     if (description) meta.description = description;
 
-    const doc = await Sequence.create(meta);
-    res.status(201).json([
-      {
-        id: doc.id,
-        filename: doc.filename,
-        header: doc.header,
-        name: doc.name,
-        length: doc.length,
-        gcPercent: doc.gcContent,
-        orfDetected: doc.orfDetected,
-        orfCount: doc.orfCount || 0,
-        nucleotideCounts: doc.nucleotideCounts,
-        createdAt: doc.createdAt
-      }
-    ]);
+    if (STORAGE_MODE === 'atlas') {
+      meta.storageType = 'atlas';
+      const doc = await SequenceMongo.create(meta);
+      res.status(201).json([
+        {
+          id: doc._id,
+          filename: doc.filename,
+          header: doc.header,
+          name: doc.name,
+          length: doc.length,
+          gcPercent: doc.gcContent,
+          orfDetected: doc.orfDetected,
+          orfCount: doc.orfCount || 0,
+          nucleotideCounts: doc.nucleotideCounts,
+          createdAt: doc.createdAt
+        }
+      ]);
+    } else {
+      const doc = await Sequence.create(meta);
+      res.status(201).json([
+        {
+          id: doc.id,
+          filename: doc.filename,
+          header: doc.header,
+          name: doc.name,
+          length: doc.length,
+          gcPercent: doc.gcContent,
+          orfDetected: doc.orfDetected,
+          orfCount: doc.orfCount || 0,
+          nucleotideCounts: doc.nucleotideCounts,
+          createdAt: doc.createdAt
+        }
+      ]);
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -347,21 +412,37 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
     meta.filename = req.file.originalname;
 
-    // Direct database create
-    const doc = await Sequence.create(meta);
-
-    res.status(201).json({
-      id: doc.id,
-      filename: doc.filename,
-      header: doc.header,
-      length: doc.length,
-      gcPercent: doc.gcContent,
-      orfDetected: doc.orfDetected,
-      nucleotideCounts: doc.nucleotideCounts,
-      sequences: doc.sequences || [],
-      sequenceCount: doc.sequenceCount || 1,
-      createdAt: doc.createdAt
-    });
+    if (STORAGE_MODE === 'atlas') {
+      meta.storageType = 'atlas';
+      const doc = await SequenceMongo.create(meta);
+      res.status(201).json({
+        id: doc._id,
+        filename: doc.filename,
+        header: doc.header,
+        length: doc.length,
+        gcPercent: doc.gcContent,
+        orfDetected: doc.orfDetected,
+        nucleotideCounts: doc.nucleotideCounts,
+        sequences: doc.sequences || [],
+        sequenceCount: doc.sequenceCount || 1,
+        createdAt: doc.createdAt
+      });
+    } else {
+      // Direct database create
+      const doc = await Sequence.create(meta);
+      res.status(201).json({
+        id: doc.id,
+        filename: doc.filename,
+        header: doc.header,
+        length: doc.length,
+        gcPercent: doc.gcContent,
+        orfDetected: doc.orfDetected,
+        nucleotideCounts: doc.nucleotideCounts,
+        sequences: doc.sequences || [],
+        sequenceCount: doc.sequenceCount || 1,
+        createdAt: doc.createdAt
+      });
+    }
   } catch (err) {
     console.error('Upload error:', err.message);
     res.status(400).json({ error: err.message });
@@ -371,6 +452,40 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 // GET sequence by ID with full details
 router.get('/:id', async (req, res) => {
   try {
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(404).json({ error: 'Invalid ID' });
+      }
+      const doc = await SequenceMongo.findById(req.params.id).lean();
+      if (!doc) return res.status(404).json({ error: 'Sequence not found' });
+      return res.json({
+        id: doc._id,
+        name: doc.name,
+        title: doc.title || doc.name,
+        header: doc.header,
+        filename: doc.filename,
+        metrics: doc.metrics || {
+          length: doc.length,
+          gcContent: doc.gcContent,
+          orfDetected: doc.orfDetected,
+          orfCount: doc.orfCount || 0
+        },
+        sequence: doc.sequence,
+        length: doc.length,
+        gcContent: doc.gcContent,
+        orfDetected: doc.orfDetected,
+        orfCount: doc.orfCount || 0,
+        orfs: doc.orfs || [],
+        nucleotideCounts: doc.nucleotideCounts,
+        sequences: doc.sequences || [],
+        sequenceCount: doc.sequenceCount || 1,
+        interpretation: doc.interpretation,
+        aiSummary: doc.aiSummary,
+        description: doc.description,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt
+      });
+    }
     const doc = await Sequence.findByPk(req.params.id);
     if (!doc) {
       return res.status(404).json({ error: 'Sequence not found' });
@@ -477,12 +592,21 @@ router.post('/:id/generate-report', async (req, res) => {
 // DELETE sequence
 router.delete('/:id', async (req, res) => {
   try {
-    const doc = await Sequence.findByPk(req.params.id);
-    if (!doc) {
-      return res.status(404).json({ error: 'Sequence not found' });
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(404).json({ error: 'Invalid ID' });
+      }
+      const deleted = await SequenceMongo.findByIdAndDelete(req.params.id);
+      if (!deleted) return res.status(404).json({ error: 'Sequence not found' });
+      return res.json({ message: 'Deleted', id: req.params.id });
+    } else {
+      const doc = await Sequence.findByPk(req.params.id);
+      if (!doc) {
+        return res.status(404).json({ error: 'Sequence not found' });
+      }
+      await doc.destroy();
+      res.json({ message: 'Deleted', id: doc.id });
     }
-    await doc.destroy();
-    res.json({ message: 'Deleted', id: doc.id });
   } catch (err) {
     console.error('Delete error:', err.message);
     res.status(500).json({ error: err.message });
