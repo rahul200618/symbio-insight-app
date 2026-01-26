@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { chatWithAI } from '../utils/aiService.js';
 import { BarChart, PieChart } from './Charts.jsx';
 import { extractMetadata, parseFastaFile } from '../utils/fastaParser.js';
-import { ConfirmDialog } from './ConfirmDialog';
 
 // Mini chart components for chatbot
 function MiniBarChart({ data }) {
@@ -684,7 +683,6 @@ Which file would you like to explore?`
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false); // For confirm dialog
   
   // Draggable and resizable state
   const [position, setPosition] = useState({ x: null, y: null }); // null means default position
@@ -1192,7 +1190,12 @@ Which file would you like to explore?`
                     {messages.length} messages • Last saved {messages.length > 0 ? new Date(messages[messages.length - 1].timestamp).toLocaleTimeString() : 'N/A'}
                   </span>
                   <button
-                    onClick={() => setShowClearConfirm(true)}
+                    onClick={() => {
+                      if (confirm('Are you sure you want to clear all chat history? This action cannot be undone.')) {
+                        clearChatHistory();
+                        setShowHistory(false);
+                      }
+                    }}
                     className="text-xs px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                   >
                     Clear All
@@ -1357,21 +1360,6 @@ Which file would you like to explore?`
         </div>
       )}
       
-      {/* Clear History Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={showClearConfirm}
-        onClose={() => setShowClearConfirm(false)}
-        onConfirm={() => {
-          clearChatHistory();
-          setShowHistory(false);
-          setShowClearConfirm(false);
-        }}
-        title="Clear Chat History"
-        message="Are you sure you want to clear all chat history? This action cannot be undone."
-        confirmText="Clear All"
-        cancelText="Cancel"
-        type="warning"
-      />
     </>
   );
 }

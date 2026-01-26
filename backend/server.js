@@ -26,8 +26,14 @@ const allowedOriginPatterns = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (like mobile apps, curl requests, or file:// protocol)
+    // file:// protocol sends origin as null
+    if (!origin || origin === 'null') return callback(null, true);
+
+    // Allow file:// protocol for local HTML viewers (some browsers)
+    if (origin && origin.startsWith('file://')) {
+      return callback(null, true);
+    }
 
     // Check exact match origins
     if (allowedOrigins.includes(origin)) {
@@ -76,12 +82,19 @@ const authRouter = require('./routes/auth');
 const aiRouter = require('./routes/ai');
 const storageRouter = require('./routes/storage');
 const fastaRouter = require('./routes/fasta');
+const adminRouter = require('./routes/admin');
 
 app.use('/api/sequences', sequencesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/storage', storageRouter);
 app.use('/api/fasta', fastaRouter);
+app.use('/api/admin', adminRouter);
+
+// Serve the database viewer HTML
+app.get('/db-viewer', (req, res) => {
+  res.sendFile(__dirname + '/db-viewer.html');
+});
 
 // Root endpoint
 app.get('/', (req, res) => {

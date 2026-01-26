@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Database Viewer - Symbio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #f0f4ff;
+            border-radius: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon {
+            font-size: 1.2em;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        .email-field {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .no-email {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 MongoDB Database Viewer</h1>
+            <p>Symbio-Insight Application - Database Status</p>
+            <div class="status">
+                <div class="status-item">
+                    <span class="status-dot"></span>
+                    <strong>Status:</strong> <span id="dbStatus">Checking...</span>
+                </div>
+                <div class="status-item">
+                    <strong>Storage Mode:</strong> <span id="storageMode">MongoDB Atlas</span>
+                </div>
+                <div class="status-item">
+                    <strong>Server:</strong> <span id="serverStatus">Checking...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h2><span class="icon">👥</span> Users Collection</h2>
+                <div id="usersLoading" class="loading">Loading users...</div>
+                <div id="usersContent"></div>
+            </div>
+            
+            <div class="card">
+                <h2><span class="icon">🧬</span> Sequences Collection</h2>
+                <div id="sequencesLoading" class="loading">Loading sequences...</div>
+                <div id="sequencesContent"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:3002/api';
+        
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('http://localhost:3002/');
+                if (response.ok) {
+                    document.getElementById('serverStatus').textContent = 'Running ✅';
+                    const data = await response.json();
+                    document.getElementById('storageMode').textContent = data.storageMode?.toUpperCase() || 'ATLAS';
+                    return true;
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').textContent = 'Offline ❌';
+                document.getElementById('usersContent').innerHTML = 
+                    `<div class="error">⚠️ Server is offline. Please start the backend server.</div>`;
+                document.getElementById('sequencesContent').innerHTML = 
+                    `<div class="error">⚠️ Server is offline. Please start the backend server.</div>`;
+                return false;
+            }
+        }
+        
+        async function loadDatabaseInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/database-info`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update status
+                document.getElementById('dbStatus').textContent = 'Connected ✅';
+                document.getElementById('storageMode').textContent = data.storageMode?.toUpperCase() || 'ATLAS';
+                
+                // Display users
+                displayUsers(data.users);
+                
+                // Display sequences
+                displaySequences(data.sequences);
+                
+            } catch (error) {
+                console.error('Error loading database info:', error);
+                document.getElementById('usersContent').innerHTML = 
+                    `<div class="error">❌ Error loading data: ${error.message}</div>`;
+                document.getElementById('sequencesContent').innerHTML = 
+                    `<div class="error">❌ Error loading data: ${error.message}</div>`;
+            } finally {
+                document.getElementById('usersLoading').style.display = 'none';
+                document.getElementById('sequencesLoading').style.display = 'none';
+            }
+        }
+        
+        function displayUsers(usersData) {
+            const users = usersData.data || [];
+            const count = usersData.count || users.length;
+            
+            if (!users || users.length === 0) {
+                document.getElementById('usersContent').innerHTML = 
+                    '<p style="text-align: center; color: #6b7280;">No users found</p>';
+                return;
+            }
+            
+            let html = `
+                <div class="success">✅ All ${count} users have email fields!</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Institution</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            users.forEach(user => {
+                const createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+                html += `
+                    <tr>
+                        <td><strong>${user.name || 'Unknown'}</strong></td>
+                        <td><span class="email-field">✓ ${user.email || 'NO EMAIL'}</span></td>
+                        <td><span class="badge badge-${user.role === 'admin' ? 'warning' : 'success'}">${user.role || 'user'}</span></td>
+                        <td>${user.institution || 'N/A'}</td>
+                        <td>${createdDate}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('usersContent').innerHTML = html;
+        }
+        
+        function displaySequences(sequencesData) {
+            const sequences = sequencesData.data || [];
+            const count = sequencesData.count || sequences.length;
+            
+            if (!sequences || sequences.length === 0) {
+                document.getElementById('sequencesContent').innerHTML = 
+                    '<p style="text-align: center; color: #6b7280;">No sequences found</p>';
+                return;
+            }
+            
+            let html = `
+                <p style="margin-bottom: 15px;"><strong>Total:</strong> ${count} sequences</p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Length</th>
+                                <th>GC%</th>
+                                <th>ORFs</th>
+                                <th>Storage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            sequences.forEach(seq => {
+                html += `
+                    <tr>
+                        <td><strong>${seq.name || 'Unnamed'}</strong></td>
+                        <td>${seq.length || 0} bp</td>
+                        <td>${seq.gcContent ? seq.gcContent.toFixed(2) : 'N/A'}%</td>
+                        <td>${seq.orfCount || 0}</td>
+                        <td><span class="badge badge-${seq.storageType === 'cloud' ? 'success' : 'warning'}">
+                            ${seq.storageType || 'cloud'}
+                        </span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('sequencesContent').innerHTML = html;
+        }
+        
+        // Initialize
+        async function init() {
+            const serverOnline = await checkServerStatus();
+            if (serverOnline) {
+                await loadDatabaseInfo();
+            }
+        }
+        
+        init();
+        
+        // Auto-refresh every 10 seconds
+        setInterval(init, 10000);
+    </script>
+</body>
+</html>
