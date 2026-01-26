@@ -228,18 +228,21 @@ export async function searchSequences(query, limit = 20) {
  * @param {File} file - FASTA file to upload
  * @returns {Promise<Object>} Parsed sequence(s) from file
  */
-export async function uploadSequenceFile(file) {
+export async function uploadSequenceFile(file, parser = 'js') {
     const formData = new FormData();
     formData.append('file', file);
-    // Use new settings key for parser preference
-    const parser = localStorage.getItem('fasta_parser_preference') || 'js';
+    formData.append('parser', parser);
+
     try {
-        const response = await fetch(`${API_BASE_URL}/fasta/parse`, {
+        const response = await fetch(`${API_BASE_URL}/sequences/upload`, {
             method: 'POST',
             body: formData,
-            headers: { 'Accept': 'application/json' },
-            // parser is sent as a form field, not header
+            headers: {
+                Accept: 'application/json',
+                ...(parser && { 'x-fasta-parser': parser })
+            }
         });
+
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.error || data.message || 'Upload failed');
@@ -251,6 +254,24 @@ export async function uploadSequenceFile(file) {
         }
         throw error;
     }
+}
+
+/**
+ * Create a sequence from raw FASTA text (pasted input)
+ * @param {string} fasta - FASTA formatted string
+ * @param {string} name - Optional sequence name
+ * @param {string} description - Optional description
+ * @returns {Promise<Object>} Created sequence document
+ */
+export async function createSequenceFromText(fasta, name = 'Pasted Sequence', description = '') {
+    const parser = localStorage.getItem('fasta_parser_preference') || 'js';
+    return apiCall('/sequences', {
+        method: 'POST',
+        headers: {
+            ...(parser && { 'x-fasta-parser': parser })
+        },
+        body: JSON.stringify({ fasta, name, description })
+    });
 }
 
 // ============================================================================

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { parseFastaFile, calculateAggregateStats } from '../utils/fastaParser.js';
+import { uploadSequenceFile, createSequenceFromText } from '../utils/sequenceApi.js';
 import { useScrollAnimation } from '../hooks/useScrollAnimation.js';
 import { animeAnimations } from '../utils/animations.js';
 import { useNotifications } from '../context/NotificationContext';
@@ -157,46 +158,34 @@ export function UploadSection({ onUploadComplete }) {
     if (!parsedData || !uploadedFile) return;
 
     try {
-      // Check if this is a pasted sequence (no file) or an uploaded file
+      const parser = localStorage.getItem('fasta_parser_preference') || 'js';
+
+      let createdSequences = [];
+
       if (uploadedFile.file) {
-        // File upload flow
+        // File upload flow -> persists to /api/sequences/upload
         toast.loading('Uploading to server...', { id: 'upload-backend' });
 
-        // Import the API function
-        const { uploadSequenceFile } = await import('../utils/sequenceApi.js');
-
-        // Get parser preference from localStorage
-        const parser = localStorage.getItem('fasta_parser_preference') || 'js';
-        // Patch: send parser as a form field
-        const formData = new FormData();
-        formData.append('file', uploadedFile.file);
-        formData.append('parser', parser);
-
-        // Direct fetch to backend /api/fasta/parse
-        const apiBase = import.meta.env?.VITE_API_URL || 'http://localhost:3002/api';
-        const response = await fetch(`${apiBase}/fasta/parse`, {
-          method: 'POST',
-          body: formData,
-          headers: { 'Accept': 'application/json' },
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || result.message || 'Upload failed');
+        const result = await uploadSequenceFile(uploadedFile.file, parser);
+        createdSequences = Array.isArray(result) ? result : [result];
 
         toast.success('File uploaded successfully!', { id: 'upload-backend' });
-        // Send notification
-        notifyUploadComplete(uploadedFile.name, parsedData.length);
-      } else {
-        // Pasted sequence flow - no file to upload to server
-        // Just save locally and proceed
-        toast.success('Sequence accepted successfully!', { id: 'upload-backend' });
-        
-        // Send notification for pasted sequence
-        notifyUploadComplete('Pasted Sequence', parsedData.length);
+        notifyUploadComplete(uploadedFile.name, createdSequences.length || parsedData.length);
+      } else if (sequenceText.trim()) {
+        // Pasted FASTA flow -> persists via POST /api/sequences
+        toast.loading('Saving sequence...', { id: 'upload-backend' });
+
+        // Ensure we send the raw FASTA text; backend will parse and store
+        const result = await createSequenceFromText(sequenceText, uploadedFile.name || 'Pasted Sequence', 'Pasted via UI');
+        createdSequences = Array.isArray(result) ? result : [result];
+
+        toast.success('Sequence saved successfully!', { id: 'upload-backend' });
+        notifyUploadComplete('Pasted Sequence', createdSequences.length || parsedData.length);
       }
 
-      // Call the onUploadComplete with parsed sequences array
-      if (onUploadComplete) {
-        onUploadComplete(parsedData); // Pass the sequences array directly
+      // Call the onUploadComplete with saved sequences
+      if (onUploadComplete && createdSequences.length > 0) {
+        onUploadComplete(createdSequences);
       }
       
       // Notify that analysis is ready
