@@ -183,9 +183,10 @@ export function UploadSection({ onUploadComplete }) {
         notifyUploadComplete('Pasted Sequence', createdSequences.length || parsedData.length);
       }
 
-      // Call the onUploadComplete with saved sequences
-      if (onUploadComplete && createdSequences.length > 0) {
-        onUploadComplete(createdSequences);
+      // Call the onUploadComplete with the frontend-parsed data (which has correct calculations)
+      // The backend response is only for confirmation; we use parsedData which was parsed by the accurate JS parser
+      if (onUploadComplete && parsedData && parsedData.length > 0) {
+        onUploadComplete(parsedData);
       }
       
       // Notify that analysis is ready
@@ -416,12 +417,12 @@ export function UploadSection({ onUploadComplete }) {
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequences Found</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{parsedData.length}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{parsedData?.length ?? 0}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Length</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {uploadedFile.stats.totalLength.toLocaleString()} bp
+                    {(uploadedFile?.stats?.totalLength ?? 0).toLocaleString()} bp
                   </p>
                 </div>
               </div>

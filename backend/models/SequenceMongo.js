@@ -73,6 +73,16 @@ const SequenceMongoSchema = new mongoose.Schema({
     type: Number
   },
   
+  // Multi-sequence support (for FASTA files with multiple sequences)
+  sequences: {
+    type: mongoose.Schema.Types.Mixed,
+    default: []
+  },
+  sequenceCount: {
+    type: Number,
+    default: 1
+  },
+  
   // AI Analysis
   aiSummary: {
     type: String

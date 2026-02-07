@@ -26,7 +26,6 @@ export function SequenceComparison({ sequences, onClose }) {
   useEffect(() => {
     if (sequences && Array.isArray(sequences)) {
       const normalized = sequences.map(normalizeSequence).filter(s => s !== null);
-      console.log('Normalized sequences:', normalized);
       setNormalizedSequences(normalized);
     }
   }, [sequences]);

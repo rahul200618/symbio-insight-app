@@ -79,7 +79,7 @@ function ComparisonChart({ sequences }) {
   const colors = ['#8b5cf6', '#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
   const data = sequences.slice(0, 6).map((seq, i) => ({
     name: (seq.sequenceName || seq.name || `Seq ${i+1}`).slice(0, 8),
-    value: seq.gcPercentage || seq.gcContent || 0,
+    value: seq.gcPercentage || seq.gcContent || seq.gcPercent || 0,
     color: colors[i % colors.length]
   }));
   
@@ -231,7 +231,7 @@ export function ChatbotAssistant({ sequences, currentView, onGenerateReport, onU
         addAssistantMessage("Upload sequences first to see the overview.");
         return;
       }
-      const avgGC = sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length;
+      const avgGC = sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || s.gcPercent || 0), 0) / sequences.length;
       const chartData = [
         { name: 'GC', value: avgGC, color: '#8b5cf6' },
         { name: 'AT', value: 100 - avgGC, color: '#6366f1' },
@@ -314,7 +314,7 @@ Codons are triplets of nucleotides (3 letters) that encode amino acids during tr
       
       // Analyze sequence characteristics
       const seq = sequences[0];
-      const gcContent = seq.gcPercentage || seq.gcContent || 0;
+      const gcContent = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
       const length = seq.sequenceLength || seq.length || 0;
       const orfs = seq.orfs?.length || 0;
       const counts = seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
@@ -542,7 +542,7 @@ View and manage your previously uploaded files:
   const generateQuickAnalysis = (seqs) => {
     const count = seqs.length;
     const totalBp = seqs.reduce((sum, s) => sum + (s.sequenceLength || s.length || 0), 0);
-    const avgGC = seqs.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / count;
+    const avgGC = seqs.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || s.gcPercent || 0), 0) / count;
     const totalORFs = seqs.reduce((sum, s) => sum + (s.orfs?.length || 0), 0);
     
     let analysis = `🧬 **Quick Sequence Analysis**
@@ -637,7 +637,7 @@ Which file would you like to explore?`
     
     const seqCount = sequences.length;
     const avgLength = sequences.reduce((sum, s) => sum + (s.sequenceLength || s.length || 0), 0) / seqCount;
-    const avgGC = sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / seqCount;
+    const avgGC = sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || s.gcPercent || 0), 0) / seqCount;
     
     let greeting = `Hi! I'm analyzing your ${seqCount} sequence${seqCount > 1 ? 's' : ''}. `;
     greeting += `Average length: ${Math.round(avgLength)} bp, GC content: ${avgGC.toFixed(1)}%. `;

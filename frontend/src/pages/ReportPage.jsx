@@ -15,7 +15,6 @@ export function ReportPage({ parsedSequences }) {
             if (!sequences || sequences.length === 0) {
                 setIsLoading(true);
                 try {
-                    console.log('No sequences provided, attempting to load most recent upload...');
                     const response = await getSequences({ page: 1, limit: 1, sort: '-createdAt' });
 
                     if (response.data && response.data.length > 0) {
@@ -43,12 +42,8 @@ export function ReportPage({ parsedSequences }) {
 
                         setSequences([transformedSeq]);
                         toast.success('Loaded most recent upload');
-                        console.log('Auto-loaded sequence:', transformedSeq);
-                    } else {
-                        console.log('No recent uploads found');
                     }
                 } catch (error) {
-                    console.error('Failed to auto-load recent upload:', error);
                     // Silently fail - user will see empty state
                 } finally {
                     setIsLoading(false);

@@ -44,7 +44,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
         name: seq.filename,
         sequences: seq.sequenceCount || 1,
         time: formatRelativeTime(seq.createdAt),
-        gcContent: seq.gcContent,
+        gcContent: seq.gcContent ?? seq.gcPercent ?? seq.gcPercentage ?? 0,
         length: seq.length
       }));
       
@@ -141,7 +141,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{file.name}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-xs text-purple-600 dark:text-purple-400">{file.sequences} sequences</span>
-                              {file.gcContent && (
+                              {typeof file.gcContent === 'number' && (
                                 <span className="text-xs text-gray-500 dark:text-gray-400">• {file.gcContent.toFixed(1)}% GC</span>
                               )}
                             </div>
@@ -221,13 +221,13 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
                               <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedFile.sequences || selectedFile.sequenceCount}</span>
                             </div>
                           )}
-                          {(selectedFile.gcContent != null || selectedFile.gcPercentage != null) && (
+                          {(selectedFile.gcContent != null || selectedFile.gcPercentage != null || selectedFile.gcPercent != null) && (
                             <div className="flex justify-between">
                               <span className="text-sm text-gray-600 dark:text-gray-400">GC Content</span>
                               <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                                {typeof (selectedFile.gcContent ?? selectedFile.gcPercentage) === 'number' 
-                                  ? (selectedFile.gcContent ?? selectedFile.gcPercentage).toFixed(1) 
-                                  : selectedFile.gcContent ?? selectedFile.gcPercentage}%
+                                {typeof (selectedFile.gcContent ?? selectedFile.gcPercentage ?? selectedFile.gcPercent) === 'number' 
+                                  ? (selectedFile.gcContent ?? selectedFile.gcPercentage ?? selectedFile.gcPercent).toFixed(1) 
+                                  : selectedFile.gcContent ?? selectedFile.gcPercentage ?? selectedFile.gcPercent}%
                               </span>
                             </div>
                           )}

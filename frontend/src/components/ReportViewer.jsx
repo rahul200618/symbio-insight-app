@@ -9,7 +9,7 @@ import { generateSequenceAnalysis } from '../utils/aiService.js';
 import { toast } from 'sonner';
 import { useNotifications } from '../context/NotificationContext';
 
-export function ReportViewer({ parsedSequences = [] }) {
+export function ReportViewer({ parsedSequences = [], isLoading = false }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiSummary, setAiSummary] = useState(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
@@ -36,7 +36,7 @@ export function ReportViewer({ parsedSequences = [] }) {
         case 'length':
           return (b.sequenceLength || b.length || 0) - (a.sequenceLength || a.length || 0);
         case 'gc':
-          return (b.gcPercentage || b.gcContent || 0) - (a.gcPercentage || a.gcContent || 0);
+          return (b.gcPercentage || b.gcContent || b.gcPercent || 0) - (a.gcPercentage || a.gcContent || a.gcPercent || 0);
         case 'orfs':
           return (b.orfs?.length || 0) - (a.orfs?.length || 0);
         default:
@@ -54,10 +54,20 @@ export function ReportViewer({ parsedSequences = [] }) {
             setAiSummary(summary);
           }
         })
-        .catch(err => console.log('AI summary failed:', err))
+        .catch(() => {}) // Silently fail for AI summary
         .finally(() => setIsLoadingAI(false));
     }
   }, [parsedSequences.length]); // Re-fetch when sequences change
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400">Loading sequence data...</p>
+      </div>
+    );
+  }
 
   const handleDownloadPDF = async () => {
     console.log('Generating PDF with sequences:', parsedSequences);
@@ -124,19 +134,19 @@ export function ReportViewer({ parsedSequences = [] }) {
     }
   };
 
-  const totalSequences = stats?.totalSequences ?? 245;
-  const gcPercentage = stats?.avgGC ?? 43.7;
-  const totalORFs = stats?.totalORFs ?? 34;
-  const totalLength = stats?.totalLength ?? 124460;
-  const avgLength = stats?.avgLength ?? 508;
-  const longestSeq = stats?.longestSequence ?? 2845;
-  const shortestSeq = stats?.shortestSequence ?? 89;
+  const totalSequences = stats?.totalSequences ?? 0;
+  const gcPercentage = stats?.avgGC ?? 0;
+  const totalORFs = stats?.totalORFs ?? 0;
+  const totalLength = stats?.totalLength ?? 0;
+  const avgLength = stats?.avgLength ?? 0;
+  const longestSeq = stats?.longestSequence ?? 0;
+  const shortestSeq = stats?.shortestSequence ?? 0;
 
   const nucleotideDistribution = stats?.nucleotideDistribution || {
-    A: 28.5,
-    T: 27.8,
-    G: 22.3,
-    C: 21.4,
+    A: 0,
+    T: 0,
+    G: 0,
+    C: 0,
   };
 
   // Generate nucleotide data for a single sequence
@@ -153,7 +163,7 @@ export function ReportViewer({ parsedSequences = [] }) {
 
   // Generate GC data for a single sequence
   const getSequenceGCData = (seq) => {
-    const gcPercent = seq.gcPercentage || seq.gcContent || 0;
+    const gcPercent = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
     const counts = seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
     return [
       { name: 'GC', value: Number(gcPercent.toFixed(1)), count: counts.G + counts.C, color: '#22d3ee' },
@@ -163,15 +173,50 @@ export function ReportViewer({ parsedSequences = [] }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Empty State */}
+      {parsedSequences.length === 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-16 px-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+        >
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6">
+            <Icons.FileText className="w-10 h-10 text-purple-500 dark:text-purple-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Sequences to Report</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
+            Upload a FASTA file from the Dashboard or select a file from the Metadata page to generate a comprehensive analysis report.
+          </p>
+          <div className="flex gap-3">
+            <motion.a
+              href="/dashboard"
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icons.Upload className="w-4 h-4" />
+              Upload FASTA File
+            </motion.a>
+            <motion.a
+              href="/metadata"
+              className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icons.Database className="w-4 h-4" />
+              Select from Metadata
+            </motion.a>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Header - only show when we have sequences */}
+      {parsedSequences.length > 0 && (
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sequence Analysis Report</h1>
           <p className="text-lg text-gray-700 dark:text-gray-300 font-medium mb-1">
-            {parsedSequences.length > 0
-              ? `${parsedSequences.length} sequences analyzed`
-              : 'genome_sequence_01.fasta'
-            }
+            {`${parsedSequences.length} sequences analyzed`}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Generated on {new Date().toLocaleDateString('en-US', {
@@ -201,6 +246,7 @@ export function ReportViewer({ parsedSequences = [] }) {
           </button>
         </div>
       </div>
+      )}
 
       {/* Data Source Indicator */}
       {parsedSequences.length > 0 && (
@@ -214,7 +260,8 @@ export function ReportViewer({ parsedSequences = [] }) {
         </div>
       )}
 
-      {/* Key Metrics */}
+      {/* Key Metrics - only show when we have sequences */}
+      {parsedSequences.length > 0 && (
       <div className="grid grid-cols-4 gap-4">
         <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
@@ -260,8 +307,10 @@ export function ReportViewer({ parsedSequences = [] }) {
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Base pairs</p>
         </div>
       </div>
+      )}
 
-      {/* AI Summary Section */}
+      {/* AI Summary Section - only show when we have sequences */}
+      {parsedSequences.length > 0 && (
       <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
@@ -344,8 +393,10 @@ export function ReportViewer({ parsedSequences = [] }) {
           </div>
         )}
       </div>
+      )}
 
-      {/* Detailed Metrics */}
+      {/* Detailed Metrics - only show when we have sequences */}
+      {parsedSequences.length > 0 && (
       <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
@@ -392,6 +443,7 @@ export function ReportViewer({ parsedSequences = [] }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Individual Sequence Analysis Section */}
       {parsedSequences.length > 0 && (
@@ -496,7 +548,7 @@ export function ReportViewer({ parsedSequences = [] }) {
                 const seqNucleotideData = getSequenceNucleotideData(seq);
                 const seqGCData = getSequenceGCData(seq);
                 const seqLength = seq.sequenceLength || seq.length || 0;
-                const seqGC = seq.gcPercentage || seq.gcContent || 0;
+                const seqGC = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
                 const seqOrfs = seq.orfs || [];
               
                 return (

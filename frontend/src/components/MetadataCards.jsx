@@ -54,10 +54,6 @@ export function MetadataCards({ parsedSequences = [] }) {
     ? calculateAggregateStats(parsedSequences)
     : null;
 
-  // Debug logging
-  console.log('MetadataCards - parsedSequences:', parsedSequences.length);
-  console.log('MetadataCards - stats:', stats);
-
   const nucleotideData = stats
     ? [
       { name: 'A', value: stats.nucleotideDistribution.A, count: stats.nucleotideCounts.A, color: '#38bdf8' },
@@ -71,8 +67,6 @@ export function MetadataCards({ parsedSequences = [] }) {
       { name: 'G', value: 0, count: 0, color: '#06b6d4' },
       { name: 'C', value: 0, count: 0, color: '#0ea5e9' },
     ];
-
-  console.log('MetadataCards - nucleotideData:', nucleotideData);
 
   const gcPercentage = stats ? stats.avgGC : 0;
   const atPercentage = stats ? (100 - stats.avgGC) : 0;
@@ -104,23 +98,31 @@ export function MetadataCards({ parsedSequences = [] }) {
     }
   };
 
-  // Generate nucleotide data for a single sequence
+  // Generate nucleotide data for a single sequence (with null safety)
   const getSequenceNucleotideData = (seq) => {
-    const total = seq.nucleotideCounts.A + seq.nucleotideCounts.T + seq.nucleotideCounts.G + seq.nucleotideCounts.C;
+    const counts = seq?.nucleotideCounts ?? { A: 0, T: 0, G: 0, C: 0 };
+    const A = counts.A || 0;
+    const T = counts.T || 0;
+    const G = counts.G || 0;
+    const C = counts.C || 0;
+    const total = A + T + G + C;
     return [
-      { name: 'A', value: total > 0 ? (seq.nucleotideCounts.A / total) * 100 : 0, count: seq.nucleotideCounts.A, color: '#38bdf8' },
-      { name: 'T', value: total > 0 ? (seq.nucleotideCounts.T / total) * 100 : 0, count: seq.nucleotideCounts.T, color: '#22d3ee' },
-      { name: 'G', value: total > 0 ? (seq.nucleotideCounts.G / total) * 100 : 0, count: seq.nucleotideCounts.G, color: '#06b6d4' },
-      { name: 'C', value: total > 0 ? (seq.nucleotideCounts.C / total) * 100 : 0, count: seq.nucleotideCounts.C, color: '#0ea5e9' },
+      { name: 'A', value: total > 0 ? (A / total) * 100 : 0, count: A, color: '#38bdf8' },
+      { name: 'T', value: total > 0 ? (T / total) * 100 : 0, count: T, color: '#22d3ee' },
+      { name: 'G', value: total > 0 ? (G / total) * 100 : 0, count: G, color: '#06b6d4' },
+      { name: 'C', value: total > 0 ? (C / total) * 100 : 0, count: C, color: '#0ea5e9' },
     ];
   };
 
-  // Generate GC data for a single sequence
+  // Generate GC data for a single sequence (with null safety)
   const getSequenceGCData = (seq) => {
-    const gcPercent = seq.gcPercentage || 0;
+    const gcPercent = seq?.gcPercentage ?? seq?.gcContent ?? seq?.gcPercent ?? 0;
+    const counts = seq?.nucleotideCounts ?? { A: 0, T: 0, G: 0, C: 0 };
+    const gcCount = (counts.G || 0) + (counts.C || 0);
+    const atCount = (counts.A || 0) + (counts.T || 0);
     return [
-      { name: 'GC', value: Number(gcPercent.toFixed(1)), count: seq.nucleotideCounts.G + seq.nucleotideCounts.C, color: '#22d3ee' },
-      { name: 'AT', value: Number((100 - gcPercent).toFixed(1)), count: seq.nucleotideCounts.A + seq.nucleotideCounts.T, color: '#38bdf8' },
+      { name: 'GC', value: Number((gcPercent || 0).toFixed(1)), count: gcCount, color: '#22d3ee' },
+      { name: 'AT', value: Number((100 - (gcPercent || 0)).toFixed(1)), count: atCount, color: '#38bdf8' },
     ];
   };
 
@@ -451,12 +453,8 @@ export function MetadataCards({ parsedSequences = [] }) {
               const seqNucleotideData = getSequenceNucleotideData(seq);
               const seqGCData = getSequenceGCData(seq);
               const seqLength = seq.sequenceLength || seq.length || 0;
-              const seqGC = seq.gcPercentage || seq.gcContent || 0;
+              const seqGC = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
               const seqOrfs = seq.orfs || [];
-              
-              // Debug: Log codon frequency data
-              console.log(`Sequence ${index + 1} codonFrequency:`, seq.codonFrequency);
-              console.log(`Sequence ${index + 1} has codon data:`, seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0);
               
               return (
                 <motion.div

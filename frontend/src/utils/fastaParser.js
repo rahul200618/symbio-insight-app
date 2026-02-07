@@ -287,32 +287,44 @@ export function generateUniqueId() {
  * Calculate aggregate statistics from multiple sequences
  */
 export function calculateAggregateStats(sequences) {
-    if (sequences.length === 0) {
+    if (!sequences || sequences.length === 0) {
         return null;
     }
 
-    const totalSequences = sequences.length;
-    const totalLength = sequences.reduce((sum, seq) => sum + seq.sequenceLength, 0);
-    const avgLength = Math.round(totalLength / totalSequences);
+    // Helper to get sequence length safely (handles both sequenceLength and length)
+    const getSeqLength = (seq) => seq?.sequenceLength ?? seq?.length ?? 0;
+    // Helper to get GC percentage safely (handles gcPercentage, gcContent, and gcPercent from backend)
+    const getGC = (seq) => seq?.gcPercentage ?? seq?.gcContent ?? seq?.gcPercent ?? 0;
+    // Helper to get ORFs safely
+    const getOrfs = (seq) => seq?.orfs ?? [];
+    // Helper to get nucleotide counts safely
+    const getNucleotides = (seq) => seq?.nucleotideCounts ?? { A: 0, T: 0, G: 0, C: 0 };
 
-    const avgGC = sequences.reduce((sum, seq) => sum + seq.gcPercentage, 0) / totalSequences;
+    const totalSequences = sequences.length;
+    const totalLength = sequences.reduce((sum, seq) => sum + getSeqLength(seq), 0);
+    const avgLength = totalSequences > 0 ? Math.round(totalLength / totalSequences) : 0;
+
+    const avgGC = totalSequences > 0 
+        ? sequences.reduce((sum, seq) => sum + getGC(seq), 0) / totalSequences 
+        : 0;
 
     const longestSeq = sequences.reduce((max, seq) =>
-        seq.sequenceLength > max.sequenceLength ? seq : max
-    );
+        getSeqLength(seq) > getSeqLength(max) ? seq : max
+    , sequences[0]);
 
     const shortestSeq = sequences.reduce((min, seq) =>
-        seq.sequenceLength < min.sequenceLength ? seq : min
-    );
+        getSeqLength(seq) < getSeqLength(min) ? seq : min
+    , sequences[0]);
 
-    const totalORFs = sequences.reduce((sum, seq) => sum + seq.orfs.length, 0);
+    const totalORFs = sequences.reduce((sum, seq) => sum + getOrfs(seq).length, 0);
 
     // Aggregate nucleotide counts
     const totalNucleotides = sequences.reduce((acc, seq) => {
-        acc.A += seq.nucleotideCounts.A;
-        acc.T += seq.nucleotideCounts.T;
-        acc.G += seq.nucleotideCounts.G;
-        acc.C += seq.nucleotideCounts.C;
+        const counts = getNucleotides(seq);
+        acc.A += counts.A || 0;
+        acc.T += counts.T || 0;
+        acc.G += counts.G || 0;
+        acc.C += counts.C || 0;
         return acc;
     }, { A: 0, T: 0, G: 0, C: 0 });
 
@@ -322,16 +334,16 @@ export function calculateAggregateStats(sequences) {
         totalSequences,
         totalLength,
         avgLength,
-        avgGC: Number(avgGC.toFixed(2)),
-        longestSequence: longestSeq.sequenceLength,
-        shortestSequence: shortestSeq.sequenceLength,
+        avgGC: Number((avgGC || 0).toFixed(2)),
+        longestSequence: getSeqLength(longestSeq),
+        shortestSequence: getSeqLength(shortestSeq),
         totalORFs,
-        nucleotideDistribution: {
+        nucleotideDistribution: total > 0 ? {
             A: Number(((totalNucleotides.A / total) * 100).toFixed(2)),
             T: Number(((totalNucleotides.T / total) * 100).toFixed(2)),
             G: Number(((totalNucleotides.G / total) * 100).toFixed(2)),
             C: Number(((totalNucleotides.C / total) * 100).toFixed(2)),
-        },
+        } : { A: 0, T: 0, G: 0, C: 0 },
         nucleotideCounts: totalNucleotides,
     };
 }

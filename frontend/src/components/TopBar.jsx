@@ -195,7 +195,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
                           {result.name || `Sequence ${result.id}`}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {result.length ? `${result.length} bp` : 'Sequence'} • GC: {result.gcContent?.toFixed(1) || 'N/A'}%
+                          {result.length ? `${result.length} bp` : 'Sequence'} • GC: {typeof (result.gcContent ?? result.gcPercent) === 'number' ? (result.gcContent ?? result.gcPercent).toFixed(1) : 'N/A'}%
                         </p>
                       </div>
                       <Icons.ChevronRight className="w-4 h-4 text-gray-400" />

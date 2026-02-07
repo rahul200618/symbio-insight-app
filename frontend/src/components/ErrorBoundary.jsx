@@ -9,12 +9,12 @@ export class ErrorBoundary extends Component {
     }
 
     static getDerivedStateFromError(error) {
-        return { hasError: true };
+        return { hasError: true, error };
     }
 
     componentDidCatch(error, errorInfo) {
         console.error('Error caught by boundary:', error, errorInfo);
-        this.state = { hasError: true, error, errorInfo };
+        this.setState({ errorInfo });
     }
 
     handleReset = () => {

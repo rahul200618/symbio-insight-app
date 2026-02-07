@@ -236,12 +236,12 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-900 dark:text-white">{file.backendData?.length?.toLocaleString() || 'N/A'}</span>
+                        <span className="text-sm text-gray-900 dark:text-white">{typeof file.backendData?.length === 'number' ? file.backendData.length.toLocaleString() : 'N/A'}</span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">bp</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-900 dark:text-white">{file.backendData?.gcPercent || file.backendData?.gcContent || 'N/A'}%</span>
+                      <span className="text-sm text-gray-900 dark:text-white">{typeof (file.backendData?.gcPercent ?? file.backendData?.gcContent) === 'number' ? (file.backendData?.gcPercent ?? file.backendData?.gcContent).toFixed(1) : 'N/A'}%</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="px-3 py-1 bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100/50 dark:border-purple-800/50 rounded-lg inline-block">

@@ -6,7 +6,7 @@ import { AnimatedPage } from '../components/AnimatedPage';
 import { MetadataCards } from '../components/MetadataCards';
 import { Icons } from '../components/Icons';
 import { getSequences, getSequenceById } from '../utils/sequenceApi';
-import { extractMetadata, generateUniqueId, calculateCodonFrequency } from '../utils/fastaParser';
+import { extractMetadata, generateUniqueId, calculateCodonFrequency, countNucleotides, calculateGCPercentage } from '../utils/fastaParser';
 
 const transformToFrontendFormat = (data) => {
     if (!data) return [];
@@ -19,33 +19,90 @@ const transformToFrontendFormat = (data) => {
         inputs = data.sequences;
     }
 
+    // Filter out any null/undefined items
+    inputs = inputs.filter(item => item != null);
+
     return inputs.map(item => {
+        if (!item) return null;
+
+        // Normalize nucleotideCounts - ensure it has all keys, handle string JSON
+        const normalizeCounts = (counts) => {
+            // Handle null/undefined
+            if (!counts) return { A: 0, T: 0, G: 0, C: 0 };
+            
+            // Handle string JSON (from database)
+            let parsed = counts;
+            if (typeof counts === 'string') {
+                try {
+                    parsed = JSON.parse(counts);
+                } catch (e) {
+                    console.warn('Failed to parse nucleotideCounts string:', counts);
+                    return { A: 0, T: 0, G: 0, C: 0 };
+                }
+            }
+            
+            // Handle non-object types
+            if (typeof parsed !== 'object') return { A: 0, T: 0, G: 0, C: 0 };
+            
+            return {
+                A: Number(parsed.A) || 0,
+                T: Number(parsed.T) || 0,
+                G: Number(parsed.G) || 0,
+                C: Number(parsed.C) || 0
+            };
+        };
+
         // If it already looks correct (from frontend parser) and has codonFrequency, return it
         if (item.sequenceLength !== undefined && item.nucleotideCounts && item.orfs && item.codonFrequency) {
-            return item;
+            return {
+                ...item,
+                nucleotideCounts: normalizeCounts(item.nucleotideCounts),
+                orfs: item.orfs || [],
+            };
         }
 
         // If it already has structure but missing codonFrequency, add it
-        if (item.sequenceLength !== undefined && item.nucleotideCounts && item.orfs) {
+        if (item.sequenceLength !== undefined && item.nucleotideCounts) {
             const rawSeq = item.rawSequence || item.sequence || '';
             const { codonFrequency, codonStats } = rawSeq ? calculateCodonFrequency(rawSeq) : { codonFrequency: {}, codonStats: {} };
             return {
                 ...item,
+                nucleotideCounts: normalizeCounts(item.nucleotideCounts),
+                orfs: item.orfs || [],
                 codonFrequency,
                 codonStats,
             };
         }
 
         // If it has backend format (length instead of sequenceLength), transform it
-        if (item.length !== undefined && item.nucleotideCounts) {
+        if (item.length !== undefined || item.nucleotideCounts) {
             const rawSeq = item.sequence || '';
             const { codonFrequency, codonStats } = rawSeq ? calculateCodonFrequency(rawSeq) : { codonFrequency: {}, codonStats: {} };
+            
+            // Handle all possible GC property names from backend
+            const gcValue = item.gcPercentage ?? item.gcContent ?? item.gcPercent ?? 0;
+            
+            // Get nucleotide counts - recalculate from raw sequence if missing
+            let nucleotides = normalizeCounts(item.nucleotideCounts);
+            const hasValidCounts = nucleotides.A > 0 || nucleotides.T > 0 || nucleotides.G > 0 || nucleotides.C > 0;
+            
+            // If no valid counts but we have raw sequence, recalculate
+            if (!hasValidCounts && rawSeq && rawSeq.length > 0) {
+                nucleotides = countNucleotides(rawSeq);
+            }
+            
+            // Recalculate GC if needed
+            let finalGC = gcValue;
+            if (!finalGC && rawSeq && rawSeq.length > 0) {
+                finalGC = calculateGCPercentage(nucleotides, rawSeq.length);
+            }
+            
             return {
                 id: item._id || item.id || generateUniqueId(),
                 sequenceName: item.header || item.name || 'Untitled Sequence',
-                sequenceLength: item.length,
-                gcPercentage: item.gcContent || 0,
-                nucleotideCounts: item.nucleotideCounts,
+                sequenceLength: item.length ?? item.sequenceLength ?? rawSeq.length ?? 0,
+                gcPercentage: finalGC,
+                nucleotideCounts: nucleotides,
                 orfs: item.orfs || [],
                 rawSequence: rawSeq,
                 codonFrequency,
@@ -58,16 +115,34 @@ const transformToFrontendFormat = (data) => {
         const seq = item.sequence || item.seq || item.rawSequence || '';
         const header = item.header || item.filename || item.name || 'Untitled Sequence';
 
+        // Handle empty sequences
+        if (!seq) {
+            return {
+                id: item._id || item.id || generateUniqueId(),
+                sequenceName: header,
+                sequenceLength: 0,
+                gcPercentage: 0,
+                nucleotideCounts: { A: 0, T: 0, G: 0, C: 0 },
+                orfs: [],
+                rawSequence: '',
+                codonFrequency: {},
+                codonStats: { totalCodons: 0, uniqueCodons: 0, startCodons: 0, stopCodons: 0 },
+                timestamp: item.createdAt || new Date().toISOString(),
+            };
+        }
+
         // Use the centralized parser logic (extractMetadata already includes codonFrequency)
         const metadata = extractMetadata(header, seq);
 
         // Merge with any existing IDs or timestamps
         return {
             ...metadata,
+            nucleotideCounts: normalizeCounts(metadata.nucleotideCounts),
+            orfs: metadata.orfs || [],
             id: item._id || item.id || generateUniqueId(),
             timestamp: item.createdAt || new Date().toISOString(),
         };
-    });
+    }).filter(item => item != null);
 };
 
 export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
@@ -109,7 +184,26 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
             const fullData = await getSequenceById(file._id || file.id);
 
             // Identify where the sequence array is
-            let rawSequences = fullData.sequences || fullData.data || fullData;
+            let rawSequences = fullData.sequences || fullData.data || [];
+            
+            // If sequences array is empty but we have the main record data, use that
+            if ((!rawSequences || rawSequences.length === 0) && (fullData.length || fullData.sequence)) {
+                // Construct a single sequence from the parent record
+                rawSequences = [{
+                    id: fullData._id || fullData.id,
+                    name: fullData.name || fullData.header || fullData.filename,
+                    header: fullData.header || fullData.name,
+                    sequence: fullData.sequence || '',
+                    length: fullData.length,
+                    gcContent: fullData.gcContent,
+                    gcPercent: fullData.gcPercent,
+                    gcPercentage: fullData.gcPercentage,
+                    nucleotideCounts: fullData.nucleotideCounts,
+                    orfs: fullData.orfs || [],
+                    orfCount: fullData.orfCount || 0,
+                    createdAt: fullData.createdAt
+                }];
+            }
 
             // Transform to frontend format
             const formattedSequences = transformToFrontendFormat(rawSequences);
@@ -249,10 +343,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
 
                 {/* Generate Report Button - Always visible */}
                 <motion.button
-                    onClick={() => {
-                        console.log('Generate Report clicked');
-                        handleGenerateReport();
-                    }}
+                    onClick={handleGenerateReport}
                     disabled={generatingReport}
                     className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
                     whileHover={{ scale: generatingReport ? 1 : 1.05, y: generatingReport ? 0 : -2 }}
