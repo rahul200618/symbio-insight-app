@@ -1,6 +1,8 @@
 // AI Service Integration
 // Supports OpenAI GPT-4, Anthropic Claude, and other AI models
 
+import pdbService from './pdbService.js';
+
 const AI_API_URL = 'http://localhost:3002/api/ai'; // Backend AI endpoint
 
 /**
@@ -81,6 +83,59 @@ export async function generateIntelligentReport(sequences) {
 }
 
 /**
+ * Lookup a PDB structure by ID
+ * @param {string} pdbId - 4-character PDB ID
+ * @returns {Promise<string>} Formatted PDB information
+ */
+export async function lookupPDBStructure(pdbId) {
+    try {
+        const entry = await pdbService.getPDBEntry(pdbId);
+        return pdbService.formatPDBForChat(entry);
+    } catch (error) {
+        return `❌ Could not find PDB structure "${pdbId}". Please check the ID and try again. Valid PDB IDs are 4 characters starting with a number (e.g., 1HHO, 4HHB, 6LU7).`;
+    }
+}
+
+/**
+ * Search PDB for structures by name
+ * @param {string} query - Search term (e.g., "hemoglobin", "insulin")
+ * @returns {Promise<string>} Formatted search results
+ */
+export async function searchPDBStructures(query) {
+    try {
+        const results = await pdbService.searchPDB(query, 5);
+        return pdbService.formatSearchResultsForChat(results, query);
+    } catch (error) {
+        return `❌ Error searching PDB: ${error.message}. Please try again with a different search term.`;
+    }
+}
+
+/**
+ * Process chat response - handles async PDB operations
+ * @param {string|object} response - Response from getRuleBasedResponse
+ * @returns {Promise<string>} Final response text
+ */
+export async function processChatResponse(response) {
+    // If it's a string, return as-is
+    if (typeof response === 'string') {
+        return response;
+    }
+    
+    // Handle PDB lookup
+    if (response.type === 'pdb_lookup') {
+        return await lookupPDBStructure(response.pdbId);
+    }
+    
+    // Handle PDB search
+    if (response.type === 'pdb_search') {
+        return await searchPDBStructures(response.query);
+    }
+    
+    // Unknown type, return message or stringify
+    return response.message || JSON.stringify(response);
+}
+
+/**
  * Chat with AI assistant about sequences
  */
 export async function chatWithAI(message, context = {}) {
@@ -121,8 +176,10 @@ export async function chatWithAI(message, context = {}) {
         const data = await response.json();
         return data.response;
     } catch (error) {
-        console.log('AI service not available');
-        return getRuleBasedResponse(message, context);
+        console.log('AI service not available, using rule-based response');
+        const ruleResponse = getRuleBasedResponse(message, context);
+        // Process async PDB operations if needed
+        return await processChatResponse(ruleResponse);
     }
 }
 
@@ -430,9 +487,28 @@ ${sequences.length > 0 ? '💡 Upload sequences to see their codon frequency ana
         return 'Sequence quality can be assessed by several factors: 1) Balanced nucleotide distribution, 2) Appropriate GC content for the organism, 3) Absence of unusual patterns or repeats, 4) Presence of expected features like ORFs. Would you like me to analyze the quality of your sequences?';
     }
 
-    // Protein structure and PDB queries
+    // Protein structure and PDB queries - with actual API call
     if (msg.includes('protein') || msg.includes('structure') || msg.includes('pdb') || msg.includes('3d') || msg.includes('fold')) {
-        return `For protein structure information, I can search the RCSB Protein Data Bank (https://www.rcsb.org/). ${sequences.length > 0 ? 'If your sequences encode proteins, you can translate ORFs and search for similar structures. ' : ''}You can ask me about specific PDB IDs (e.g., "Tell me about 1HHO") or search for proteins by name (e.g., "Find hemoglobin structures").`;
+        // Check if user is searching for a protein by name
+        const searchMatch = msg.match(/(?:find|search|look for|show)\s+(.+?)(?:\s+structure|\s+protein|$)/i);
+        if (searchMatch && searchMatch[1]) {
+            // Return a promise indicator - caller should handle async
+            return {
+                type: 'pdb_search',
+                query: searchMatch[1].trim(),
+                message: `🔍 Searching RCSB PDB for "${searchMatch[1].trim()}"...`
+            };
+        }
+        
+        return `🔬 **RCSB Protein Data Bank Integration**
+
+I can search the RCSB PDB for protein structures! Try:
+
+• **Look up by ID:** "Tell me about 1HHO" or "What is 4HHB?"
+• **Search by name:** "Find hemoglobin structures" or "Search insulin"
+• **Learn about proteins:** "What proteins does my sequence encode?"
+
+${sequences.length > 0 ? '💡 Your sequences contain ORFs that may encode proteins. Would you like me to help translate them?' : '📁 Upload a FASTA file to analyze potential protein-coding regions.'}`;
     }
 
     if (msg.includes('help') || msg.includes('what can')) {
@@ -442,7 +518,7 @@ ${sequences.length > 0 ? '💡 Upload sequences to see their codon frequency ana
 • Explaining genetic terms (ORF, GC content, etc.)
 • Interpreting charts and statistics
 • Identifying species and sequence types (DNA/RNA/protein)
-• Protein structure lookup via RCSB PDB
+• **🔬 Protein structure lookup via RCSB PDB** (try "Find hemoglobin")
 • Suggesting next steps in your analysis
 • Answering questions about your uploaded sequences
 
@@ -453,10 +529,14 @@ Just ask me anything about DNA sequence analysis!`;
         return 'FASTA is a text-based format for representing nucleotide or protein sequences. Each sequence begins with a ">" character followed by a description line (header), then the sequence data on subsequent lines. It\'s one of the most widely used formats in bioinformatics.';
     }
 
-    // Check for PDB ID pattern (e.g., 1HHO, 4HHB)
+    // Check for PDB ID pattern (e.g., 1HHO, 4HHB) - return indicator for async lookup
     const pdbIdMatch = msg.match(/\b([0-9][a-z0-9]{3})\b/i);
     if (pdbIdMatch) {
-        return `I can look up PDB ID "${pdbIdMatch[1].toUpperCase()}" from the RCSB Protein Data Bank. This database contains 3D structures of proteins, nucleic acids, and complex assemblies. Visit https://www.rcsb.org/structure/${pdbIdMatch[1].toUpperCase()} for detailed structural information.`;
+        return {
+            type: 'pdb_lookup',
+            pdbId: pdbIdMatch[1].toUpperCase(),
+            message: `🔍 Looking up PDB structure ${pdbIdMatch[1].toUpperCase()}...`
+        };
     }
 
     return `I'm here to help with DNA sequence analysis! ${sequences.length ? `You currently have ${sequences.length} sequences loaded with an average GC content of ${(sequences.reduce((sum, s) => sum + (s.gcPercentage || s.gcContent || 0), 0) / sequences.length).toFixed(1)}%.` : 'Upload a FASTA file to get started.'} Feel free to ask me about species identification, sequence types, ORFs, GC content, protein structures (RCSB PDB), or any other bioinformatics concepts.`;

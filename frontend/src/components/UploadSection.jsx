@@ -1,4 +1,4 @@
-import { Icons } from './Icons';
+﻿import { Icons } from './Icons';
 import { QuickAccessCards } from './QuickAccessCards';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -227,19 +227,20 @@ export function UploadSection({ onUploadComplete }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" role="main" aria-label="FASTA file upload section">
       {/* Header */}
-      <div className="mb-6">
+      <header className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
           Upload FASTA Files
         </h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Analyze DNA sequences and generate insights
         </p>
-      </div>
+      </header>
 
       {/* Upload Box */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-12" ref={uploadBoxRef}>
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-12" ref={uploadBoxRef} aria-labelledby="upload-section-heading">
+        <h2 id="upload-section-heading" className="sr-only">File upload area</h2>
         <div
           className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
             ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
@@ -248,6 +249,9 @@ export function UploadSection({ onUploadComplete }) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          role="region"
+          aria-label="Drag and drop zone for FASTA files"
+          aria-describedby="upload-instructions"
         >
           <input
             type="file"
@@ -255,6 +259,8 @@ export function UploadSection({ onUploadComplete }) {
             onChange={handleFileSelect}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={showReview}
+            aria-label="Choose FASTA file to upload"
+            id="fasta-file-input"
           />
 
           <div className="pointer-events-none flex flex-col items-center">
@@ -262,11 +268,12 @@ export function UploadSection({ onUploadComplete }) {
               className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg"
               animate={{ y: isDragging ? -5 : [0, -8, 0] }}
               transition={{ y: { duration: 2, repeat: Infinity, ease: 'easeInOut' } }}
+              aria-hidden="true"
             >
-              <Icons.Upload className="w-10 h-10 text-white" />
+              <Icons.Upload className="w-10 h-10 text-white" aria-hidden="true" />
             </motion.div>
 
-            <h3 className="text-gray-900 dark:text-white text-xl font-semibold text-center mb-3">
+            <h3 className="text-gray-900 dark:text-white text-xl font-semibold text-center mb-3" id="upload-instructions">
               Drag & drop your FASTA file
             </h3>
 
@@ -274,8 +281,8 @@ export function UploadSection({ onUploadComplete }) {
               or click to browse
             </p>
 
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md">
-              <Icons.File className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md" role="note">
+              <Icons.File className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-600 dark:text-gray-300">
                 Accepts .fasta or .fa files
               </span>
@@ -287,9 +294,11 @@ export function UploadSection({ onUploadComplete }) {
         <div className="mt-6 text-center">
           <button
             onClick={() => setShowTextInput(!showTextInput)}
-            className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium inline-flex items-center gap-2"
+            className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
+            aria-expanded={showTextInput}
+            aria-controls="sequence-text-input"
           >
-            <Icons.Edit className="w-4 h-4" />
+            <Icons.Edit className="w-4 h-4" aria-hidden="true" />
             {showTextInput ? 'Hide text input' : 'Or paste sequence directly'}
           </button>
         </div>
@@ -298,6 +307,7 @@ export function UploadSection({ onUploadComplete }) {
         <AnimatePresence>
           {showTextInput && (
             <motion.div
+              id="sequence-text-input"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -464,10 +474,10 @@ export function UploadSection({ onUploadComplete }) {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
+      </section>
       {/* Quick Access Cards */}
       <QuickAccessCards />
     </div>
   );
 }
+

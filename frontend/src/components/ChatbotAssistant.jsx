@@ -1047,14 +1047,15 @@ Which file would you like to explore?`
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-2xl transition-all flex items-center justify-center text-white group hover:scale-105 z-50"
-          title="Open DNA Assistant"
+          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-2xl transition-all flex items-center justify-center text-white group hover:scale-105 z-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 focus-visible:ring-offset-2"
+          aria-label="Open DNA Assistant chatbot"
+          aria-haspopup="dialog"
         >
           {/* Animated pulsing ring */}
-          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 animate-ping opacity-20" />
+          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 animate-ping opacity-20" aria-hidden="true" />
 
           {/* DNA Helix Logo */}
-          <div className="relative z-10 flex items-center justify-center">
+          <div className="relative z-10 flex items-center justify-center" aria-hidden="true">
             <svg
               width="32"
               height="32"
@@ -1062,6 +1063,7 @@ Which file would you like to explore?`
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
               className="group-hover:rotate-180 transition-transform duration-700 ease-in-out"
+              aria-hidden="true"
             >
               <path d="M12 4 Q8 12, 12 20 Q16 28, 12 36" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.9" />
               <path d="M28 4 Q32 12, 28 20 Q24 28, 28 36" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.9" />
@@ -1075,7 +1077,7 @@ Which file would you like to explore?`
           </div>
 
           {/* Active status indicator with glow */}
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-lg z-20">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-lg z-20" aria-hidden="true">
             <span className="absolute inset-0 bg-emerald-400 rounded-full animate-pulse" />
           </span>
         </button>
@@ -1085,6 +1087,9 @@ Which file would you like to explore?`
       {isOpen && (
         <div 
           ref={chatRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="DNA Assistant chatbot"
           className={`fixed bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200 dark:border-gray-800 transition-colors duration-300 ${isDragging ? 'cursor-grabbing select-none' : ''}`}
           style={isFullscreen ? {
             inset: '16px'

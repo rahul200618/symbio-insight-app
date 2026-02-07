@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const SequenceMongoSchema = new mongoose.Schema({
   // User reference (optional for now)
@@ -99,6 +100,25 @@ const SequenceMongoSchema = new mongoose.Schema({
   description: String,
   tags: [String],
   
+  // Sharing configuration
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
+  shareToken: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
+  },
+  shareExpires: {
+    type: Date
+  },
+  shareViewCount: {
+    type: Number,
+    default: 0
+  },
+  
   // Storage info
   storageType: {
     type: String,
@@ -115,6 +135,30 @@ SequenceMongoSchema.index({ name: 'text', header: 'text' });
 SequenceMongoSchema.index({ createdAt: -1 });
 SequenceMongoSchema.index({ gcContent: 1 });
 SequenceMongoSchema.index({ length: 1 });
+
+// Generate a unique share token
+SequenceMongoSchema.methods.generateShareToken = function(expiresInDays = 7) {
+  this.shareToken = crypto.randomBytes(16).toString('hex');
+  this.shareExpires = expiresInDays > 0 
+    ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
+    : null; // null = never expires
+  this.isPublic = true;
+  return this.shareToken;
+};
+
+// Check if share link is valid
+SequenceMongoSchema.methods.isShareValid = function() {
+  if (!this.isPublic || !this.shareToken) return false;
+  if (!this.shareExpires) return true; // No expiry = always valid
+  return new Date() < this.shareExpires;
+};
+
+// Revoke share access
+SequenceMongoSchema.methods.revokeShare = function() {
+  this.shareToken = undefined;
+  this.shareExpires = undefined;
+  this.isPublic = false;
+};
 
 // Virtual for formatted size
 SequenceMongoSchema.virtual('formattedSize').get(function() {

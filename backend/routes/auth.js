@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { protect } = require('../middleware/authMiddleware');
 
 // Dynamically load the correct User model based on storage mode
@@ -225,7 +226,7 @@ router.put('/change-password', protect, async (req, res) => {
 });
 
 // @route   POST /api/auth/forgot-password
-// @desc    Send password reset email (simulated)
+// @desc    Request password reset - generates token and logs reset URL
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
     try {
@@ -236,24 +237,189 @@ router.post('/forgot-password', async (req, res) => {
         }
 
         // Check if user exists
-        const user = STORAGE_MODE === 'atlas'
-            ? await User.findOne({ email })
-            : await User.findOne({ where: { email } });
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findOne({ email }).select('+passwordResetToken +passwordResetExpires');
+        } else {
+            user = await User.findOne({ where: { email } });
+        }
         
         // Always return success to prevent email enumeration
         if (user) {
-            const resetToken = require('crypto').randomBytes(32).toString('hex');
-            console.log(`Password reset requested for ${email}`);
-            console.log(`Reset token (dev only): ${resetToken}`);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Generate reset token
+            let resetToken;
+            
+            if (STORAGE_MODE === 'atlas') {
+                // Use the method defined in the model
+                resetToken = user.createPasswordResetToken();
+                await user.save({ validateBeforeSave: false });
+            } else {
+                // For SQLite, handle token generation here
+                resetToken = crypto.randomBytes(32).toString('hex');
+                const hashedToken = crypto
+                    .createHash('sha256')
+                    .update(resetToken)
+                    .digest('hex');
+                
+                user.passwordResetToken = hashedToken;
+                user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
+                await user.save();
+            }
+
+            // Build reset URL (frontend would handle this route)
+            const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+            
+            // Log the reset URL for development
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🔐 PASSWORD RESET REQUESTED');
+            console.log(`Email: ${email}`);
+            console.log(`Reset Token: ${resetToken}`);
+            console.log(`Reset URL: ${resetUrl}`);
+            console.log(`Expires: ${new Date(Date.now() + 60 * 60 * 1000).toLocaleString()}`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            // TODO: In production, send email using nodemailer or SendGrid
+            // await sendEmail({
+            //     to: email,
+            //     subject: 'Password Reset Request - SymbioInsight',
+            //     html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. Link expires in 1 hour.</p>`
+            // });
         }
 
+        // Simulate email sending delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         res.json({ 
-            message: 'If an account exists with this email, you will receive password reset instructions shortly.' 
+            message: 'If an account exists with this email, you will receive password reset instructions shortly.',
+            // In development, also return the token (remove in production!)
+            ...(process.env.NODE_ENV !== 'production' && user ? { 
+                resetToken: 'Check server console for reset URL',
+                expiresIn: '1 hour'
+            } : {})
         });
     } catch (error) {
         console.error('Forgot password error:', error);
         res.status(500).json({ message: error.message || 'Server error' });
+    }
+});
+
+// @route   POST /api/auth/reset-password/:token
+// @desc    Reset password using token
+// @access  Public
+router.post('/reset-password/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'New password is required' });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters' });
+        }
+
+        // Hash the token to compare with stored hash
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+
+        // Find user with valid reset token
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findOne({
+                passwordResetToken: hashedToken,
+                passwordResetExpires: { $gt: Date.now() }
+            }).select('+password +passwordResetToken +passwordResetExpires');
+        } else {
+            const { Op } = require('sequelize');
+            user = await User.findOne({
+                where: {
+                    passwordResetToken: hashedToken,
+                    passwordResetExpires: { [Op.gt]: new Date() }
+                }
+            });
+        }
+
+        if (!user) {
+            return res.status(400).json({ 
+                message: 'Password reset token is invalid or has expired' 
+            });
+        }
+
+        // Update password and clear reset token
+        user.password = password;
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save();
+
+        // Generate new auth token
+        const userId = user._id || user.id;
+        const authToken = generateToken(userId);
+
+        console.log(`✅ Password reset successful for: ${user.email}`);
+
+        res.json({
+            message: 'Password reset successful',
+            token: authToken,
+            user: {
+                id: userId,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
+});
+
+// @route   GET /api/auth/verify-reset-token/:token
+// @desc    Verify if a reset token is valid
+// @access  Public
+router.get('/verify-reset-token/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        // Hash the token to compare with stored hash
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+
+        // Find user with valid reset token
+        let user;
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findOne({
+                passwordResetToken: hashedToken,
+                passwordResetExpires: { $gt: Date.now() }
+            });
+        } else {
+            const { Op } = require('sequelize');
+            user = await User.findOne({
+                where: {
+                    passwordResetToken: hashedToken,
+                    passwordResetExpires: { [Op.gt]: new Date() }
+                }
+            });
+        }
+
+        if (!user) {
+            return res.status(400).json({ 
+                valid: false,
+                message: 'Password reset token is invalid or has expired' 
+            });
+        }
+
+        res.json({ 
+            valid: true,
+            email: user.email.substring(0, 3) + '***@' + user.email.split('@')[1]
+        });
+    } catch (error) {
+        console.error('Verify reset token error:', error);
+        res.status(500).json({ valid: false, message: error.message || 'Server error' });
     }
 });
 
@@ -297,6 +463,155 @@ router.delete('/account', protect, async (req, res) => {
     } catch (error) {
         console.error('Delete account error:', error);
         res.status(500).json({ message: error.message || 'Server error during account deletion' });
+    }
+});
+
+// ============================================================================
+// OAUTH ROUTES - Google & GitHub Social Login
+// ============================================================================
+
+/**
+ * Handle Google OAuth authentication
+ * POST /api/auth/oauth/google
+ * @access Public
+ */
+router.post('/oauth/google', async (req, res) => {
+    try {
+        const { email, name, photoURL, uid } = req.body;
+
+        if (!email || !uid) {
+            return res.status(400).json({ message: 'Email and UID are required' });
+        }
+
+        // Check if user exists
+        let user;
+        let isNewUser = false;
+
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findOne({ email });
+        } else {
+            user = await User.findOne({ where: { email } });
+        }
+
+        if (!user) {
+            // Create new user with OAuth
+            isNewUser = true;
+            const randomPassword = crypto.randomBytes(32).toString('hex');
+            
+            user = await User.create({
+                name: name || email.split('@')[0],
+                email,
+                password: randomPassword, // Random password for OAuth users
+                institution: '',
+                oauthProvider: 'google',
+                oauthId: uid,
+                profileImage: photoURL || ''
+            });
+        } else {
+            // Update OAuth info if needed
+            if (STORAGE_MODE === 'atlas') {
+                if (!user.oauthProvider) {
+                    user.oauthProvider = 'google';
+                    user.oauthId = uid;
+                    if (photoURL) user.profileImage = photoURL;
+                    await user.save();
+                }
+            }
+        }
+
+        const userId = user._id || user.id;
+        const token = generateToken(userId);
+
+        res.json({
+            message: isNewUser ? 'Account created successfully' : 'Login successful',
+            isNewUser,
+            token,
+            user: {
+                id: userId,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profileImage: user.profileImage || photoURL
+            }
+        });
+    } catch (error) {
+        console.error('Google OAuth error:', error);
+        res.status(500).json({ message: error.message || 'OAuth authentication failed' });
+    }
+});
+
+/**
+ * Handle GitHub OAuth authentication
+ * POST /api/auth/oauth/github
+ * @access Public
+ */
+router.post('/oauth/github', async (req, res) => {
+    try {
+        const { email, name, photoURL, uid } = req.body;
+
+        if (!uid) {
+            return res.status(400).json({ message: 'UID is required' });
+        }
+
+        // GitHub may not provide email, use uid as fallback
+        const userEmail = email || `${uid}@github.oauth`;
+
+        // Check if user exists
+        let user;
+        let isNewUser = false;
+
+        if (STORAGE_MODE === 'atlas') {
+            user = await User.findOne({ 
+                $or: [{ email: userEmail }, { oauthId: uid, oauthProvider: 'github' }]
+            });
+        } else {
+            user = await User.findOne({ where: { email: userEmail } });
+        }
+
+        if (!user) {
+            // Create new user with OAuth
+            isNewUser = true;
+            const randomPassword = crypto.randomBytes(32).toString('hex');
+            
+            user = await User.create({
+                name: name || userEmail.split('@')[0],
+                email: userEmail,
+                password: randomPassword,
+                institution: '',
+                oauthProvider: 'github',
+                oauthId: uid,
+                profileImage: photoURL || ''
+            });
+        } else {
+            // Update OAuth info if needed
+            if (STORAGE_MODE === 'atlas') {
+                if (!user.oauthProvider) {
+                    user.oauthProvider = 'github';
+                    user.oauthId = uid;
+                    if (photoURL) user.profileImage = photoURL;
+                    await user.save();
+                }
+            }
+        }
+
+        const userId = user._id || user.id;
+        const token = generateToken(userId);
+
+        res.json({
+            message: isNewUser ? 'Account created successfully' : 'Login successful',
+            isNewUser,
+            token,
+            user: {
+                id: userId,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profileImage: user.profileImage || photoURL
+            }
+        });
+    } catch (error) {
+        console.error('GitHub OAuth error:', error);
+        res.status(500).json({ message: error.message || 'OAuth authentication failed' });
     }
 });
 

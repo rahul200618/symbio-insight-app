@@ -52,16 +52,25 @@
             "vaul": "^1.1.2"
       },
       "devDependencies": {
+            "@testing-library/jest-dom": "^6.4.0",
+            "@testing-library/react": "^14.2.0",
+            "@testing-library/user-event": "^14.5.2",
             "@types/node": "^20.10.0",
             "@types/react": "^19.2.7",
             "@types/react-dom": "^19.2.3",
             "@vitejs/plugin-react-swc": "^3.10.2",
-            "vite": "6.3.5"
+            "jsdom": "^24.0.0",
+            "vite": "6.3.5",
+            "vitest": "^1.3.0"
       },
       "scripts": {
             "dev": "vite",
             "build": "vite build",
             "preview": "vite preview",
-            "vercel-build": "vite build"
+            "vercel-build": "vite build",
+            "test": "vitest",
+            "test:ui": "vitest --ui",
+            "test:coverage": "vitest run --coverage",
+            "test:ci": "vitest run --reporter=junit --outputFile=test-results.xml"
       }
 }

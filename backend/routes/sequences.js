@@ -849,4 +849,478 @@ router.post('/generate-pdf', async (req, res) => {
   }
 });
 
+// ============================================================================
+// EXPORT ENDPOINTS - CSV/JSON Export
+// ============================================================================
+
+/**
+ * Export sequence as JSON
+ * GET /api/sequences/export/:id/json
+ */
+router.get('/export/:id/json', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid sequence ID format' });
+      }
+      sequence = await SequenceMongo.findById(id).lean();
+    } else {
+      sequence = await Sequence.findByPk(id);
+      if (sequence) sequence = sequence.toJSON();
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Sequence not found' });
+    }
+
+    // Format for export
+    const exportData = {
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        source: 'Symbio-NLM',
+        version: '1.0.0'
+      },
+      sequence: {
+        id: sequence._id || sequence.id,
+        name: sequence.name,
+        header: sequence.header,
+        filename: sequence.filename,
+        length: sequence.length,
+        gcContent: sequence.gcContent,
+        atContent: sequence.atContent || (100 - sequence.gcContent),
+        nucleotideCounts: sequence.nucleotideCounts,
+        orfDetected: sequence.orfDetected,
+        orfCount: sequence.orfCount,
+        orfs: sequence.orfs,
+        codonFrequency: sequence.codonFrequency,
+        rawSequence: sequence.sequence,
+        createdAt: sequence.createdAt,
+        updatedAt: sequence.updatedAt
+      }
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${sequence.name || 'sequence'}-export.json"`);
+    res.json(exportData);
+  } catch (err) {
+    console.error('JSON export error:', err);
+    res.status(500).json({ error: 'Failed to export sequence as JSON' });
+  }
+});
+
+/**
+ * Export sequence as CSV
+ * GET /api/sequences/export/:id/csv
+ */
+router.get('/export/:id/csv', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid sequence ID format' });
+      }
+      sequence = await SequenceMongo.findById(id).lean();
+    } else {
+      sequence = await Sequence.findByPk(id);
+      if (sequence) sequence = sequence.toJSON();
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Sequence not found' });
+    }
+
+    // Build CSV content
+    const nucleotides = sequence.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
+    
+    let csv = 'Property,Value\n';
+    csv += `Name,"${(sequence.name || '').replace(/"/g, '""')}"\n`;
+    csv += `Header,"${(sequence.header || '').replace(/"/g, '""')}"\n`;
+    csv += `Filename,"${(sequence.filename || '').replace(/"/g, '""')}"\n`;
+    csv += `Length (bp),${sequence.length}\n`;
+    csv += `GC Content (%),${(sequence.gcContent || 0).toFixed(2)}\n`;
+    csv += `AT Content (%),${(100 - (sequence.gcContent || 0)).toFixed(2)}\n`;
+    csv += `Adenine (A),${nucleotides.A || 0}\n`;
+    csv += `Thymine (T),${nucleotides.T || 0}\n`;
+    csv += `Guanine (G),${nucleotides.G || 0}\n`;
+    csv += `Cytosine (C),${nucleotides.C || 0}\n`;
+    csv += `ORF Detected,${sequence.orfDetected ? 'Yes' : 'No'}\n`;
+    csv += `ORF Count,${sequence.orfCount || 0}\n`;
+    csv += `Created At,"${sequence.createdAt || ''}"\n`;
+    
+    // Add ORF details if present
+    if (sequence.orfs && sequence.orfs.length > 0) {
+      csv += '\nORF Details\n';
+      csv += 'ORF #,Start,End,Length,Frame\n';
+      sequence.orfs.forEach((orf, idx) => {
+        csv += `${idx + 1},${orf.start},${orf.end},${orf.length},${orf.frame || 0}\n`;
+      });
+    }
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${sequence.name || 'sequence'}-export.csv"`);
+    res.send(csv);
+  } catch (err) {
+    console.error('CSV export error:', err);
+    res.status(500).json({ error: 'Failed to export sequence as CSV' });
+  }
+});
+
+/**
+ * Export all sequences as JSON
+ * GET /api/sequences/export/all/json
+ */
+router.get('/export/all/json', async (req, res) => {
+  try {
+    let sequences;
+
+    if (STORAGE_MODE === 'atlas') {
+      sequences = await SequenceMongo.find({}).lean();
+    } else {
+      sequences = await Sequence.findAll();
+      sequences = sequences.map(s => s.toJSON());
+    }
+
+    const exportData = {
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        source: 'Symbio-NLM',
+        version: '1.0.0',
+        totalSequences: sequences.length
+      },
+      sequences: sequences.map(seq => ({
+        id: seq._id || seq.id,
+        name: seq.name,
+        header: seq.header,
+        filename: seq.filename,
+        length: seq.length,
+        gcContent: seq.gcContent,
+        nucleotideCounts: seq.nucleotideCounts,
+        orfDetected: seq.orfDetected,
+        orfCount: seq.orfCount,
+        orfs: seq.orfs,
+        rawSequence: seq.sequence,
+        createdAt: seq.createdAt
+      }))
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="symbio-nlm-all-sequences-${Date.now()}.json"`);
+    res.json(exportData);
+  } catch (err) {
+    console.error('Bulk JSON export error:', err);
+    res.status(500).json({ error: 'Failed to export sequences' });
+  }
+});
+
+/**
+ * Export all sequences as CSV
+ * GET /api/sequences/export/all/csv
+ */
+router.get('/export/all/csv', async (req, res) => {
+  try {
+    let sequences;
+
+    if (STORAGE_MODE === 'atlas') {
+      sequences = await SequenceMongo.find({}).lean();
+    } else {
+      sequences = await Sequence.findAll();
+      sequences = sequences.map(s => s.toJSON());
+    }
+
+    // Build CSV header
+    let csv = 'ID,Name,Filename,Length,GC%,A,T,G,C,ORFs,Created\n';
+    
+    sequences.forEach(seq => {
+      const nucleotides = seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
+      csv += `"${seq._id || seq.id}",`;
+      csv += `"${(seq.name || '').replace(/"/g, '""')}",`;
+      csv += `"${(seq.filename || '').replace(/"/g, '""')}",`;
+      csv += `${seq.length},`;
+      csv += `${(seq.gcContent || 0).toFixed(2)},`;
+      csv += `${nucleotides.A || 0},`;
+      csv += `${nucleotides.T || 0},`;
+      csv += `${nucleotides.G || 0},`;
+      csv += `${nucleotides.C || 0},`;
+      csv += `${seq.orfCount || 0},`;
+      csv += `"${seq.createdAt || ''}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="symbio-nlm-all-sequences-${Date.now()}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    console.error('Bulk CSV export error:', err);
+    res.status(500).json({ error: 'Failed to export sequences' });
+  }
+});
+
+/**
+ * Export sequence as FASTA format
+ * GET /api/sequences/export/:id/fasta
+ */
+router.get('/export/:id/fasta', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid sequence ID format' });
+      }
+      sequence = await SequenceMongo.findById(id).lean();
+    } else {
+      sequence = await Sequence.findByPk(id);
+      if (sequence) sequence = sequence.toJSON();
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Sequence not found' });
+    }
+
+    // Build FASTA format
+    const header = sequence.header || sequence.name || 'Sequence';
+    const rawSeq = sequence.sequence || '';
+    
+    // Format sequence with 80 characters per line
+    let fasta = `>${header}\n`;
+    for (let i = 0; i < rawSeq.length; i += 80) {
+      fasta += rawSeq.substring(i, i + 80) + '\n';
+    }
+
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', `attachment; filename="${sequence.name || 'sequence'}.fasta"`);
+    res.send(fasta);
+  } catch (err) {
+    console.error('FASTA export error:', err);
+    res.status(500).json({ error: 'Failed to export sequence as FASTA' });
+  }
+});
+
+// ============================================================================
+// SHARE ROUTES - Public sharing functionality
+// ============================================================================
+
+/**
+ * Generate a share link for a sequence
+ * POST /api/sequences/:id/share
+ * Body: { expiresInDays: 7 } (optional, default 7, 0 = never expires)
+ */
+router.post('/:id/share', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { expiresInDays = 7 } = req.body;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid sequence ID format' });
+      }
+      sequence = await SequenceMongo.findById(id);
+    } else {
+      sequence = await Sequence.findByPk(id);
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Sequence not found' });
+    }
+
+    // Generate share token
+    let shareToken;
+    if (STORAGE_MODE === 'atlas') {
+      shareToken = sequence.generateShareToken(expiresInDays);
+      await sequence.save();
+    } else {
+      // For SQLite, generate token manually
+      const crypto = require('crypto');
+      shareToken = crypto.randomBytes(16).toString('hex');
+      sequence.shareToken = shareToken;
+      sequence.isPublic = true;
+      sequence.shareExpires = expiresInDays > 0 
+        ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
+        : null;
+      await sequence.save();
+    }
+
+    // Build the share URL
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const shareUrl = `${frontendUrl}/shared/${shareToken}`;
+
+    res.json({
+      message: 'Share link generated successfully',
+      shareToken,
+      shareUrl,
+      expiresAt: sequence.shareExpires || 'Never',
+      sequenceId: id
+    });
+  } catch (err) {
+    console.error('Generate share link error:', err);
+    res.status(500).json({ error: 'Failed to generate share link' });
+  }
+});
+
+/**
+ * Get sequence by share token (public access)
+ * GET /api/sequences/shared/:token
+ */
+router.get('/shared/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      sequence = await SequenceMongo.findOne({ 
+        shareToken: token,
+        isPublic: true
+      });
+    } else {
+      sequence = await Sequence.findOne({ 
+        where: { 
+          shareToken: token,
+          isPublic: true
+        }
+      });
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Shared sequence not found or link expired' });
+    }
+
+    // Check if link is expired
+    if (sequence.shareExpires && new Date() > new Date(sequence.shareExpires)) {
+      return res.status(410).json({ error: 'This share link has expired' });
+    }
+
+    // Increment view count
+    if (STORAGE_MODE === 'atlas') {
+      await SequenceMongo.findByIdAndUpdate(sequence._id, { 
+        $inc: { shareViewCount: 1 } 
+      });
+    } else {
+      sequence.shareViewCount = (sequence.shareViewCount || 0) + 1;
+      await sequence.save();
+    }
+
+    // Return sequence data (without sensitive info)
+    const data = sequence.toJSON ? sequence.toJSON() : sequence;
+    
+    res.json({
+      id: data._id || data.id,
+      name: data.name,
+      header: data.header,
+      sequence: data.sequence,
+      length: data.length,
+      gcContent: data.gcContent,
+      atContent: data.atContent,
+      nucleotideCounts: data.nucleotideCounts,
+      codonFrequency: data.codonFrequency,
+      orfDetected: data.orfDetected,
+      orfCount: data.orfCount,
+      orfs: data.orfs,
+      aiSummary: data.aiSummary,
+      speciesPrediction: data.speciesPrediction,
+      createdAt: data.createdAt,
+      viewCount: data.shareViewCount,
+      isShared: true
+    });
+  } catch (err) {
+    console.error('Get shared sequence error:', err);
+    res.status(500).json({ error: 'Failed to retrieve shared sequence' });
+  }
+});
+
+/**
+ * Revoke share link for a sequence
+ * DELETE /api/sequences/:id/share
+ */
+router.delete('/:id/share', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid sequence ID format' });
+      }
+      sequence = await SequenceMongo.findById(id);
+    } else {
+      sequence = await Sequence.findByPk(id);
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Sequence not found' });
+    }
+
+    // Revoke share access
+    if (STORAGE_MODE === 'atlas') {
+      sequence.revokeShare();
+      await sequence.save();
+    } else {
+      sequence.shareToken = null;
+      sequence.shareExpires = null;
+      sequence.isPublic = false;
+      await sequence.save();
+    }
+
+    res.json({
+      message: 'Share link revoked successfully',
+      sequenceId: id
+    });
+  } catch (err) {
+    console.error('Revoke share link error:', err);
+    res.status(500).json({ error: 'Failed to revoke share link' });
+  }
+});
+
+/**
+ * Get share status for a sequence
+ * GET /api/sequences/:id/share
+ */
+router.get('/:id/share', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let sequence;
+
+    if (STORAGE_MODE === 'atlas') {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid sequence ID format' });
+      }
+      sequence = await SequenceMongo.findById(id).lean();
+    } else {
+      sequence = await Sequence.findByPk(id);
+      if (sequence) sequence = sequence.toJSON();
+    }
+
+    if (!sequence) {
+      return res.status(404).json({ error: 'Sequence not found' });
+    }
+
+    if (!sequence.isPublic || !sequence.shareToken) {
+      return res.json({
+        isShared: false,
+        sequenceId: id
+      });
+    }
+
+    const isExpired = sequence.shareExpires && new Date() > new Date(sequence.shareExpires);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+    res.json({
+      isShared: !isExpired,
+      shareUrl: `${frontendUrl}/shared/${sequence.shareToken}`,
+      expiresAt: sequence.shareExpires || 'Never',
+      viewCount: sequence.shareViewCount || 0,
+      isExpired,
+      sequenceId: id
+    });
+  } catch (err) {
+    console.error('Get share status error:', err);
+    res.status(500).json({ error: 'Failed to get share status' });
+  }
+});
+
 module.exports = router;

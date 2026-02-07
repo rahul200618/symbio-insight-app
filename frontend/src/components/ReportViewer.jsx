@@ -8,6 +8,7 @@ import { generatePDFReport as generateBackendPDF } from '../utils/sequenceApi.js
 import { generateSequenceAnalysis } from '../utils/aiService.js';
 import { toast } from 'sonner';
 import { useNotifications } from '../context/NotificationContext';
+import { SequenceAnnotation } from './SequenceAnnotation';
 
 export function ReportViewer({ parsedSequences = [], isLoading = false }) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -16,6 +17,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
   const [expandedSequence, setExpandedSequence] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('index'); // 'index', 'length', 'gc', 'orfs'
+  const [annotatingSequence, setAnnotatingSequence] = useState(null);
   
   // Notifications
   const { notifyReportGenerated } = useNotifications();
@@ -694,6 +696,22 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                               )}
                             </div>
                           )}
+
+                          {/* Annotate Button */}
+                          {seq._id && (
+                            <div className="mt-6 flex justify-center">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAnnotatingSequence(seq);
+                                }}
+                                className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center gap-2 text-sm font-medium"
+                              >
+                                <Icons.Tag className="w-4 h-4" />
+                                Annotate Sequence
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -705,6 +723,17 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
           </div>
         </div>
       )}
+
+      {/* Annotation Modal */}
+      <AnimatePresence>
+        {annotatingSequence && (
+          <SequenceAnnotation
+            sequence={annotatingSequence}
+            sequenceId={annotatingSequence._id}
+            onClose={() => setAnnotatingSequence(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

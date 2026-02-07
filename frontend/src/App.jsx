@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sidebar } from './components/Sidebar';
@@ -6,21 +6,36 @@ import { TopBar } from './components/TopBar';
 import { RightPanel } from './components/RightPanel';
 import { ChatbotAssistant } from './components/ChatbotAssistant';
 import { ScrollProgressBar } from './components/AnimatedPage';
+import { SkipLink } from './components/SkipLink';
 import { initAnimeJS } from './utils/animations.js';
 import { useScrollProgress } from './hooks/useScrollAnimation.js';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
-// Page imports
-import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { RecentPage } from './pages/RecentPage';
-import { MetadataPage } from './pages/MetadataPage';
-import { ReportPage } from './pages/ReportPage';
-import { ProfilePage } from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
+// Lazy-loaded page imports for code splitting
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const SignupPage = lazy(() => import('./pages/SignupPage').then(m => ({ default: m.SignupPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const RecentPage = lazy(() => import('./pages/RecentPage').then(m => ({ default: m.RecentPage })));
+const MetadataPage = lazy(() => import('./pages/MetadataPage').then(m => ({ default: m.MetadataPage })));
+const ReportPage = lazy(() => import('./pages/ReportPage').then(m => ({ default: m.ReportPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const SharedSequencePage = lazy(() => import('./pages/SharedSequencePage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+
+// Loading spinner for lazy-loaded components
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col items-center gap-4">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
+    </div>
+  </div>
+);
 
 // Main Layout Component (for authenticated pages)
 function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSelectedFile }) {
@@ -65,11 +80,12 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <SkipLink targetId="main-content" />
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <TopBar />
         <ScrollProgressBar progress={scrollProgress} />
-        <main className="flex-1 p-6 md:p-10">
+        <main id="main-content" className="flex-1 p-6 md:p-10" tabIndex="-1" role="main" aria-label="Main content">
           <Outlet />
         </main>
         {showRightPanel && <RightPanel onClose={() => setShowRightPanel(false)} />}
@@ -93,41 +109,47 @@ function AppRoutes() {
   };
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+    <Suspense fallback={<PageLoader />}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="/shared/:token" element={<SharedSequencePage />} />
 
-        {/* Protected Routes */}
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <MainLayout
-                parsedSequences={parsedSequences}
-                setParsedSequences={setParsedSequences}
-                selectedFile={selectedFile}
-                setSelectedFile={setSelectedFile}
-              />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
-          <Route path="recent" element={<RecentPage onFileSelect={handleFileSelect} parsedSequences={parsedSequences} />} />
-          <Route path="metadata" element={<MetadataPage parsedSequences={parsedSequences} selectedFile={selectedFile} onFileSelect={handleFileSelect} />} />
-          <Route path="report" element={<ReportPage parsedSequences={parsedSequences} />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
+          {/* Protected Routes */}
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <MainLayout
+                  parsedSequences={parsedSequences}
+                  setParsedSequences={setParsedSequences}
+                  selectedFile={selectedFile}
+                  setSelectedFile={setSelectedFile}
+                />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<DashboardPage onUploadComplete={(seq) => setParsedSequences(seq)} />} />
+            <Route path="recent" element={<RecentPage onFileSelect={handleFileSelect} parsedSequences={parsedSequences} />} />
+            <Route path="metadata" element={<MetadataPage parsedSequences={parsedSequences} selectedFile={selectedFile} onFileSelect={handleFileSelect} />} />
+            <Route path="report" element={<ReportPage parsedSequences={parsedSequences} />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="admin" element={<AdminDashboardPage />} />
+          </Route>
 
-        {/* Root redirect */}
-        <Route path="/" element={<RootRedirect />} />
+          {/* Root redirect */}
+          <Route path="/" element={<RootRedirect />} />
 
-        {/* 404 */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </AnimatePresence>
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
   );
 }
 

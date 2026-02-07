@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const compression = require('compression');
+const { generalLimiter, authLimiter, aiLimiter, uploadLimiter } = require('./middleware/rateLimiter');
+const { securityHeaders, apiCacheControl } = require('./middleware/cacheControl');
 
 dotenv.config();
 const app = express();
@@ -55,6 +57,12 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Compression middleware - compress all responses
 app.use(compression());
 
+// Security headers middleware
+app.use(securityHeaders);
+
+// Apply general rate limiting to all API routes
+app.use('/api', generalLimiter);
+
 // Connect to database based on STORAGE_MODE
 const initializeDatabase = async () => {
   console.log('🔄 Initializing database...');
@@ -87,14 +95,27 @@ const aiRouter = require('./routes/ai');
 const storageRouter = require('./routes/storage');
 const fastaRouter = require('./routes/fasta');
 const adminRouter = require('./routes/admin');
+const annotationsRouter = require('./routes/annotations');
+const healthRouter = require('./routes/health');
 console.log('✅ Routes loaded');
 
 app.use('/api/sequences', sequencesRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/ai', aiRouter);
+app.use('/api/auth', authLimiter, authRouter); // Stricter limits for auth
+app.use('/api/ai', aiLimiter, aiRouter); // AI-specific limits
 app.use('/api/storage', storageRouter);
 app.use('/api/fasta', fastaRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/annotations', annotationsRouter);
+app.use('/api/health', healthRouter);
+
+// API v1 routes (versioned)
+app.use('/api/v1/sequences', sequencesRouter);
+app.use('/api/v1/auth', authLimiter, authRouter);
+app.use('/api/v1/ai', aiLimiter, aiRouter);
+app.use('/api/v1/storage', storageRouter);
+app.use('/api/v1/fasta', fastaRouter);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/annotations', annotationsRouter);
 
 // Serve the database viewer HTML
 app.get('/db-viewer', (req, res) => {
@@ -107,12 +128,20 @@ app.get('/', (req, res) => {
     message: 'Symbio-NLM Backend API',
     version: '1.0.0',
     storageMode: STORAGE_MODE,
+    apiVersions: ['v1'],
     endpoints: {
       health: '/api/health',
-      sequences: '/api/sequences',
-      auth: '/api/auth',
-      ai: '/api/ai',
-      storage: '/api/storage'
+      sequences: '/api/sequences (or /api/v1/sequences)',
+      auth: '/api/auth (or /api/v1/auth)',
+      ai: '/api/ai (or /api/v1/ai)',
+      storage: '/api/storage',
+      export: '/api/sequences/export/:id'
+    },
+    rateLimits: {
+      general: '100 requests/minute',
+      auth: '10 attempts/15 minutes',
+      ai: '20 requests/minute',
+      upload: '50 files/hour'
     }
   });
 });
