@@ -1,6 +1,6 @@
 ﻿import { Icons } from './Icons';
 import { QuickAccessCards } from './QuickAccessCards';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { parseFastaFile, calculateAggregateStats } from '../utils/fastaParser.js';
@@ -8,6 +8,8 @@ import { uploadSequenceFile, createSequenceFromText } from '../utils/sequenceApi
 import { useScrollAnimation } from '../hooks/useScrollAnimation.js';
 import { animeAnimations } from '../utils/animations.js';
 import { useNotifications } from '../context/NotificationContext';
+import { Card3D, Button3D, Floating3D, Icon3D } from './3DComponents';
+import { calculateTilt } from '../utils/3dMotion';
 
 export function UploadSection({ onUploadComplete }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -19,11 +21,13 @@ export function UploadSection({ onUploadComplete }) {
   const [showReview, setShowReview] = useState(false);
   const [showTextInput, setShowTextInput] = useState(false);
   const [sequenceText, setSequenceText] = useState('');
+  const [uploadBoxTilt, setUploadBoxTilt] = useState({ rotateX: 0, rotateY: 0 });
   
   // Notifications
   const { notifyUploadComplete, notifyAnalysisComplete } = useNotifications();
 
   const uploadBoxRef = useScrollAnimation('scale-up', 0);
+  const dragBoxRef = useRef(null);
 
   useEffect(() => {
     if (error) {
@@ -37,15 +41,23 @@ export function UploadSection({ onUploadComplete }) {
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
+    
+    // Calculate tilt based on drag position
+    if (dragBoxRef.current) {
+      const tilt = calculateTilt(e, dragBoxRef.current, 5);
+      setUploadBoxTilt(tilt);
+    }
   };
 
   const handleDragLeave = () => {
     setIsDragging(false);
+    setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
+    setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
 
     const file = e.dataTransfer.files[0];
     if (file && (file.name.endsWith('.fasta') || file.name.endsWith('.fa'))) {
@@ -238,69 +250,118 @@ export function UploadSection({ onUploadComplete }) {
         </p>
       </header>
 
-      {/* Upload Box */}
-      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-12" ref={uploadBoxRef} aria-labelledby="upload-section-heading">
+      {/* Upload Box with 3D Effect */}
+      <section ref={uploadBoxRef} aria-labelledby="upload-section-heading">
         <h2 id="upload-section-heading" className="sr-only">File upload area</h2>
-        <div
-          className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
-            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-purple-400'
-            }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          role="region"
-          aria-label="Drag and drop zone for FASTA files"
-          aria-describedby="upload-instructions"
+        <Card3D
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-12"
+          glowColor="rgba(139, 92, 246, 0.4)"
+          maxTilt={3}
         >
-          <input
-            type="file"
-            accept=".fasta,.fa"
-            onChange={handleFileSelect}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            disabled={showReview}
-            aria-label="Choose FASTA file to upload"
-            id="fasta-file-input"
-          />
+          <motion.div
+            ref={dragBoxRef}
+            className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
+              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+              : 'border-gray-300 dark:border-gray-600 hover:border-purple-400'
+              }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            role="region"
+            aria-label="Drag and drop zone for FASTA files"
+            aria-describedby="upload-instructions"
+            style={{
+              transformStyle: 'preserve-3d',
+              perspective: '1000px'
+            }}
+            animate={{
+              rotateX: uploadBoxTilt.rotateX,
+              rotateY: uploadBoxTilt.rotateY,
+              scale: isDragging ? 1.02 : 1,
+              boxShadow: isDragging
+                ? '0 30px 60px -15px rgba(139, 92, 246, 0.5)'
+                : '0 0px 0px rgba(0, 0, 0, 0)'
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 150,
+              damping: 15
+            }}
+          >
+            <input
+              type="file"
+              accept=".fasta,.fa"
+              onChange={handleFileSelect}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              disabled={showReview}
+              aria-label="Choose FASTA file to upload"
+              id="fasta-file-input"
+            />
 
-          <div className="pointer-events-none flex flex-col items-center">
-            <motion.div
-              className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg"
-              animate={{ y: isDragging ? -5 : [0, -8, 0] }}
-              transition={{ y: { duration: 2, repeat: Infinity, ease: 'easeInOut' } }}
-              aria-hidden="true"
-            >
-              <Icons.Upload className="w-10 h-10 text-white" aria-hidden="true" />
-            </motion.div>
+            <div className="pointer-events-none flex flex-col items-center">
+              <Floating3D delay={0} duration={2.5} intensity={8}>
+                <Icon3D rotationDegrees={isDragging ? 0 : 20}>
+                  <motion.div
+                    className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-2xl relative"
+                    animate={{
+                      scale: isDragging ? 1.15 : 1,
+                      rotate: isDragging ? [0, 5, -5, 0] : 0
+                    }}
+                    transition={{
+                      duration: isDragging ? 0.5 : 0,
+                      rotate: { repeat: isDragging ? Infinity : 0 }
+                    }}
+                    aria-hidden="true"
+                  >
+                    <motion.div
+                      className="absolute inset-0 rounded-2xl bg-purple-400 blur-2xl"
+                      animate={{
+                        opacity: isDragging ? [0.5, 0.8, 0.5] : 0.3,
+                        scale: isDragging ? [1, 1.2, 1] : 1
+                      }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    />
+                    <Icons.Upload className="w-10 h-10 text-white relative z-10" aria-hidden="true" />
+                  </motion.div>
+                </Icon3D>
+              </Floating3D>
 
-            <h3 className="text-gray-900 dark:text-white text-xl font-semibold text-center mb-3" id="upload-instructions">
-              Drag & drop your FASTA file
-            </h3>
+              <h3 className="text-gray-900 dark:text-white text-xl font-semibold text-center mb-3" id="upload-instructions">
+                Drag & drop your FASTA file
+              </h3>
 
-            <p className="text-gray-500 dark:text-gray-400 text-center text-base mb-6">
-              or click to browse
-            </p>
+              <p className="text-gray-500 dark:text-gray-400 text-center text-base mb-6">
+                or click to browse
+              </p>
 
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md" role="note">
-              <Icons.File className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                Accepts .fasta or .fa files
-              </span>
+              <motion.div
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md backdrop-blur-sm"
+                role="note"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: 'spring', stiffness: 400 }}
+              >
+                <Icons.File className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Accepts .fasta or .fa files
+                </span>
+              </motion.div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </Card3D>
 
         {/* Text Input Toggle */}
         <div className="mt-6 text-center">
-          <button
+          <motion.button
             onClick={() => setShowTextInput(!showTextInput)}
             className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
             aria-expanded={showTextInput}
             aria-controls="sequence-text-input"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
           >
             <Icons.Edit className="w-4 h-4" aria-hidden="true" />
             {showTextInput ? 'Hide text input' : 'Or paste sequence directly'}
-          </button>
+          </motion.button>
         </div>
 
         {/* Text Input Area */}
@@ -394,83 +455,96 @@ export function UploadSection({ onUploadComplete }) {
         <AnimatePresence>
           {showReview && uploadedFile && parsedData && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mt-6 p-6 rounded-xl bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-200 dark:border-green-800"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className="mt-6"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-                    <Icons.CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <Card3D
+                className="p-6 rounded-xl bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-200 dark:border-green-800"
+                glowColor="rgba(34, 197, 94, 0.3)"
+                maxTilt={5}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Floating3D duration={2} intensity={3}>
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center shadow-lg">
+                        <Icons.CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                    </Floating3D>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        File Parsed Successfully
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Review the details and accept or reject
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      File Parsed Successfully
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Review the details and accept or reject
-                    </p>
-                  </div>
                 </div>
-              </div>
 
-              {/* File Info */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Filename</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{uploadedFile.name}</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">File Size</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{uploadedFile.size}</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequences Found</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{parsedData?.length ?? 0}</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Length</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {(uploadedFile?.stats?.totalLength ?? 0).toLocaleString()} bp
-                  </p>
-                </div>
-              </div>
+                {/* File Info with 3D Cards */}
+                <motion.div 
+                  className="grid grid-cols-2 gap-4 mb-6"
+                  style={{ perspective: '1000px' }}
+                >
+                  {[
+                    { label: 'Filename', value: uploadedFile.name },
+                    { label: 'File Size', value: uploadedFile.size },
+                    { label: 'Sequences Found', value: parsedData?.length ?? 0 },
+                    { label: 'Total Length', value: `${(uploadedFile?.stats?.totalLength ?? 0).toLocaleString()} bp` }
+                  ].map((item, index) => (
+                    <motion.div
+                      key={item.label}
+                      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md"
+                      initial={{ opacity: 0, rotateX: -20, y: 20 }}
+                      animate={{ opacity: 1, rotateX: 0, y: 0 }}
+                      transition={{ delay: index * 0.1, type: 'spring' }}
+                      whileHover={{ 
+                        scale: 1.03, 
+                        rotateY: 3,
+                        boxShadow: '0 10px 30px -10px rgba(99, 102, 241, 0.3)',
+                        transition: { type: 'spring', stiffness: 300 }
+                      }}
+                      style={{ transformStyle: 'preserve-3d' }}
+                    >
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{item.label}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{item.value}</p>
+                    </motion.div>
+                  ))}
+                </motion.div>
 
-              {/* Accept/Reject Buttons */}
-              <div className="flex gap-4">
-                <motion.button
-                  onClick={handleAccept}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
-                  style={{ color: '#ffffff' }}
-                >
-                  <Icons.CheckCircle className="w-5 h-5" style={{ color: '#ffffff' }} />
-                  <span style={{ color: '#ffffff', fontWeight: 'bold' }}>Accept & Continue</span>
-                </motion.button>
-                <motion.button
-                  onClick={downloadAsFasta}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="py-3 px-6 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
-                  style={{ color: '#ffffff' }}
-                  title="Download as .fasta file"
-                >
-                  <Icons.Download className="w-5 h-5" style={{ color: '#ffffff' }} />
-                  <span style={{ color: '#ffffff', fontWeight: 'bold' }}>.fasta</span>
-                </motion.button>
-                <motion.button
-                  onClick={handleReject}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
-                  style={{ color: '#ffffff !important', backgroundColor: '#ef4444' }}
-                >
-                  <Icons.X className="w-5 h-5" style={{ color: '#ffffff', fill: '#ffffff', stroke: '#ffffff' }} />
-                  <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '14px' }}>Reject</span>
-                </motion.button>
-              </div>
+                {/* Accept/Reject Buttons with 3D Effect */}
+                <div className="flex gap-4">
+                  <Button3D
+                    onClick={handleAccept}
+                    variant="success"
+                    className="flex-1 py-3 px-6 flex items-center justify-center gap-2"
+                  >
+                    <Icons.CheckCircle className="w-5 h-5" style={{ color: '#ffffff' }} />
+                    <span>Accept & Continue</span>
+                  </Button3D>
+                  
+                  <Button3D
+                    onClick={downloadAsFasta}
+                    variant="primary"
+                    className="py-3 px-6 flex items-center justify-center gap-2"
+                    title="Download as .fasta file"
+                  >
+                    <Icons.Download className="w-5 h-5" style={{ color: '#ffffff' }} />
+                    <span>.fasta</span>
+                  </Button3D>
+                  
+                  <Button3D
+                    onClick={handleReject}
+                    variant="danger"
+                    className="flex-1 py-3 px-6 flex items-center justify-center gap-2"
+                  >
+                    <Icons.X className="w-5 h-5" style={{ color: '#ffffff' }} />
+                    <span>Reject</span>
+                  </Button3D>
+                </div>
+              </Card3D>
             </motion.div>
           )}
         </AnimatePresence>
