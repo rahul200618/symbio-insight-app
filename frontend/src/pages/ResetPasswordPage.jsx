@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import Logo from '../components/Logo';
+import { Logo } from '../components/Logo';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
