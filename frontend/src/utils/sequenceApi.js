@@ -4,15 +4,9 @@
  * Version: 2.0
  */
 
-// Resolve API base with safe local fallback
-function resolveApiBase() {
-    const envUrl = import.meta.env?.VITE_API_URL;
-    if (envUrl && /^https?:\/\//.test(envUrl)) return envUrl.replace(/\/$/, '');
-    // Prefer explicit localhost in development
-    return 'http://localhost:3002/api';
-}
+import { getApiUrl } from '../config/api.js';
 
-let API_BASE_URL = resolveApiBase();
+let API_BASE_URL = getApiUrl();
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -62,13 +56,7 @@ async function apiCall(endpoint, options = {}) {
             const text = await response.text();
             // Common dev pitfall: hitting the frontend (index.html) instead of the backend
             if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
-                // Attempt one automatic fallback to local backend
-                if (API_BASE_URL !== 'http://localhost:3002/api') {
-                    API_BASE_URL = 'http://localhost:3002/api';
-                    const retry = await apiCall(endpoint, { ...options, headers });
-                    return retry;
-                }
-                throw new Error('Received HTML instead of JSON. Check API base URL and route.');
+                throw new Error('Received HTML instead of JSON. Backend API may be unreachable or URL is incorrect.');
             }
             if (!response.ok) {
                 throw new Error(`API Error: ${response.status} - ${text}`);

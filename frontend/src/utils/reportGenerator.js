@@ -2,11 +2,7 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { generateSequenceAnalysis } from './aiService.js';
-
-/**
- * Generate AI analysis for individual sequence
- */
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+import { API_URL } from '../config/api.js';
 
 async function generateSequenceAIAnalysis(seq, index) {
   try {

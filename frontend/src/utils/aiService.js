@@ -2,8 +2,9 @@
 // Supports OpenAI GPT-4, Anthropic Claude, and other AI models
 
 import pdbService from './pdbService.js';
+import { API_AI_URL } from '../config/api.js';
 
-const AI_API_URL = 'http://localhost:3002/api/ai'; // Backend AI endpoint
+const AI_API_URL = API_AI_URL;
 
 /**
  * Generate AI-powered sequence annotation

@@ -4,7 +4,8 @@
  * Client-side API calls for sequence annotations
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+import { API_URL } from '../config/api.js';
+const API_BASE = API_URL;
 
 /**
  * Get auth headers

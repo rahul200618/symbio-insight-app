@@ -38,7 +38,7 @@ googleProvider.addScope('profile');
 const githubProvider = new GithubAuthProvider();
 githubProvider.addScope('user:email');
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+import { API_URL } from '../config/api.js';
 
 /**
  * Sign in with Google
