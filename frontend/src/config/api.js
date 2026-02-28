@@ -37,4 +37,8 @@ export const API_URL = getApiUrl();
 export const API_AUTH_URL = `${API_URL}/auth`;
 export const API_AI_URL = `${API_URL}/ai`;
 
+// Debug log - remove after fixing
+console.log('[API Config] API_URL:', API_URL);
+console.log('[API Config] API_AUTH_URL:', API_AUTH_URL);
+
 export default API_URL;
