@@ -6,13 +6,15 @@ import { generateSequenceAnalysis } from './aiService.js';
 /**
  * Generate AI analysis for individual sequence
  */
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
 async function generateSequenceAIAnalysis(seq, index) {
   try {
     const seqLength = seq.sequenceLength || seq.length || 0;
     const seqGC = seq.gcPercentage || seq.gcContent || 0;
     const seqOrfs = seq.orfs || [];
     
-    const response = await fetch('http://localhost:3002/api/ai/analyze-sequence', {
+    const response = await fetch(`${API_URL}/ai/analyze-sequence`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

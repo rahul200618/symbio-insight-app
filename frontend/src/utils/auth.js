@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3002/api/auth';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3002/api') + '/auth';
 
 // Helper to get token
 const getToken = () => localStorage.getItem('symbio_nlm_auth_token');

@@ -1,5 +1,13 @@
 {
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "start:backend": "npm run dev --prefix backend",
+    "start:frontend": "npm run dev --prefix frontend"
+  },
   "dependencies": {
     "firebase": "^12.7.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
