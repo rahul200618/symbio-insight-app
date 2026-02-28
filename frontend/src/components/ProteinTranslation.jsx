@@ -88,7 +88,7 @@ export default function ProteinTranslation({ sequence, sequenceName }) {
                         onClick={() => setActiveTab(tab)}
                         className={`px-6 py-3 text-sm font-medium transition-colors ${
                             activeTab === tab
-                                ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                                ? 'text-[#1E3A8A] dark:text-[#60A5FA] border-b-2 border-[#1E3A8A] dark:border-[#60A5FA]'
                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                         }`}
                     >
@@ -118,7 +118,7 @@ export default function ProteinTranslation({ sequence, sequenceName }) {
                                         onClick={() => setSelectedFrame(trans.frame)}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                                             selectedFrame === trans.frame
-                                                ? 'bg-indigo-600 text-white'
+                                                ? 'bg-[#1E3A8A] text-white'
                                                 : trans.frame > 0
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
                                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
@@ -143,7 +143,7 @@ export default function ProteinTranslation({ sequence, sequenceName }) {
                                         </div>
                                         <button
                                             onClick={() => setShowFullSequence(!showFullSequence)}
-                                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                                            className="text-sm text-[#1E3A8A] dark:text-[#60A5FA] hover:underline"
                                         >
                                             {showFullSequence ? 'Show less' : 'Show full sequence'}
                                         </button>
@@ -161,8 +161,8 @@ export default function ProteinTranslation({ sequence, sequenceName }) {
 
                                     {/* Quick Stats */}
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-3">
-                                            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                                        <div className="bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 rounded-lg p-3">
+                                            <div className="text-2xl font-bold text-[#1E3A8A] dark:text-[#60A5FA]">
                                                 {selectedTranslation.length}
                                             </div>
                                             <div className="text-xs text-gray-600 dark:text-gray-400">Amino Acids</div>
@@ -179,8 +179,8 @@ export default function ProteinTranslation({ sequence, sequenceName }) {
                                             </div>
                                             <div className="text-xs text-gray-600 dark:text-gray-400">Stop Codons (*)</div>
                                         </div>
-                                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                        <div className="bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 rounded-lg p-3">
+                                            <div className="text-2xl font-bold text-[#1E3A8A] dark:text-[#60A5FA]">
                                                 {selectedTranslation.codons.length}
                                             </div>
                                             <div className="text-xs text-gray-600 dark:text-gray-400">Total Codons</div>
@@ -233,8 +233,8 @@ export default function ProteinTranslation({ sequence, sequenceName }) {
                                             onClick={() => setSelectedProtein(selectedProtein === protein ? null : protein)}
                                             className={`p-4 rounded-lg border cursor-pointer transition-all ${
                                                 selectedProtein === protein
-                                                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                                                    : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600'
+                                                    ? 'border-[#1E3A8A] bg-[#EFF6FF] dark:bg-[#1E3A8A]/20'
+                                                    : 'border-gray-200 dark:border-gray-700 hover:border-[#93C5FD] dark:hover:border-[#1E3A8A]'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between mb-2">

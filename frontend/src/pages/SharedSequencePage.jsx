@@ -60,7 +60,7 @@ export default function SharedSequencePage() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mx-auto mb-4" />
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#2563EB] border-t-transparent mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-400">Loading shared sequence...</p>
                 </div>
             </div>
@@ -90,7 +90,7 @@ export default function SharedSequencePage() {
                         </p>
                         <Link
                             to="/"
-                            className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                            className="inline-block px-6 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#2563EB] transition-colors"
                         >
                             Go to Home
                         </Link>
@@ -109,14 +109,14 @@ export default function SharedSequencePage() {
                     <div className="flex items-center gap-3">
                         <Logo className="h-8 w-auto" />
                         <div className="hidden sm:block">
-                            <span className="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-full font-medium">
+                            <span className="text-xs bg-[#DBEAFE] dark:bg-[#1E3A8A]/20 text-[#1E3A8A] dark:text-[#60A5FA] px-2 py-1 rounded-full font-medium">
                                 Shared Sequence
                             </span>
                         </div>
                     </div>
                     <Link
                         to="/signup"
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                        className="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#2563EB] transition-colors text-sm font-medium"
                     >
                         Create Account
                     </Link>
@@ -180,7 +180,7 @@ export default function SharedSequencePage() {
                             <div className="text-sm text-gray-500 dark:text-gray-400">AT Content</div>
                         </div>
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                            <div className="text-2xl font-bold text-[#1E3A8A] dark:text-[#60A5FA]">
                                 {sequence.orfCount || 0}
                             </div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">ORFs Detected</div>
@@ -231,8 +231,8 @@ export default function SharedSequencePage() {
                                 {sequence.aiSummary}
                             </p>
                             {sequence.speciesPrediction && (
-                                <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                                    <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                                <div className="mt-4 p-3 bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 rounded-lg">
+                                    <span className="text-sm font-medium text-[#1E3A8A] dark:text-[#60A5FA]">
                                         Predicted Species: 
                                     </span>
                                     <span className="ml-2 text-gray-900 dark:text-white">
@@ -251,7 +251,7 @@ export default function SharedSequencePage() {
                             </h2>
                             <button
                                 onClick={() => setShowFullSequence(!showFullSequence)}
-                                className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                                className="text-sm text-[#1E3A8A] dark:text-[#60A5FA] hover:underline"
                             >
                                 {showFullSequence ? 'Show less' : 'Show full sequence'}
                             </button>
@@ -270,7 +270,7 @@ export default function SharedSequencePage() {
                     </div>
 
                     {/* CTA Section */}
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-6 text-center text-white">
+                    <div className="rounded-xl shadow-lg p-6 text-center text-white" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                         <h3 className="text-xl font-bold mb-2">
                             Want to analyze your own sequences?
                         </h3>
@@ -280,7 +280,7 @@ export default function SharedSequencePage() {
                         <div className="flex gap-4 justify-center">
                             <Link
                                 to="/signup"
-                                className="px-6 py-2 bg-white text-indigo-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                                className="px-6 py-2 bg-white text-[#1E3A8A] rounded-lg font-medium hover:bg-gray-100 transition-colors"
                             >
                                 Sign Up Free
                             </Link>

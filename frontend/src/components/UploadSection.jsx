@@ -255,14 +255,14 @@ export function UploadSection({ onUploadComplete }) {
         <h2 id="upload-section-heading" className="sr-only">File upload area</h2>
         <Card3D
           className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-12"
-          glowColor="rgba(139, 92, 246, 0.4)"
+          glowColor="rgba(30, 58, 138, 0.3)"
           maxTilt={3}
         >
           <motion.div
             ref={dragBoxRef}
             className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
-              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-              : 'border-gray-300 dark:border-gray-600 hover:border-purple-400'
+              ? 'border-[#1E3A8A] bg-[#EFF6FF]'
+              : 'border-gray-300 dark:border-gray-600 hover:border-[#2563EB]'
               }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -302,7 +302,8 @@ export function UploadSection({ onUploadComplete }) {
               <Floating3D delay={0} duration={2.5} intensity={8}>
                 <Icon3D rotationDegrees={isDragging ? 0 : 20}>
                   <motion.div
-                    className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-2xl relative"
+                    className="w-20 h-20 mb-8 rounded-2xl flex items-center justify-center shadow-2xl relative"
+                    style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB, #1E3A8A)' }}
                     animate={{
                       scale: isDragging ? 1.15 : 1,
                       rotate: isDragging ? [0, 5, -5, 0] : 0
@@ -314,7 +315,7 @@ export function UploadSection({ onUploadComplete }) {
                     aria-hidden="true"
                   >
                     <motion.div
-                      className="absolute inset-0 rounded-2xl bg-purple-400 blur-2xl"
+                      className="absolute inset-0 rounded-2xl bg-[#2563EB] blur-2xl"
                       animate={{
                         opacity: isDragging ? [0.5, 0.8, 0.5] : 0.3,
                         scale: isDragging ? [1, 1.2, 1] : 1
@@ -353,7 +354,7 @@ export function UploadSection({ onUploadComplete }) {
         <div className="mt-6 text-center">
           <motion.button
             onClick={() => setShowTextInput(!showTextInput)}
-            className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
+            className="text-[#1E3A8A] hover:text-[#2563EB] text-sm font-medium inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 rounded-md p-1"
             aria-expanded={showTextInput}
             aria-controls="sequence-text-input"
             whileHover={{ scale: 1.05, y: -2 }}
@@ -389,7 +390,7 @@ export function UploadSection({ onUploadComplete }) {
                     }
                   }}
                   placeholder={`>Sample_001 Example sequence\nATGCGTATCGATCGTACGATCGTAGCTAGCTAGCGATCGATAGCTAGCTACGATCGATCGTAA`}
-                  className="w-full h-40 p-3 text-sm font-mono bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full h-40 p-3 text-sm font-mono bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent resize-none"
                 />
                 <div className="flex items-center justify-between mt-3">
                   <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -407,7 +408,8 @@ export function UploadSection({ onUploadComplete }) {
                     <button
                       onClick={handleParseSequence}
                       disabled={!sequenceText.trim()}
-                      className="px-4 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
+                      className="px-4 py-1.5 text-sm text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
+                      style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                     >
                       <Icons.ChevronRight className="w-4 h-4" />
                       Parse Sequence
@@ -430,8 +432,8 @@ export function UploadSection({ onUploadComplete }) {
         )}
 
         {isUploading && (
-          <motion.div className="mt-4 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 text-sm">
+          <motion.div className="mt-4 p-4 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE]" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="flex items-center gap-2 text-[#1E3A8A] text-sm">
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
                 <Icons.Loader className="w-4 h-4" />
               </motion.div>
@@ -441,8 +443,8 @@ export function UploadSection({ onUploadComplete }) {
         )}
 
         {isParsing && (
-          <div className="mt-4 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
-            <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 text-sm">
+          <div className="mt-4 p-4 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE]">
+            <div className="flex items-center gap-2 text-[#1E3A8A] text-sm">
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
                 <Icons.Loader className="w-4 h-4" />
               </motion.div>

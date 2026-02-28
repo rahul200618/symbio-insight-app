@@ -211,12 +211,12 @@ export function ProfilePage() {
                         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
                             {/* Avatar */}
                             <div className="flex flex-col items-center mb-6">
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-4">
+                                <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                                     <Icons.User className="w-12 h-12 text-white" />
                                 </div>
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{userData.name}</h2>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">{userData.email}</p>
-                                <span className="mt-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-xs font-medium">
+                                <span className="mt-2 px-3 py-1 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 text-[#1E3A8A] dark:text-[#60A5FA] rounded-full text-xs font-medium">
                                     {userData.role}
                                 </span>
                             </div>
@@ -225,16 +225,16 @@ export function ProfilePage() {
                             <div className="space-y-3 mb-6">
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-6">
-                                        <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                                        <div className="w-6 h-6 border-2 border-[#BFDBFE] border-t-[#1E3A8A] rounded-full animate-spin"></div>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                        <div className="flex items-center justify-between p-3 bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 rounded-lg">
                                             <div className="flex items-center gap-2">
-                                                <Icons.Activity className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                                <Icons.Activity className="w-4 h-4 text-[#1E3A8A] dark:text-[#60A5FA]" />
                                                 <span className="text-sm text-gray-700 dark:text-gray-300">Files Analyzed</span>
                                             </div>
-                                            <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">{stats.totalAnalyses}</span>
+                                            <span className="text-sm font-semibold text-[#1E3A8A] dark:text-[#60A5FA]">{stats.totalAnalyses}</span>
                                         </div>
                                         <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                             <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export function ProfilePage() {
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Account Information</h3>
                                 <button
                                     onClick={() => setIsEditing(!isEditing)}
-                                    className="px-4 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
+                                    className="px-4 py-2 text-sm bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 text-[#1E3A8A] dark:text-[#60A5FA] rounded-lg hover:bg-[#DBEAFE] dark:hover:bg-[#1E3A8A]/30 transition-colors font-medium"
                                 >
                                     {isEditing ? 'Cancel' : 'Edit Profile'}
                                 </button>
@@ -294,7 +294,7 @@ export function ProfilePage() {
                                             type="text"
                                             value={userData.name}
                                             onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                         />
                                     ) : (
                                         <p className="text-gray-900 dark:text-white">{userData.name}</p>
@@ -318,7 +318,7 @@ export function ProfilePage() {
                                             type="text"
                                             value={userData.role}
                                             onChange={(e) => setUserData({ ...userData, role: e.target.value })}
-                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                         />
                                     ) : (
                                         <p className="text-gray-900 dark:text-white">{userData.role}</p>
@@ -334,7 +334,7 @@ export function ProfilePage() {
                                             type="text"
                                             value={userData.institution}
                                             onChange={(e) => setUserData({ ...userData, institution: e.target.value })}
-                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                         />
                                     ) : (
                                         <p className="text-gray-900 dark:text-white">{userData.institution}</p>
@@ -351,7 +351,8 @@ export function ProfilePage() {
                                 {isEditing && (
                                     <button
                                         onClick={handleSaveProfile}
-                                        className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                                        className="w-full px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                                        style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                                     >
                                         Save Changes
                                     </button>
@@ -381,7 +382,7 @@ export function ProfilePage() {
                                             checked={preferences.emailNotifications}
                                             onChange={(e) => updatePreference('emailNotifications', e.target.checked)}
                                         />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#BFDBFE] dark:peer-focus:ring-[#1E3A8A] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#1E3A8A]"></div>
                                     </label>
                                 </div>
 
@@ -397,7 +398,7 @@ export function ProfilePage() {
                                             checked={preferences.autoSaveReports}
                                             onChange={(e) => updatePreference('autoSaveReports', e.target.checked)}
                                         />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#BFDBFE] dark:peer-focus:ring-[#1E3A8A] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#1E3A8A]"></div>
                                     </label>
                                 </div>
 
@@ -413,7 +414,7 @@ export function ProfilePage() {
                                             checked={preferences.advancedFeatures}
                                             onChange={(e) => updatePreference('advancedFeatures', e.target.checked)}
                                         />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#BFDBFE] dark:peer-focus:ring-[#1E3A8A] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#1E3A8A]"></div>
                                     </label>
                                 </div>
                             </div>
@@ -577,8 +578,8 @@ export function ProfilePage() {
                         className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6"
                     >
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <Icons.Lock className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            <div className="w-12 h-12 rounded-xl bg-[#DBEAFE] dark:bg-[#1E3A8A]/20 flex items-center justify-center">
+                                <Icons.Lock className="w-6 h-6 text-[#1E3A8A] dark:text-[#60A5FA]" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Change Password</h3>
@@ -594,7 +595,7 @@ export function ProfilePage() {
                                     value={currentPassword}
                                     onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(''); }}
                                     placeholder="Enter current password"
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                 />
                             </div>
                             
@@ -605,7 +606,7 @@ export function ProfilePage() {
                                     value={newPassword}
                                     onChange={(e) => { setNewPassword(e.target.value); setPasswordError(''); }}
                                     placeholder="Enter new password (min 6 characters)"
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                 />
                             </div>
                             
@@ -616,7 +617,7 @@ export function ProfilePage() {
                                     value={confirmPassword}
                                     onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(''); }}
                                     placeholder="Confirm new password"
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                 />
                             </div>
                         </div>

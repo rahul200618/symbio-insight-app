@@ -141,7 +141,8 @@ export function Logo({ size = 'md', animate = false }) {
   if (animate) {
     return (
       <motion.div
-        className={`${sizeClasses[size]} rounded-xl bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg`}
+        className={`${sizeClasses[size]} rounded-xl flex items-center justify-center shadow-lg`}
+        style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
         initial={{ scale: 0.8, rotate: -5 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ 
@@ -157,7 +158,7 @@ export function Logo({ size = 'md', animate = false }) {
   }
 
   return (
-    <div className={`${sizeClasses[size]} rounded-xl bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg`}>
+    <div className={`${sizeClasses[size]} rounded-xl flex items-center justify-center shadow-lg`} style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
       <LogoContent />
     </div>
   );

@@ -29,10 +29,10 @@ const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 
 // Loading spinner for lazy-loaded components
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F9FF' }}>
     <div className="flex flex-col items-center gap-4">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-      <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: '#1E3A8A' }}></div>
+      <p className="text-sm" style={{ color: '#64748B' }}>Loading...</p>
     </div>
   </div>
 );
@@ -79,7 +79,7 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F6F9FF' }}>
       <SkipLink targetId="main-content" />
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-0">
@@ -159,8 +159,8 @@ function RootRedirect() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F9FF' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: '#1E3A8A' }}></div>
       </div>
     );
   }

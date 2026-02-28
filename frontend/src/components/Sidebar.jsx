@@ -61,7 +61,7 @@ export function Sidebar({ activeView }) {
       <div className="p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-3">
           {/* Logo Icon */}
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg flex-shrink-0" aria-hidden="true">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }} aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               {/* DNA Helix Icon */}
               <path d="M7 2 Q5 7, 7 12 Q9 17, 7 22" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" />
@@ -98,10 +98,11 @@ export function Sidebar({ activeView }) {
               onKeyDown={(e) => handleKeyDown(e, index)}
             >
               <motion.div
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 ${isActive
-                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md'
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 ${isActive
+                  ? 'text-white shadow-md'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
+                style={isActive ? { background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' } : {}}
                 whileHover={!isActive ? { x: 4 } : {}}
                 whileTap={{ scale: 0.98 }}
               >

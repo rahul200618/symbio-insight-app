@@ -125,7 +125,7 @@ function MiniCodonChart({ codonFrequency, maxItems = 6 }) {
       <div className="space-y-1.5">
         {topCodons.map(([codon, data], i) => (
           <div key={codon} className="flex items-center gap-2 text-xs">
-            <span className="w-10 font-mono text-purple-600 dark:text-purple-400 font-medium">{codon}</span>
+            <span className="w-10 font-mono text-[#1E3A8A] dark:text-[#60A5FA] font-medium">{codon}</span>
             <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full"
@@ -1047,12 +1047,13 @@ Which file would you like to explore?`
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-2xl transition-all flex items-center justify-center text-white group hover:scale-105 z-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 focus-visible:ring-offset-2"
+          className="fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg hover:shadow-2xl transition-all flex items-center justify-center text-white group hover:scale-105 z-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#60A5FA] focus-visible:ring-offset-2"
+          style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
           aria-label="Open DNA Assistant chatbot"
           aria-haspopup="dialog"
         >
           {/* Animated pulsing ring */}
-          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 animate-ping opacity-20" aria-hidden="true" />
+          <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: 'linear-gradient(to bottom right, #60A5FA, #2563EB)' }} aria-hidden="true" />
 
           {/* DNA Helix Logo */}
           <div className="relative z-10 flex items-center justify-center" aria-hidden="true">
@@ -1104,7 +1105,8 @@ Which file would you like to explore?`
         >
           {/* Header - Draggable */}
           <div 
-            className={`p-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-2xl flex items-center justify-between ${!isFullscreen ? 'cursor-grab' : ''}`}
+            className={`p-4 rounded-t-2xl flex items-center justify-between ${!isFullscreen ? 'cursor-grab' : ''}`}
+            style={{ background: 'linear-gradient(to right, #1E3A8A, #2563EB)' }}
             onMouseDown={handleMouseDown}
           >
             <div className="flex items-center gap-3">
@@ -1182,16 +1184,16 @@ Which file would you like to explore?`
 
           {/* Chat History Info Bar */}
           {showHistory && (
-            <div className="px-4 py-3 bg-purple-50 dark:bg-purple-900/30 border-b border-purple-200 dark:border-purple-800">
+            <div className="px-4 py-3 bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 border-b border-[#BFDBFE] dark:border-[#1E3A8A]/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#1E3A8A] dark:text-[#60A5FA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Chat History</span>
+                  <span className="text-sm font-medium text-[#1E3A8A] dark:text-[#93C5FD]">Chat History</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-purple-600 dark:text-purple-400">
+                  <span className="text-xs text-[#1E3A8A] dark:text-[#60A5FA]">
                     {messages.length} messages • Last saved {messages.length > 0 ? new Date(messages[messages.length - 1].timestamp).toLocaleTimeString() : 'N/A'}
                   </span>
                   <button
@@ -1220,9 +1222,10 @@ Which file would you like to explore?`
                 <div className="max-w-[85%]">
                   <div
                     className={`rounded-2xl px-4 py-3 ${message.role === 'user'
-                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
+                      ? 'text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                       }`}
+                    style={message.role === 'user' ? { background: 'linear-gradient(to right, #1E3A8A, #2563EB)' } : undefined}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     
@@ -1262,7 +1265,7 @@ Which file would you like to explore?`
                         <button
                           key={idx}
                           onClick={btn.action}
-                          className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-lg transition-all border border-purple-200 dark:border-purple-700 hover:scale-105"
+                          className="px-3 py-1.5 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 hover:bg-[#BFDBFE] dark:hover:bg-[#1E3A8A]/50 text-[#1E3A8A] dark:text-[#93C5FD] text-xs font-medium rounded-lg transition-all border border-[#BFDBFE] dark:border-[#1E3A8A]/40 hover:scale-105"
                         >
                           {btn.label}
                         </button>
@@ -1297,7 +1300,7 @@ Which file would you like to explore?`
                   <button
                     key={i}
                     onClick={action.action}
-                    className="px-3 py-1.5 bg-white dark:bg-gray-700 hover:bg-purple-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-lg transition-all border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:scale-105 hover:shadow-sm"
+                    className="px-3 py-1.5 bg-white dark:bg-gray-700 hover:bg-[#EFF6FF] dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-lg transition-all border border-gray-200 dark:border-gray-600 hover:border-[#93C5FD] dark:hover:border-[#1E3A8A] hover:scale-105 hover:shadow-sm"
                   >
                     {action.label}
                   </button>
@@ -1328,13 +1331,14 @@ Which file would you like to explore?`
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask anything or say 'go to report'..."
-                className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(to right, #1E3A8A, #2563EB)' }}
               >
                 <Icons.Upload className="w-5 h-5 rotate-90" />
               </button>
@@ -1354,7 +1358,7 @@ Which file would you like to explore?`
               }}
             >
               <svg 
-                className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover:text-purple-500 transition-colors" 
+                className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover:text-[#1E3A8A] transition-colors" 
                 viewBox="0 0 24 24" 
                 fill="currentColor"
               >

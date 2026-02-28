@@ -65,7 +65,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
-        <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+        <div className="w-12 h-12 border-4 border-[#BFDBFE] border-t-[#1E3A8A] rounded-full animate-spin mb-4"></div>
         <p className="text-gray-500 dark:text-gray-400">Loading sequence data...</p>
       </div>
     );
@@ -182,8 +182,8 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center justify-center py-16 px-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
         >
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-6">
-            <Icons.FileText className="w-10 h-10 text-purple-500 dark:text-purple-400" />
+          <div className="w-20 h-20 rounded-full bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 flex items-center justify-center mb-6">
+            <Icons.FileText className="w-10 h-10 text-[#1E3A8A] dark:text-[#60A5FA]" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Sequences to Report</h3>
           <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
@@ -192,7 +192,8 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
           <div className="flex gap-3">
             <motion.a
               href="/dashboard"
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              className="px-6 py-3 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -241,7 +242,8 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
           <button
             onClick={handleDownloadPDF}
             disabled={isGenerating}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 text-white rounded-lg hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
           >
             <Icons.Download className="w-4 h-4" />
             {isGenerating ? 'Generating...' : 'Download PDF'}
@@ -267,7 +269,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
       <div className="grid grid-cols-4 gap-4">
         <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
               <Icons.Activity className="w-5 h-5 text-white" />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Sequences</p>
@@ -278,7 +280,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
 
         <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
               <Icons.PieChart className="w-5 h-5 text-white" />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">GC Content</p>
@@ -300,7 +302,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
 
         <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
               <Icons.FileText className="w-5 h-5 text-white" />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Total Length</p>
@@ -315,7 +317,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
       {parsedSequences.length > 0 && (
       <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
             <Icons.FileText className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
@@ -325,7 +327,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
             </p>
           </div>
           {isLoadingAI && (
-            <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-[#BFDBFE] border-t-[#1E3A8A] rounded-full animate-spin"></div>
           )}
         </div>
 
@@ -342,7 +344,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
         ) : (
           <div className="space-y-4">
             {/* Quality Assessment */}
-            <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
+            <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
               <div className="flex items-start gap-3">
                 <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                 <div>
@@ -355,9 +357,9 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
             </div>
 
             {/* Nucleotide Composition */}
-            <div className="p-4 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100/50 dark:border-indigo-800/50">
+            <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
               <div className="flex items-start gap-3">
-                <Icons.Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+                <Icons.Activity className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -381,9 +383,9 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
             </div>
 
             {/* Recommendations */}
-            <div className="p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
+            <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
               <div className="flex items-start gap-3">
-                <Icons.AlertCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                <Icons.AlertCircle className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Recommendations</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -401,7 +403,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
       {parsedSequences.length > 0 && (
       <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
             <Icons.BarChart className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -452,7 +454,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
         <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center shadow-sm">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
                 <Icons.BarChart className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -477,7 +479,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                 placeholder="Search sequences by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
               />
               {searchQuery && (
                 <button
@@ -495,7 +497,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
               >
                 <option value="index">Default Order</option>
                 <option value="length">Length (Longest)</option>
@@ -507,7 +509,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
             {/* Expand/Collapse All */}
             <button
               onClick={() => setExpandedSequence(expandedSequence === 'all' ? null : 'all')}
-              className="px-4 py-2.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 text-[#1E3A8A] dark:text-[#93C5FD] rounded-lg text-sm font-medium hover:bg-[#BFDBFE] dark:hover:bg-[#1E3A8A]/50 transition-colors flex items-center gap-2"
             >
               {expandedSequence === 'all' ? (
                 <>
@@ -538,7 +540,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                 <p className="text-gray-500 dark:text-gray-400">No sequences found matching "{searchQuery}"</p>
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="mt-3 text-purple-600 dark:text-purple-400 text-sm font-medium hover:underline"
+                  className="mt-3 text-[#1E3A8A] dark:text-[#60A5FA] text-sm font-medium hover:underline"
                 >
                   Clear search
                 </button>
@@ -563,12 +565,12 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                   >
                     {/* Sequence Header - Always visible */}
                     <motion.div
-                      className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-[#EFF6FF] dark:bg-[#1E3A8A]/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                       onClick={() => setExpandedSequence(isExpanded && expandedSequence !== 'all' ? null : originalIndex)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
                             {originalIndex + 1}
                           </div>
                           <div>
@@ -604,11 +606,11 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                         <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
                           {/* Quick Stats */}
                           <div className="grid grid-cols-4 gap-4 mb-6">
-                            <div className="p-3 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100/50 dark:border-purple-800/50">
+                            <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequence Length</p>
                               <p className="text-lg font-bold text-gray-900 dark:text-white">{seqLength.toLocaleString()} bp</p>
                             </div>
-                            <div className="p-3 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100/50 dark:border-indigo-800/50">
+                            <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">GC Content</p>
                               <p className="text-lg font-bold text-gray-900 dark:text-white">{seqGC.toFixed(1)}%</p>
                             </div>
@@ -680,7 +682,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                                 {seqOrfs.slice(0, 6).map((orf, orfIndex) => (
                                   <div key={orfIndex} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
                                     <div className="flex items-center justify-between mb-1">
-                                      <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">ORF {orfIndex + 1}</span>
+                                      <span className="text-xs font-semibold text-[#1E3A8A] dark:text-[#60A5FA]">ORF {orfIndex + 1}</span>
                                       <span className="text-xs text-gray-500">{orf.length} bp</span>
                                     </div>
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -705,7 +707,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                                   e.stopPropagation();
                                   setAnnotatingSequence(seq);
                                 }}
-                                className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center gap-2 text-sm font-medium"
+                                className="px-4 py-2 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 text-[#1E3A8A] dark:text-[#60A5FA] rounded-lg hover:bg-[#BFDBFE] dark:hover:bg-[#1E3A8A]/50 transition-colors flex items-center gap-2 text-sm font-medium"
                               >
                                 <Icons.Tag className="w-4 h-4" />
                                 Annotate Sequence

@@ -202,7 +202,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
           className={`cursor-pointer select-none font-mono text-sm transition-colors ${
             hasAnnotation 
               ? 'text-white font-bold rounded-sm' 
-              : 'text-gray-700 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-[#DBEAFE] dark:hover:bg-[#1E3A8A]/20'
           }`}
           style={{
             backgroundColor: hasAnnotation ? topAnn.color : undefined,
@@ -293,7 +293,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
             
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Icons.Loader className="w-6 h-6 animate-spin text-purple-500" />
+                <Icons.Loader className="w-6 h-6 animate-spin text-[#2563EB]" />
               </div>
             ) : (
               <div ref={sequenceRef} className="font-mono text-sm leading-relaxed">
@@ -336,7 +336,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleEdit(ann)}
-                          className="p-1 text-gray-400 hover:text-purple-500 transition-colors"
+                          className="p-1 text-gray-400 hover:text-[#1E3A8A] transition-colors"
                           aria-label="Edit annotation"
                         >
                           <Icons.Edit className="w-3.5 h-3.5" />
@@ -392,7 +392,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
                     type="text"
                     value={formData.label}
                     onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                     placeholder="e.g., Gene XYZ"
                     required
                   />
@@ -412,7 +412,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
                         color: ANNOTATION_COLORS[type] || prev.color,
                       }));
                     }}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                   >
                     {ANNOTATION_TYPES.map(t => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -439,7 +439,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
                   <select
                     value={formData.strand}
                     onChange={(e) => setFormData(prev => ({ ...prev, strand: e.target.value }))}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                   >
                     <option value="+">+ (Forward)</option>
                     <option value="-">- (Reverse)</option>
@@ -461,7 +461,7 @@ export function SequenceAnnotation({ sequence, sequenceId, onClose }) {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    className="px-4 py-2 bg-[#1E3A8A] hover:bg-[#2563EB] text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     {editingId ? 'Update' : 'Add Annotation'}
                   </button>

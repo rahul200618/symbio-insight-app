@@ -58,7 +58,8 @@ export class ErrorBoundary extends Component {
 
                         <button
                             onClick={this.handleReset}
-                            className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+                            className="w-full py-3 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+                            style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                         >
                             Reload Application
                         </button>

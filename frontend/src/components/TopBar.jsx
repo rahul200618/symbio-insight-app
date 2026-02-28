@@ -153,11 +153,11 @@ export function TopBar({ selectedFile, onInfoClick }) {
             onChange={(e) => handleSearch(e.target.value)}
             onFocus={handleSearchFocus}
             placeholder="Search sequences, files, or reports..."
-            className="w-full pl-12 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm"
+            className="w-full pl-12 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all shadow-sm"
           />
           {isSearching && (
             <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-              <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-[#1E3A8A] border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
         </div>
@@ -187,7 +187,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
                       className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
                       whileHover={{ x: 4 }}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                         <Icons.FileText className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -334,7 +334,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
                     {pushPermission !== 'granted' && (
                       <button 
                         onClick={requestPushPermission}
-                        className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium"
+                      className="text-xs text-[#1E3A8A] hover:text-[#2563EB] font-medium"
                         title="Enable push notifications"
                       >
                         Enable Push
@@ -358,7 +358,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
                       <div 
                         key={notif.id} 
                         onClick={() => markAsRead(notif.id)}
-                        className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 cursor-pointer ${!notif.read ? 'bg-purple-50/50 dark:bg-purple-900/10' : ''}`}
+                      className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 cursor-pointer ${!notif.read ? 'bg-[#EFF6FF]' : ''}`}
                       >
                         <div className="flex items-start gap-3">
                           <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
@@ -409,7 +409,8 @@ export function TopBar({ selectedFile, onInfoClick }) {
         <div className="relative" ref={profileRef}>
           <motion.button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all"
+            style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
             whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
           >

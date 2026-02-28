@@ -159,8 +159,8 @@ export function PulsingElement({ children, className = '' }) {
 export function ScrollProgressBar({ className = '', progress = 0 }) {
   return (
     <motion.div
-      className={`fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-600 origin-left z-50 ${className}`}
-      style={{ scaleX: progress }}
+      className={`fixed top-0 left-0 right-0 h-1 origin-left z-50 ${className}`}
+      style={{ background: 'linear-gradient(to right, #1E3A8A, #2563EB)', scaleX: progress }}
       initial={{ scaleX: 0 }}
     />
   );

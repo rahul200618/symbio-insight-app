@@ -109,9 +109,9 @@ export function StorageOptions({ sequences, onSaveComplete }) {
             className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-[#EFF6FF] dark:bg-[#1E3A8A]/10">
               <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <Icons.Database className="w-5 h-5 text-purple-600" />
+                <Icons.Database className="w-5 h-5 text-[#1E3A8A]" />
                 Storage Options
               </h3>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -145,7 +145,7 @@ export function StorageOptions({ sequences, onSaveComplete }) {
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
                   status.connectionType === 'local'
                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-[#60A5FA] hover:bg-[#EFF6FF] dark:hover:bg-[#1E3A8A]/10'
                 } disabled:opacity-50`}
               >
                 <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -167,7 +167,7 @@ export function StorageOptions({ sequences, onSaveComplete }) {
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
                   status.connectionType === 'atlas'
                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-[#60A5FA] hover:bg-[#EFF6FF] dark:hover:bg-[#1E3A8A]/10'
                 } disabled:opacity-50`}
               >
                 <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">

@@ -131,7 +131,7 @@ export default function AdminDashboardPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent" />
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1E3A8A] border-t-transparent" />
             </div>
         );
     }
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${
                             activeTab === tab
-                                ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600'
+                                ? 'text-[#1E3A8A] dark:text-[#60A5FA] border-b-2 border-[#1E3A8A]'
                                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                         }`}
                     >
@@ -220,7 +220,7 @@ export default function AdminDashboardPage() {
                                 {stats.recent?.users?.map((user, idx) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium">
+                                            <div className="w-8 h-8 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 rounded-full flex items-center justify-center text-[#1E3A8A] dark:text-[#60A5FA] font-medium">
                                                 {user.name?.charAt(0) || '?'}
                                             </div>
                                             <div>
@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
                             placeholder="Search users..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                         />
                     </div>
 
@@ -302,7 +302,7 @@ export default function AdminDashboardPage() {
                                     <tr key={u._id || u.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 font-medium">
+                                                <div className="w-8 h-8 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 rounded-full flex items-center justify-center text-[#1E3A8A] font-medium">
                                                     {u.name?.charAt(0) || '?'}
                                                 </div>
                                                 <div>
@@ -390,7 +390,7 @@ export default function AdminDashboardPage() {
                                         <span className="text-sm text-gray-500 w-20">{labels[idx] || bucket._id}</span>
                                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-4">
                                             <div 
-                                                className="bg-indigo-500 h-4 rounded-full"
+                                                className="bg-[#2563EB] h-4 rounded-full"
                                                 style={{ width: `${Math.min(100, bucket.count * 10)}%` }}
                                             />
                                         </div>
@@ -461,10 +461,10 @@ export default function AdminDashboardPage() {
 // Helper Components
 function StatCard({ title, value, subtitle, icon, color }) {
     const colorClasses = {
-        indigo: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',
+        indigo: 'bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 text-[#1E3A8A] dark:text-[#60A5FA]',
         green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
         blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-        purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+        purple: 'bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 text-[#1E3A8A] dark:text-[#60A5FA]'
     };
 
     return (

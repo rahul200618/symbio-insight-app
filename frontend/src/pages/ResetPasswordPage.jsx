@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mx-auto mb-4" />
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#2563EB] border-t-transparent mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-400">Verifying reset token...</p>
                 </div>
             </div>
@@ -140,13 +140,13 @@ export default function ResetPasswordPage() {
                         <div className="space-y-3">
                             <Link
                                 to="/forgot-password"
-                                className="block w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                                className="block w-full py-2 px-4 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#2563EB] transition-colors"
                             >
                                 Request New Reset Link
                             </Link>
                             <Link
                                 to="/login"
-                                className="block text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                                className="block text-sm text-[#1E3A8A] dark:text-[#60A5FA] hover:underline"
                             >
                                 Back to Login
                             </Link>
@@ -178,7 +178,7 @@ export default function ResetPasswordPage() {
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                             Your password has been reset successfully. Redirecting to dashboard...
                         </p>
-                        <div className="animate-pulse text-indigo-600 dark:text-indigo-400">
+                        <div className="animate-pulse text-[#1E3A8A] dark:text-[#60A5FA]">
                             <svg className="w-6 h-6 mx-auto animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -234,7 +234,7 @@ export default function ResetPasswordPage() {
                                 id="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-colors"
                                 placeholder="Enter new password"
                                 minLength={8}
                                 required
@@ -256,7 +256,7 @@ export default function ResetPasswordPage() {
                                 id="confirmPassword"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-colors"
                                 placeholder="Confirm new password"
                                 minLength={8}
                                 required
@@ -266,7 +266,7 @@ export default function ResetPasswordPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[#1E3A8A] hover:bg-[#2563EB] disabled:bg-[#1E3A8A]/60 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -285,7 +285,7 @@ export default function ResetPasswordPage() {
                     <div className="mt-6 text-center">
                         <Link
                             to="/login"
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                            className="text-sm text-[#1E3A8A] dark:text-[#60A5FA] hover:underline"
                         >
                             Back to Login
                         </Link>

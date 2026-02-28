@@ -260,7 +260,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                         <div className="relative">
                             <button
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors py-1 pl-1 pr-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-[#1E3A8A] transition-colors py-1 pl-1 pr-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
                             >
                                 <Icons.File className="w-4 h-4" />
                                 <span className="font-medium truncate max-w-[200px]">{currentFileName}</span>
@@ -281,7 +281,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                                         </div>
                                         {loadingFiles ? (
                                             <div className="p-8 flex justify-center">
-                                                <Icons.Loader className="w-6 h-6 animate-spin text-purple-500" />
+                                                <Icons.Loader className="w-6 h-6 animate-spin text-[#1E3A8A]" />
                                             </div>
                                         ) : files.length > 0 ? (
                                             <div className="py-1">
@@ -299,13 +299,13 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                                                         <button
                                                             key={file._id || file.id || Math.random()}
                                                             onClick={() => handleFileChange(file)}
-                                                            className={`w-full text-left px-4 py-3 text-sm hover:bg-purple-50 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors border-l-2 ${isSelected
-                                                                ? 'bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300 border-purple-500'
+                                                            className={`w-full text-left px-4 py-3 text-sm hover:bg-[#EFF6FF] dark:hover:bg-gray-700 flex items-center gap-3 transition-colors border-l-2 ${isSelected
+                                                                ? 'bg-[#EFF6FF] text-[#1E3A8A] dark:bg-gray-700 dark:text-[#60A5FA] border-[#1E3A8A]'
                                                                 : 'text-gray-700 dark:text-gray-300 border-transparent'
                                                                 }`}
                                                         >
-                                                            <div className={`p-1.5 rounded-md ${isSelected ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                                                                <Icons.FileText className={`w-4 h-4 ${isSelected ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                            <div className={`p-1.5 rounded-md ${isSelected ? 'bg-[#DBEAFE] dark:bg-[#1E3A8A]/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                                                                <Icons.FileText className={`w-4 h-4 ${isSelected ? 'text-[#1E3A8A]' : 'text-gray-500'}`} />
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="font-medium truncate">{fileName}</p>
@@ -314,7 +314,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                                                                 </p>
                                                             </div>
                                                             {isSelected && (
-                                                                <Icons.Check className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                                                                <Icons.Check className="w-4 h-4 text-[#1E3A8A] flex-shrink-0" />
                                                             )}
                                                         </button>
                                                     );
@@ -345,7 +345,8 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                 <motion.button
                     onClick={handleGenerateReport}
                     disabled={generatingReport}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+                    className="px-6 py-3 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+                    style={{ background: generatingReport ? '#64748B' : 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                     whileHover={{ scale: generatingReport ? 1 : 1.05, y: generatingReport ? 0 : -2 }}
                     whileTap={{ scale: generatingReport ? 1 : 0.95 }}
                 >

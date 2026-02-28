@@ -5,7 +5,7 @@ import { staggerContainer, staggerItem } from '../utils/3dMotion';
 
 export function QuickAccessCards() {
     const cards = [
-        { id: 'parsing', title: 'Smart Parsing', subtitle: 'Auto-detects multi-sequence files', icon: 'FileText', color: 'from-purple-500 to-indigo-600' },
+        { id: 'parsing', title: 'Smart Parsing', subtitle: 'Auto-detects multi-sequence files', icon: 'FileText', color: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' },
         { id: 'analytics', title: 'Sequence Analysis', subtitle: 'GC content, ORF & mutations', icon: 'Activity', color: 'from-blue-500 to-cyan-600' },
         { id: 'visuals', title: 'Visual Insights', subtitle: 'Interactive distribution charts', icon: 'PieChart', color: 'from-pink-500 to-rose-600' },
         { id: 'export', title: 'PDF Export', subtitle: 'Generate comprehensive reports', icon: 'Download', color: 'from-green-500 to-emerald-600' },
@@ -29,7 +29,7 @@ export function QuickAccessCards() {
                     >
                         <Card3D
                             className="flex flex-col items-center text-center group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 w-full cursor-pointer"
-                            glowColor={card.id === 'parsing' ? 'rgba(139, 92, 246, 0.4)' : 
+                            glowColor={card.id === 'parsing' ? 'rgba(30, 58, 138, 0.4)' : 
                                       card.id === 'analytics' ? 'rgba(59, 130, 246, 0.4)' :
                                       card.id === 'visuals' ? 'rgba(236, 72, 153, 0.4)' :
                                       'rgba(34, 197, 94, 0.4)'}
@@ -40,7 +40,8 @@ export function QuickAccessCards() {
                             <Floating3D delay={index * 0.2} duration={3} intensity={5}>
                                 <Icon3D rotationDegrees={15}>
                                     <motion.div 
-                                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center shadow-xl mb-4 relative`}
+                                        className="w-14 h-14 rounded-xl flex items-center justify-center shadow-xl mb-4 relative"
+                                        style={{ background: card.color }}
                                         whileHover={{ 
                                             scale: 1.15,
                                             rotate: [0, -5, 5, 0],
@@ -56,7 +57,7 @@ export function QuickAccessCards() {
 
                             {/* Title with gradient on hover */}
                             <motion.h3 
-                                className="text-sm font-bold text-gray-900 dark:text-white mb-1 group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-indigo-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300"
+                                className="text-sm font-bold text-gray-900 dark:text-white mb-1 transition-all duration-300"
                             >
                                 {card.title}
                             </motion.h3>

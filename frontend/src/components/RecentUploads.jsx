@@ -169,7 +169,7 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
               Refresh
             </button>
             {files.length > 0 && (
-              <button onClick={handleExportAll} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+              <button onClick={handleExportAll} className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:opacity-90 transition-all flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                 <Icons.Download className="w-4 h-4" />
                 Export All to PDF
               </button>
@@ -186,14 +186,15 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error}</p>
             <button
               onClick={loadSequences}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+              className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all"
+              style={{ backgroundColor: '#1E3A8A' }}
             >
               Try Again
             </button>
           </div>
         ) : isLoading ? (
           <div className="p-12 text-center">
-            <div className="w-12 h-12 mx-auto mb-4 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <div className="w-12 h-12 mx-auto mb-4 border-4 border-[#BFDBFE] border-t-[#1E3A8A] rounded-full animate-spin"></div>
             <p className="text-gray-500 dark:text-gray-400">Loading sequences...</p>
           </div>
         ) : files.length > 0 ? (
@@ -219,7 +220,7 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                           <Icons.DNA className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -229,9 +230,9 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="px-3 py-1 bg-indigo-50/50 dark:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-800/50 rounded-lg inline-flex items-center gap-1">
-                        <Icons.BarChart className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
-                        <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">{file.sequences}</span>
+                      <div className="px-3 py-1 bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg inline-flex items-center gap-1">
+                        <Icons.BarChart className="w-3 h-3 text-[#1E3A8A]" />
+                        <span className="text-sm font-medium text-[#1E3A8A]">{file.sequences}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -244,7 +245,7 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
                       <span className="text-sm text-gray-900 dark:text-white">{typeof (file.backendData?.gcPercent ?? file.backendData?.gcContent) === 'number' ? (file.backendData?.gcPercent ?? file.backendData?.gcContent).toFixed(1) : 'N/A'}%</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="px-3 py-1 bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100/50 dark:border-purple-800/50 rounded-lg inline-block">
+                      <div className="px-3 py-1 bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg inline-block">
                         <span className="text-sm text-gray-900 dark:text-white">{file.backendData?.orfCount || 0}</span>
                       </div>
                     </td>
@@ -258,7 +259,8 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
                             e.stopPropagation();
                             handleViewReport(file);
                           }}
-                          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-2"
+                          className="px-4 py-2 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-2"
+                          style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                         >
                           <Icons.Eye className="w-3 h-3 text-white" />
                           View

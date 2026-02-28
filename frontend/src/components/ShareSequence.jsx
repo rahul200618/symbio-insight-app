@@ -162,8 +162,8 @@ export default function ShareSequence({ sequence, isOpen, onClose }) {
                     {/* Header */}
                     <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
-                                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="w-10 h-10 bg-[#DBEAFE] dark:bg-[#1E3A8A]/20 rounded-xl flex items-center justify-center">
+                                <svg className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                                 </svg>
                             </div>
@@ -190,7 +190,7 @@ export default function ShareSequence({ sequence, isOpen, onClose }) {
                     <div className="p-6">
                         {isLoading ? (
                             <div className="flex items-center justify-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
+                                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#2563EB] border-t-transparent" />
                             </div>
                         ) : error ? (
                             <div className="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400 text-sm">
@@ -228,7 +228,7 @@ export default function ShareSequence({ sequence, isOpen, onClose }) {
                                             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                                                 copied
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                                    : 'bg-[#1E3A8A] text-white hover:bg-[#2563EB]'
                                             }`}
                                         >
                                             {copied ? 'Copied!' : 'Copy'}
@@ -285,7 +285,7 @@ export default function ShareSequence({ sequence, isOpen, onClose }) {
                                     <select
                                         value={expiresInDays}
                                         onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                                        className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                                     >
                                         <option value={1}>24 hours</option>
                                         <option value={7}>7 days</option>
@@ -299,7 +299,7 @@ export default function ShareSequence({ sequence, isOpen, onClose }) {
                                 <button
                                     onClick={generateShareLink}
                                     disabled={isLoading}
-                                    className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    className="w-full py-3 px-4 bg-[#1E3A8A] hover:bg-[#2563EB] disabled:bg-[#1E3A8A]/60 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />

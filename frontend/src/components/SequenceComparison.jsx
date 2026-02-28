@@ -188,7 +188,7 @@ export function SequenceComparison({ sequences, onClose }) {
                     className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-move hover:shadow-md transition-all"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                         <Icons.DNA className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -213,7 +213,7 @@ export function SequenceComparison({ sequences, onClose }) {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 0)}
                   className={`p-6 rounded-xl border-2 border-dashed min-h-[200px] transition-all ${selectedSequences[0]
-                    ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20'
+                    ? 'border-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E3A8A]/20'
                     : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
                     }`}
                 >
@@ -271,7 +271,7 @@ export function SequenceComparison({ sequences, onClose }) {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 1)}
                   className={`p-6 rounded-xl border-2 border-dashed min-h-[200px] transition-all ${selectedSequences[1]
-                    ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
+                    ? 'border-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E3A8A]/20'
                     : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
                     }`}
                 >
@@ -329,7 +329,7 @@ export function SequenceComparison({ sequences, onClose }) {
               {comparison && (
                 <div className="space-y-6">
                   {/* Header with Quality Badge */}
-                  <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center justify-between p-6 bg-[#EFF6FF] dark:bg-[#1E3A8A]/10 rounded-xl border border-[#BFDBFE] dark:border-[#1E3A8A]/30">
                     <h4 className="text-lg font-bold text-gray-900 dark:text-white">Detailed Comparison Report</h4>
                     <div className={`px-4 py-2 rounded-lg font-semibold ${comparison.alignmentQuality === 'Excellent' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
                       comparison.alignmentQuality === 'Good' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
@@ -347,8 +347,8 @@ export function SequenceComparison({ sequences, onClose }) {
                       <p className="text-3xl font-bold text-gray-900 dark:text-white">{comparison.similarity.toFixed(1)}%</p>
                       <div className="mt-2 w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-purple-500 to-indigo-600"
-                          style={{ width: `${comparison.similarity}%` }}
+                          className="h-full rounded-full"
+                          style={{ background: 'linear-gradient(to right, #1E3A8A, #2563EB)', width: `${comparison.similarity}%` }}
                         />
                       </div>
                     </div>
@@ -390,7 +390,7 @@ export function SequenceComparison({ sequences, onClose }) {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Transversions</p>
-                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{comparison.mutations.transversions}</p>
+                        <p className="text-2xl font-bold text-[#1E3A8A] dark:text-[#60A5FA]">{comparison.mutations.transversions}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Other changes</p>
                       </div>
                       <div>
@@ -471,7 +471,7 @@ export function SequenceComparison({ sequences, onClose }) {
                       </li>
                       {comparison.orfDiff > 0 && (
                         <li className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">!</span>
+                          <span className="text-[#1E3A8A] mt-0.5">!</span>
                           ORF count differs - investigate functional implications
                         </li>
                       )}

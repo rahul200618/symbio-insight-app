@@ -72,14 +72,14 @@ export default function ForgotPasswordPage() {
                         <div className="space-y-3">
                             <button
                                 onClick={() => setSubmitted(false)}
-                                className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
+                                className="text-[#1E3A8A] dark:text-[#60A5FA] hover:underline text-sm"
                             >
                                 Try another email
                             </button>
                             <div>
                                 <Link
                                     to="/login"
-                                    className="block w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                                    className="block w-full py-2 px-4 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#2563EB] transition-colors"
                                 >
                                     Back to Login
                                 </Link>
@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
                                 id="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-colors"
                                 placeholder="you@example.com"
                                 required
                             />
@@ -151,7 +151,7 @@ export default function ForgotPasswordPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[#1E3A8A] hover:bg-[#2563EB] disabled:bg-[#1E3A8A]/60 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -170,7 +170,7 @@ export default function ForgotPasswordPage() {
                     <div className="mt-6 text-center">
                         <Link
                             to="/login"
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center justify-center gap-1"
+                            className="text-sm text-[#1E3A8A] dark:text-[#60A5FA] hover:underline flex items-center justify-center gap-1"
                         >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -182,7 +182,7 @@ export default function ForgotPasswordPage() {
 
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
                     Don't have an account?{' '}
-                    <Link to="/signup" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                    <Link to="/signup" className="text-[#1E3A8A] dark:text-[#60A5FA] hover:underline">
                         Sign up
                     </Link>
                 </p>

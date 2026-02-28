@@ -111,7 +111,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 py-3 text-sm capitalize transition-all ${activeTab === tab
-                  ? 'text-purple-500 dark:text-purple-400 border-b-2 border-purple-400 dark:border-purple-500 font-medium'
+                  ? 'text-[#1E3A8A] dark:text-[#60A5FA] border-b-2 border-[#60A5FA] dark:border-[#1E3A8A] font-medium'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
             >
@@ -124,7 +124,7 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
         <div className="flex-1 overflow-auto p-4 space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-[#DBEAFE] border-t-[#1E3A8A] rounded-full animate-spin"></div>
             </div>
           ) : (
             <>
@@ -134,13 +134,13 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
                     recentFiles.map((file, index) => (
                       <div
                         key={file.id || index}
-                        className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all cursor-pointer hover:shadow-sm"
+                        className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-[#93C5FD] dark:hover:border-[#1E3A8A] transition-all cursor-pointer hover:shadow-sm"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{file.name}</p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-purple-600 dark:text-purple-400">{file.sequences} sequences</span>
+                              <span className="text-xs text-[#1E3A8A] dark:text-[#60A5FA]">{file.sequences} sequences</span>
                               {typeof file.gcContent === 'number' && (
                                 <span className="text-xs text-gray-500 dark:text-gray-400">• {file.gcContent.toFixed(1)}% GC</span>
                               )}
@@ -169,8 +169,8 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
                         className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-                            <Icons.Activity className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <div className="w-8 h-8 rounded-lg bg-[#DBEAFE] dark:bg-[#1E3A8A]/20 flex items-center justify-center flex-shrink-0">
+                            <Icons.Activity className="w-4 h-4 text-[#1E3A8A] dark:text-[#60A5FA]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-white">{activity.action}</p>
@@ -193,9 +193,9 @@ export function RightPanel({ selectedFile, isOpen, onClose }) {
                 <div className="space-y-4">
                   {selectedFile ? (
                     <>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800/50">
+                      <div className="p-4 rounded-xl bg-[#EFF6FF] dark:bg-[#1E3A8A]/10 border border-[#BFDBFE] dark:border-[#1E3A8A]/30">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}>
                             <Icons.DNA className="w-5 h-5 text-white" />
                           </div>
                           <div>

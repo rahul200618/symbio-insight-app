@@ -87,7 +87,7 @@ export function CodonFrequency({ codonFrequency, codonStats, sequenceName }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-[#EFF6FF] dark:bg-[#1E3A8A]/10">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -108,7 +108,7 @@ export function CodonFrequency({ codonFrequency, codonStats, sequenceName }) {
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                   viewMode === mode
-                    ? 'bg-purple-500 text-white shadow-sm'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                 }`}
               >
@@ -178,7 +178,7 @@ export function CodonFrequency({ codonFrequency, codonStats, sequenceName }) {
                   transition={{ delay: index * 0.02 }}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                 >
-                  <td className="px-4 py-2 font-mono font-medium text-purple-600 dark:text-purple-400">
+                  <td className="px-4 py-2 font-mono font-medium text-[#1E3A8A] dark:text-[#60A5FA]">
                     {item.codon}
                   </td>
                   <td className="px-4 py-2">
@@ -220,7 +220,7 @@ export function CodonFrequency({ codonFrequency, codonStats, sequenceName }) {
                   transition={{ delay: index * 0.05 }}
                   className="flex items-center gap-3"
                 >
-                  <span className="w-12 font-mono text-sm font-medium text-purple-600 dark:text-purple-400">
+                  <span className="w-12 font-mono text-sm font-medium text-[#1E3A8A] dark:text-[#60A5FA]">
                     {item.codon}
                   </span>
                   <div className="flex-1 h-6 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -228,7 +228,8 @@ export function CodonFrequency({ codonFrequency, codonStats, sequenceName }) {
                       initial={{ width: 0 }}
                       animate={{ width: `${width}%` }}
                       transition={{ delay: index * 0.05 + 0.2, duration: 0.5 }}
-                      className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-end pr-2"
+                      className="h-full rounded-full flex items-center justify-end pr-2"
+                      style={{ background: 'linear-gradient(to right, #1E3A8A, #2563EB)' }}
                     >
                       {width > 20 && (
                         <span className="text-xs text-white font-medium">{item.count}</span>
@@ -315,11 +316,11 @@ export function MiniCodonChart({ codonFrequency, maxItems = 5 }) {
       <div className="space-y-1.5">
         {topCodons.map(([codon, data]) => (
           <div key={codon} className="flex items-center gap-2 text-xs">
-            <span className="w-10 font-mono text-purple-600 dark:text-purple-400">{codon}</span>
+            <span className="w-10 font-mono text-[#1E3A8A] dark:text-[#60A5FA]">{codon}</span>
             <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
-                style={{ width: `${(data.count / maxCount) * 100}%` }}
+                className="h-full rounded-full"
+                style={{ width: `${(data.count / maxCount) * 100}%`, background: 'linear-gradient(to right, #1E3A8A, #2563EB)' }}
               />
             </div>
             <span className="w-6 text-gray-600 dark:text-gray-400">{data.count}</span>

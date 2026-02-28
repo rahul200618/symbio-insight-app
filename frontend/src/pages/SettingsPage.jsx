@@ -51,7 +51,7 @@ export default function SettingsPage() {
             type="checkbox"
             checked={advancedEnabled}
             onChange={() => setAdvancedEnabled((v) => !v)}
-            className="accent-indigo-600 w-4 h-4"
+            className="accent-[#D4AF37] w-4 h-4"
           />
           <span className="font-medium">Enable experimental tools</span>
         </label>
@@ -104,18 +104,18 @@ export default function SettingsPage() {
 function FeatureCard({ enabled, onClick, title, description, comingSoon }) {
   return (
     <div
-      className={`flex items-center justify-between p-4 rounded-xl border ${enabled ? 'bg-white shadow border-indigo-200' : 'bg-gray-50 border-gray-200'} ${comingSoon ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+      className={`flex items-center justify-between p-4 rounded-xl border ${enabled ? 'bg-white shadow border-[#BFDBFE]' : 'bg-gray-50 border-gray-200'} ${comingSoon ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
       onClick={!comingSoon ? onClick : undefined}
       style={{ pointerEvents: comingSoon ? 'none' : undefined }}
     >
       <div>
         <div className="flex items-center gap-2 mb-1">
           {enabled ? (
-            <span className="text-indigo-600 text-xl">&#10003;</span>
+            <span className="text-[#1E3A8A] text-xl">&#10003;</span>
           ) : (
             <span className="text-gray-400 text-xl">&#9432;</span>
           )}
-          <span className={`font-semibold ${enabled ? 'text-indigo-700' : 'text-gray-500'}`}>{title}</span>
+          <span className={`font-semibold ${enabled ? 'text-[#1E3A8A]' : 'text-gray-500'}`}>{title}</span>
         </div>
         <div className="text-sm text-gray-500">{description}</div>
       </div>

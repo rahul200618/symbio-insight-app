@@ -125,7 +125,7 @@ export function Button3D({
   ...props 
 }) {
   const variants = {
-    primary: 'bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 text-white',
+    primary: 'text-white',
     secondary: 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 text-white',
     success: 'bg-gradient-to-br from-green-500 via-emerald-600 to-green-700 text-white',
     danger: 'bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white'
@@ -136,7 +136,8 @@ export function Button3D({
       className={`relative px-6 py-3 rounded-xl font-semibold overflow-hidden ${variants[variant]} ${className}`}
       style={{
         transformStyle: 'preserve-3d',
-        transform: 'translateZ(0)'
+        transform: 'translateZ(0)',
+        ...(variant === 'primary' && { background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' })
       }}
       initial="rest"
       whileHover="hover"
@@ -145,12 +146,12 @@ export function Button3D({
         rest: {
           y: 0,
           scale: 1,
-          boxShadow: '0 10px 30px -15px rgba(99, 102, 241, 0.5)',
+          boxShadow: '0 10px 30px -15px rgba(30, 58, 138, 0.5)',
         },
         hover: {
           y: -5,
           scale: 1.05,
-          boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.7)',
+          boxShadow: '0 20px 40px -15px rgba(30, 58, 138, 0.7)',
           transition: {
             type: 'spring',
             stiffness: 400,
@@ -210,15 +211,15 @@ export function GlassCard3D({
       }}
       whileHover={{
         scale: 1.02,
-        boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.3)',
+        boxShadow: '0 25px 50px -12px rgba(30, 58, 138, 0.3)',
         transition: { type: 'spring', stiffness: 300, damping: 20 }
       }}
       {...props}
     >
       {/* Inner glow */}
       <div 
-        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10"
-        style={{ transform: 'translateZ(-20px)' }}
+        className="absolute inset-0 rounded-2xl"
+        style={{ background: 'linear-gradient(to bottom right, rgba(30,58,138,0.1), rgba(37,99,235,0.1))', transform: 'translateZ(-20px)' }}
       />
       
       {/* Content */}

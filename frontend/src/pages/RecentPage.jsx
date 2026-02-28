@@ -244,7 +244,8 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
                         {/* Compare Button - Always show when 2+ files */}
                         <motion.button
                             onClick={handleCompare}
-                            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                            className="px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                            style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                             whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                         >
