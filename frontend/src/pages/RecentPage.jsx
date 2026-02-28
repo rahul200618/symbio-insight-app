@@ -14,7 +14,7 @@ const transformToFrontendFormat = (data) => {
     if (!data) return [];
 
     let inputs = Array.isArray(data) ? data : [data];
-    
+
     // If the input has a sequences array (from backend multi-sequence file), use that
     if (!Array.isArray(data) && data.sequences && Array.isArray(data.sequences) && data.sequences.length > 0) {
         inputs = data.sequences;
@@ -27,7 +27,7 @@ const transformToFrontendFormat = (data) => {
     const normalizeCounts = (counts) => {
         // Handle null/undefined
         if (!counts) return { A: 0, T: 0, G: 0, C: 0 };
-        
+
         // Handle string JSON (from database)
         let parsed = counts;
         if (typeof counts === 'string') {
@@ -38,10 +38,10 @@ const transformToFrontendFormat = (data) => {
                 return { A: 0, T: 0, G: 0, C: 0 };
             }
         }
-        
+
         // Handle non-object types
         if (typeof parsed !== 'object') return { A: 0, T: 0, G: 0, C: 0 };
-        
+
         return {
             A: Number(parsed.A) || 0,
             T: Number(parsed.T) || 0,
@@ -65,25 +65,25 @@ const transformToFrontendFormat = (data) => {
         // If it has backend format (length instead of sequenceLength), transform it
         if (item.length !== undefined || item.nucleotideCounts) {
             const rawSeq = item.sequence || '';
-            
+
             // Handle all possible GC property names from backend
             const gcValue = item.gcPercentage ?? item.gcContent ?? item.gcPercent ?? 0;
-            
+
             // Get nucleotide counts - recalculate from raw sequence if missing
             let nucleotides = normalizeCounts(item.nucleotideCounts);
             const hasValidCounts = nucleotides.A > 0 || nucleotides.T > 0 || nucleotides.G > 0 || nucleotides.C > 0;
-            
+
             // If no valid counts but we have raw sequence, recalculate
             if (!hasValidCounts && rawSeq && rawSeq.length > 0) {
                 nucleotides = countNucleotides(rawSeq);
             }
-            
+
             // Recalculate GC if needed
             let finalGC = gcValue;
             if (!finalGC && rawSeq && rawSeq.length > 0) {
                 finalGC = calculateGCPercentage(nucleotides, rawSeq.length);
             }
-            
+
             return {
                 id: item._id || item.id || generateUniqueId(),
                 sequenceName: item.header || item.name || 'Untitled Sequence',
@@ -161,14 +161,14 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
         try {
             // Show loading state
             const loadingToast = toast.loading(`Loading ${file.name || 'file'}...`);
-            
+
             // Fetch full file details including sequences array
             const fileId = file.id || file.backendData?.id;
             const fullData = await getSequenceById(fileId);
-            
+
             // Get sequences array from full data
             let rawSequences = fullData.sequences || fullData.data || [];
-            
+
             // If sequences array is empty but we have the main record data, use that
             if ((!rawSequences || rawSequences.length === 0) && (fullData.length || fullData.sequence)) {
                 // Construct a single sequence from the parent record
@@ -187,10 +187,10 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
                     createdAt: fullData.createdAt
                 }];
             }
-            
+
             // Transform to frontend format
             const formattedSequences = transformToFrontendFormat(rawSequences);
-            
+
             // Construct file object with standardized data
             const fileWithData = {
                 ...fullData,
@@ -203,10 +203,10 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
             if (onFileSelect) {
                 onFileSelect(fileWithData);
             }
-            
+
             toast.dismiss(loadingToast);
             toast.success(`Loaded ${fileWithData.filename} with ${formattedSequences.length} sequences`);
-            
+
             // Navigate to metadata dashboard
             navigate('/metadata');
         } catch (error) {
@@ -233,7 +233,7 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
                     className="space-y-6"
                 >
                     {/* Header with Compare Button */}
-                    <div className="flex items-center justify-between">
+                    <div className="responsive-header-flex justify-between">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Uploads</h2>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -244,7 +244,7 @@ export function RecentPage({ onFileSelect, parsedSequences }) {
                         {/* Compare Button - Always show when 2+ files */}
                         <motion.button
                             onClick={handleCompare}
-                            className="px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                            className="responsive-btn-full px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
                             style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                             whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.95 }}

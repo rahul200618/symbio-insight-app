@@ -29,7 +29,7 @@ const transformToFrontendFormat = (data) => {
         const normalizeCounts = (counts) => {
             // Handle null/undefined
             if (!counts) return { A: 0, T: 0, G: 0, C: 0 };
-            
+
             // Handle string JSON (from database)
             let parsed = counts;
             if (typeof counts === 'string') {
@@ -40,10 +40,10 @@ const transformToFrontendFormat = (data) => {
                     return { A: 0, T: 0, G: 0, C: 0 };
                 }
             }
-            
+
             // Handle non-object types
             if (typeof parsed !== 'object') return { A: 0, T: 0, G: 0, C: 0 };
-            
+
             return {
                 A: Number(parsed.A) || 0,
                 T: Number(parsed.T) || 0,
@@ -78,25 +78,25 @@ const transformToFrontendFormat = (data) => {
         if (item.length !== undefined || item.nucleotideCounts) {
             const rawSeq = item.sequence || '';
             const { codonFrequency, codonStats } = rawSeq ? calculateCodonFrequency(rawSeq) : { codonFrequency: {}, codonStats: {} };
-            
+
             // Handle all possible GC property names from backend
             const gcValue = item.gcPercentage ?? item.gcContent ?? item.gcPercent ?? 0;
-            
+
             // Get nucleotide counts - recalculate from raw sequence if missing
             let nucleotides = normalizeCounts(item.nucleotideCounts);
             const hasValidCounts = nucleotides.A > 0 || nucleotides.T > 0 || nucleotides.G > 0 || nucleotides.C > 0;
-            
+
             // If no valid counts but we have raw sequence, recalculate
             if (!hasValidCounts && rawSeq && rawSeq.length > 0) {
                 nucleotides = countNucleotides(rawSeq);
             }
-            
+
             // Recalculate GC if needed
             let finalGC = gcValue;
             if (!finalGC && rawSeq && rawSeq.length > 0) {
                 finalGC = calculateGCPercentage(nucleotides, rawSeq.length);
             }
-            
+
             return {
                 id: item._id || item.id || generateUniqueId(),
                 sequenceName: item.header || item.name || 'Untitled Sequence',
@@ -185,7 +185,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
 
             // Identify where the sequence array is
             let rawSequences = fullData.sequences || fullData.data || [];
-            
+
             // If sequences array is empty but we have the main record data, use that
             if ((!rawSequences || rawSequences.length === 0) && (fullData.length || fullData.sequence)) {
                 // Construct a single sequence from the parent record
@@ -345,7 +345,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                 <motion.button
                     onClick={handleGenerateReport}
                     disabled={generatingReport}
-                    className="px-6 py-3 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+                    className="responsive-btn-full px-6 py-3 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
                     style={{ background: generatingReport ? '#64748B' : 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
                     whileHover={{ scale: generatingReport ? 1 : 1.05, y: generatingReport ? 0 : -2 }}
                     whileTap={{ scale: generatingReport ? 1 : 0.95 }}

@@ -1,14 +1,38 @@
 import { Icons } from './Icons';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 
 export function Sidebar({ activeView }) {
   const location = useLocation();
   const { logout, user } = useAuth();
   const navRefs = useRef([]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Listen for toggle event from TopBar hamburger
+  useEffect(() => {
+    const handleToggle = () => setIsOpen(prev => !prev);
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
+  }, []);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isOpen]);
 
   const handleLogout = () => {
     logout();
@@ -51,17 +75,25 @@ export function Sidebar({ activeView }) {
 
   const currentActive = getActiveItem();
 
-  return (
-    <aside 
-      className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen sticky top-0 overflow-hidden"
+  const sidebarContent = (
+    <aside
+      className={`w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen overflow-hidden sidebar-mobile ${isOpen ? 'sidebar-open' : ''}`}
       role="navigation"
       aria-label="Main navigation"
     >
       {/* Logo/Brand Section */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-3">
+          {/* Close button for mobile */}
+          <button
+            className="sidebar-close-btn p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            <Icons.X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
           {/* Logo Icon */}
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }} aria-hidden="true">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }} aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               {/* DNA Helix Icon */}
               <path d="M7 2 Q5 7, 7 12 Q9 17, 7 22" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" />
@@ -82,14 +114,14 @@ export function Sidebar({ activeView }) {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-4 space-y-1" role="menubar" aria-label="Primary navigation">
+      <nav className="flex-1 p-3 sm:p-4 space-y-1" role="menubar" aria-label="Primary navigation">
         {navItems.map((item, index) => {
           const Icon = Icons[item.icon];
           const isActive = currentActive === item.id;
 
           return (
-            <Link 
-              key={item.id} 
+            <Link
+              key={item.id}
               to={item.path}
               ref={el => navRefs.current[index] = el}
               role="menuitem"
@@ -129,5 +161,25 @@ export function Sidebar({ activeView }) {
         </motion.button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Mobile overlay backdrop */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="sidebar-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
+      {sidebarContent}
+    </>
   );
 }

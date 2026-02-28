@@ -12,8 +12,8 @@ export function QuickAccessCards() {
     ];
 
     return (
-        <motion.div 
-            className="grid grid-cols-4 gap-12 mt-8"
+        <motion.div
+            className="responsive-grid-4 mt-6"
             variants={staggerContainer}
             initial="hidden"
             animate="show"
@@ -29,20 +29,20 @@ export function QuickAccessCards() {
                     >
                         <Card3D
                             className="flex flex-col items-center text-center group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 w-full cursor-pointer"
-                            glowColor={card.id === 'parsing' ? 'rgba(30, 58, 138, 0.4)' : 
-                                      card.id === 'analytics' ? 'rgba(59, 130, 246, 0.4)' :
-                                      card.id === 'visuals' ? 'rgba(236, 72, 153, 0.4)' :
-                                      'rgba(34, 197, 94, 0.4)'}
+                            glowColor={card.id === 'parsing' ? 'rgba(30, 58, 138, 0.4)' :
+                                card.id === 'analytics' ? 'rgba(59, 130, 246, 0.4)' :
+                                    card.id === 'visuals' ? 'rgba(236, 72, 153, 0.4)' :
+                                        'rgba(34, 197, 94, 0.4)'}
                             maxTilt={8}
                             scale={1.05}
                         >
                             {/* Floating Icon with 3D rotation */}
                             <Floating3D delay={index * 0.2} duration={3} intensity={5}>
                                 <Icon3D rotationDegrees={15}>
-                                    <motion.div 
+                                    <motion.div
                                         className="w-14 h-14 rounded-xl flex items-center justify-center shadow-xl mb-4 relative"
                                         style={{ background: card.color }}
-                                        whileHover={{ 
+                                        whileHover={{
                                             scale: 1.15,
                                             rotate: [0, -5, 5, 0],
                                             transition: { duration: 0.3 }
@@ -56,7 +56,7 @@ export function QuickAccessCards() {
                             </Floating3D>
 
                             {/* Title with gradient on hover */}
-                            <motion.h3 
+                            <motion.h3
                                 className="text-sm font-bold text-gray-900 dark:text-white mb-1 transition-all duration-300"
                             >
                                 {card.title}

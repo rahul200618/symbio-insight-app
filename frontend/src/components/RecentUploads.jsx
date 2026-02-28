@@ -8,7 +8,7 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Notifications
   const { notifyReportGenerated } = useNotifications();
 
@@ -74,12 +74,12 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
 
   const handleDelete = async (file, e) => {
     e.stopPropagation();
-    
+
     // Use browser's native confirm dialog
     if (!window.confirm(`Are you sure you want to delete "${file.name}"? This action cannot be undone.`)) {
       return;
     }
-    
+
     try {
       await deleteSequence(file.id);
       toast.success('File deleted successfully');
@@ -153,7 +153,7 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         {/* Card Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div className="responsive-card-header border-b border-gray-100 dark:border-gray-800 justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Files</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -199,7 +199,7 @@ export function RecentUploads({ onFileSelect, refreshTrigger }) {
           </div>
         ) : files.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">File Name</th>

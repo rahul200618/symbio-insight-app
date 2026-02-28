@@ -22,7 +22,7 @@ export function UploadSection({ onUploadComplete }) {
   const [showTextInput, setShowTextInput] = useState(false);
   const [sequenceText, setSequenceText] = useState('');
   const [uploadBoxTilt, setUploadBoxTilt] = useState({ rotateX: 0, rotateY: 0 });
-  
+
   // Notifications
   const { notifyUploadComplete, notifyAnalysisComplete } = useNotifications();
 
@@ -41,7 +41,7 @@ export function UploadSection({ onUploadComplete }) {
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
-    
+
     // Calculate tilt based on drag position
     if (dragBoxRef.current) {
       const tilt = calculateTilt(e, dragBoxRef.current, 5);
@@ -144,7 +144,7 @@ export function UploadSection({ onUploadComplete }) {
   // Download parsed sequences as .fasta file
   const downloadAsFasta = () => {
     if (!parsedData || parsedData.length === 0) return;
-    
+
     let fastaContent = '';
     parsedData.forEach(seq => {
       const header = seq.sequenceName || seq.name || 'Sequence';
@@ -153,7 +153,7 @@ export function UploadSection({ onUploadComplete }) {
       const formattedSeq = rawSeq.match(/.{1,80}/g)?.join('\n') || rawSeq;
       fastaContent += `>${header}\n${formattedSeq}\n`;
     });
-    
+
     const blob = new Blob([fastaContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -200,7 +200,7 @@ export function UploadSection({ onUploadComplete }) {
       if (onUploadComplete && parsedData && parsedData.length > 0) {
         onUploadComplete(parsedData);
       }
-      
+
       // Notify that analysis is ready
       setTimeout(() => {
         notifyAnalysisComplete(uploadedFile.name || 'Pasted Sequence');
@@ -254,13 +254,13 @@ export function UploadSection({ onUploadComplete }) {
       <section ref={uploadBoxRef} aria-labelledby="upload-section-heading">
         <h2 id="upload-section-heading" className="sr-only">File upload area</h2>
         <Card3D
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-12"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 responsive-upload-card"
           glowColor="rgba(30, 58, 138, 0.3)"
           maxTilt={3}
         >
           <motion.div
             ref={dragBoxRef}
-            className={`relative border-2 border-dashed rounded-xl py-32 px-24 transition-all duration-300 ${isDragging
+            className={`relative border-2 border-dashed rounded-xl responsive-upload-zone transition-all duration-300 ${isDragging
               ? 'border-[#1E3A8A] bg-[#EFF6FF]'
               : 'border-gray-300 dark:border-gray-600 hover:border-[#2563EB]'
               }`}
@@ -302,7 +302,7 @@ export function UploadSection({ onUploadComplete }) {
               <Floating3D delay={0} duration={2.5} intensity={8}>
                 <Icon3D rotationDegrees={isDragging ? 0 : 20}>
                   <motion.div
-                    className="w-20 h-20 mb-8 rounded-2xl flex items-center justify-center shadow-2xl relative"
+                    className="responsive-upload-icon rounded-2xl flex items-center justify-center shadow-2xl relative"
                     style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB, #1E3A8A)' }}
                     animate={{
                       scale: isDragging ? 1.15 : 1,
@@ -322,16 +322,16 @@ export function UploadSection({ onUploadComplete }) {
                       }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     />
-                    <Icons.Upload className="w-10 h-10 text-white relative z-10" aria-hidden="true" />
+                    <Icons.Upload className="upload-icon-inner text-white relative z-10" aria-hidden="true" />
                   </motion.div>
                 </Icon3D>
               </Floating3D>
 
-              <h3 className="text-gray-900 dark:text-white text-xl font-semibold text-center mb-3" id="upload-instructions">
+              <h3 className="text-gray-900 dark:text-white responsive-heading font-semibold text-center" id="upload-instructions">
                 Drag & drop your FASTA file
               </h3>
 
-              <p className="text-gray-500 dark:text-gray-400 text-center text-base mb-6">
+              <p className="text-gray-500 dark:text-gray-400 text-center responsive-subtext">
                 or click to browse
               </p>
 
@@ -486,7 +486,7 @@ export function UploadSection({ onUploadComplete }) {
                 </div>
 
                 {/* File Info with 3D Cards */}
-                <motion.div 
+                <motion.div
                   className="grid grid-cols-2 gap-4 mb-6"
                   style={{ perspective: '1000px' }}
                 >
@@ -502,8 +502,8 @@ export function UploadSection({ onUploadComplete }) {
                       initial={{ opacity: 0, rotateX: -20, y: 20 }}
                       animate={{ opacity: 1, rotateX: 0, y: 0 }}
                       transition={{ delay: index * 0.1, type: 'spring' }}
-                      whileHover={{ 
-                        scale: 1.03, 
+                      whileHover={{
+                        scale: 1.03,
                         rotateY: 3,
                         boxShadow: '0 10px 30px -10px rgba(99, 102, 241, 0.3)',
                         transition: { type: 'spring', stiffness: 300 }
@@ -517,7 +517,7 @@ export function UploadSection({ onUploadComplete }) {
                 </motion.div>
 
                 {/* Accept/Reject Buttons with 3D Effect */}
-                <div className="flex gap-4">
+                <div className="responsive-btn-wrap">
                   <Button3D
                     onClick={handleAccept}
                     variant="success"
@@ -526,7 +526,7 @@ export function UploadSection({ onUploadComplete }) {
                     <Icons.CheckCircle className="w-5 h-5" style={{ color: '#ffffff' }} />
                     <span>Accept & Continue</span>
                   </Button3D>
-                  
+
                   <Button3D
                     onClick={downloadAsFasta}
                     variant="primary"
@@ -536,7 +536,7 @@ export function UploadSection({ onUploadComplete }) {
                     <Icons.Download className="w-5 h-5" style={{ color: '#ffffff' }} />
                     <span>.fasta</span>
                   </Button3D>
-                  
+
                   <Button3D
                     onClick={handleReject}
                     variant="danger"

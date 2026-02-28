@@ -21,22 +21,22 @@ export function TopBar({ selectedFile, onInfoClick }) {
   const searchRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const navigate = useNavigate();
-  
+
   // Get notifications from context
-  const { 
-    notifications, 
-    unreadCount, 
-    markAsRead, 
-    markAllAsRead, 
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
     clearNotification,
     getRelativeTime,
     pushPermission,
     requestPushPermission
   } = useNotifications();
-  
+
   // Get user from AuthContext
   const { user, logout } = useAuth();
-  
+
   // Get saved profile data from localStorage
   const getSavedProfile = () => {
     try {
@@ -46,7 +46,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
       return {};
     }
   };
-  
+
   const savedProfile = getSavedProfile();
   const displayName = user?.name || savedProfile?.name || 'Researcher';
   const displayEmail = user?.email || savedProfile?.email || 'researcher@symbio.com';
@@ -86,7 +86,7 @@ export function TopBar({ selectedFile, onInfoClick }) {
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
-    
+
     if (!query.trim()) {
       setSearchResults([]);
       setShowSearchResults(false);
@@ -141,10 +141,28 @@ export function TopBar({ selectedFile, onInfoClick }) {
     ];
   };
 
+  // Toggle search on mobile
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
+  const handleToggleSidebar = () => {
+    window.dispatchEvent(new Event('toggle-sidebar'));
+  };
+
   return (
-    <div className="h-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between w-full px-8 py-3">
-      {/* Search Bar with Suggestions */}
-      <div className="flex-1 max-w-2xl relative" ref={searchRef}>
+    <div className="responsive-topbar bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between w-full py-3">
+      {/* Hamburger menu for mobile */}
+      <button
+        className="hamburger-btn p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        onClick={handleToggleSidebar}
+        aria-label="Open navigation menu"
+      >
+        <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Search Bar with Suggestions - hidden on xs, shown on sm+ */}
+      <div className={`${mobileSearchOpen ? 'mobile-search-overlay bg-white dark:bg-gray-900' : 'responsive-search'} relative`} ref={searchRef}>
         <div className="relative">
           <Icons.Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -283,17 +301,36 @@ export function TopBar({ selectedFile, onInfoClick }) {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* Close button for mobile search overlay */}
+        {mobileSearchOpen && (
+          <button
+            className="show-mobile-only ml-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            onClick={() => setMobileSearchOpen(false)}
+            aria-label="Close search"
+          >
+            <Icons.X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+        )}
       </div>
 
+      {/* Mobile search button - only visible on xs */}
+      <button
+        className="show-mobile-only p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        onClick={() => setMobileSearchOpen(true)}
+        aria-label="Search"
+      >
+        <Icons.Search className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+      </button>
+
       {/* Right Side Icons */}
-      <div className="flex items-center gap-3 ml-6">
+      <div className="responsive-right-icons">
         {/* Dark Mode Toggle */}
         <DarkModeToggle />
 
-        {/* Info Button */}
+        {/* Info Button - hidden on small screens */}
         <motion.button
           onClick={onInfoClick}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="hide-mobile-flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           aria-label="Toggle info panel"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -332,16 +369,16 @@ export function TopBar({ selectedFile, onInfoClick }) {
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
                   <div className="flex items-center gap-2">
                     {pushPermission !== 'granted' && (
-                      <button 
+                      <button
                         onClick={requestPushPermission}
-                      className="text-xs text-[#1E3A8A] hover:text-[#2563EB] font-medium"
+                        className="text-xs text-[#1E3A8A] hover:text-[#2563EB] font-medium"
                         title="Enable push notifications"
                       >
                         Enable Push
                       </button>
                     )}
                     {unreadCount > 0 && (
-                      <button 
+                      <button
                         onClick={markAllAsRead}
                         className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                       >
@@ -355,24 +392,23 @@ export function TopBar({ selectedFile, onInfoClick }) {
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length > 0 ? (
                     notifications.slice(0, 10).map((notif) => (
-                      <div 
-                        key={notif.id} 
+                      <div
+                        key={notif.id}
                         onClick={() => markAsRead(notif.id)}
-                      className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 cursor-pointer ${!notif.read ? 'bg-[#EFF6FF]' : ''}`}
+                        className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 cursor-pointer ${!notif.read ? 'bg-[#EFF6FF]' : ''}`}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                            notif.type === 'success' ? 'bg-green-500' : 
-                            notif.type === 'error' ? 'bg-red-500' : 
-                            notif.type === 'warning' ? 'bg-amber-500' : 
-                            'bg-blue-500'
-                          }`} />
+                          <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${notif.type === 'success' ? 'bg-green-500' :
+                            notif.type === 'error' ? 'bg-red-500' :
+                              notif.type === 'warning' ? 'bg-amber-500' :
+                                'bg-blue-500'
+                            }`} />
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm font-medium ${!notif.read ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{notif.title}</p>
                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">{notif.message}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{getRelativeTime(notif.createdAt)}</p>
                           </div>
-                          <button 
+                          <button
                             onClick={(e) => { e.stopPropagation(); clearNotification(notif.id); }}
                             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
                           >
@@ -409,13 +445,13 @@ export function TopBar({ selectedFile, onInfoClick }) {
         <div className="relative" ref={profileRef}>
           <motion.button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all"
+            className="flex items-center gap-2 px-3 py-2 text-white rounded-lg hover:shadow-lg transition-all"
             style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
             whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
           >
             <Icons.User className="w-4 h-4" />
-            <span className="text-sm font-medium">{displayName.split(' ')[0]}</span>
+            <span className="text-sm font-medium responsive-profile-name">{displayName.split(' ')[0]}</span>
           </motion.button>
 
           <AnimatePresence>

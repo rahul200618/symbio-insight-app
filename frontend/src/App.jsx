@@ -85,7 +85,7 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
       <div className="flex-1 flex flex-col min-h-0">
         <TopBar />
         <ScrollProgressBar progress={scrollProgress} />
-        <main id="main-content" className="flex-1 overflow-y-auto p-6 md:p-10" tabIndex="-1" role="main" aria-label="Main content">
+        <main id="main-content" className="flex-1 overflow-y-auto responsive-pad" tabIndex="-1" role="main" aria-label="Main content">
           <Outlet />
         </main>
         {showRightPanel && <RightPanel onClose={() => setShowRightPanel(false)} />}
