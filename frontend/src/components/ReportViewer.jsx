@@ -18,7 +18,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('index'); // 'index', 'length', 'gc', 'orfs'
   const [annotatingSequence, setAnnotatingSequence] = useState(null);
-  
+
   // Notifications
   const { notifyReportGenerated } = useNotifications();
 
@@ -56,7 +56,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
             setAiSummary(summary);
           }
         })
-        .catch(() => {}) // Silently fail for AI summary
+        .catch(() => { }) // Silently fail for AI summary
         .finally(() => setIsLoadingAI(false));
     }
   }, [parsedSequences.length]); // Re-fetch when sequences change
@@ -177,10 +177,10 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
     <div className="space-y-6">
       {/* Empty State */}
       {parsedSequences.length === 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-16 px-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+          className="flex flex-col items-center justify-center py-12 px-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
         >
           <div className="w-20 h-20 rounded-full bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 flex items-center justify-center mb-6">
             <Icons.FileText className="w-10 h-10 text-[#1E3A8A] dark:text-[#60A5FA]" />
@@ -189,7 +189,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
           <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
             Upload a FASTA file from the Dashboard or select a file from the Metadata page to generate a comprehensive analysis report.
           </p>
-          <div className="flex gap-3">
+          <div className="responsive-empty-buttons">
             <motion.a
               href="/dashboard"
               className="px-6 py-3 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
@@ -215,41 +215,41 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
 
       {/* Header - only show when we have sequences */}
       {parsedSequences.length > 0 && (
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sequence Analysis Report</h1>
-          <p className="text-lg text-gray-700 dark:text-gray-300 font-medium mb-1">
-            {`${parsedSequences.length} sequences analyzed`}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Generated on {new Date().toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </p>
+        <div className="responsive-report-header">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sequence Analysis Report</h1>
+            <p className="text-lg text-gray-700 dark:text-gray-300 font-medium mb-1">
+              {`${parsedSequences.length} sequences analyzed`}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Generated on {new Date().toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          </div>
+          <div className="responsive-report-buttons">
+            <button
+              onClick={handleDownloadHTML}
+              className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-2"
+            >
+              <Icons.FileText className="w-4 h-4" />
+              HTML Report
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isGenerating}
+              className="px-6 py-3 text-white rounded-lg hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
+            >
+              <Icons.Download className="w-4 h-4" />
+              {isGenerating ? 'Generating...' : 'Download PDF'}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={handleDownloadHTML}
-            className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-2"
-          >
-            <Icons.FileText className="w-4 h-4" />
-            HTML Report
-          </button>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={isGenerating}
-            className="px-6 py-3 text-white rounded-lg hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
-          >
-            <Icons.Download className="w-4 h-4" />
-            {isGenerating ? 'Generating...' : 'Download PDF'}
-          </button>
-        </div>
-      </div>
       )}
 
       {/* Data Source Indicator */}
@@ -266,192 +266,192 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
 
       {/* Key Metrics - only show when we have sequences */}
       {parsedSequences.length > 0 && (
-      <div className="grid grid-cols-4 gap-4">
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
-              <Icons.Activity className="w-5 h-5 text-white" />
+        <div className="responsive-stats-grid">
+          <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
+                <Icons.Activity className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Sequences</p>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Sequences</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalSequences}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total analyzed</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalSequences}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total analyzed</p>
-        </div>
 
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
-              <Icons.PieChart className="w-5 h-5 text-white" />
+          <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
+                <Icons.PieChart className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">GC Content</p>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">GC Content</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{gcPercentage.toFixed(1)}%</p>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">Optimal range</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{gcPercentage.toFixed(1)}%</p>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-1">Optimal range</p>
-        </div>
 
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center shadow-sm">
-              <Icons.CheckCircle className="w-5 h-5 text-white" />
+          <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center shadow-sm">
+                <Icons.CheckCircle className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">ORFs Found</p>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">ORFs Found</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalORFs}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Open reading frames</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalORFs}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Open reading frames</p>
-        </div>
 
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
-              <Icons.FileText className="w-5 h-5 text-white" />
+          <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
+                <Icons.FileText className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Length</p>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Length</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalLength.toLocaleString()} bp</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Base pairs</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalLength.toLocaleString()} bp</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Base pairs</p>
         </div>
-      </div>
       )}
 
       {/* AI Summary Section - only show when we have sequences */}
       {parsedSequences.length > 0 && (
-      <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
-            <Icons.FileText className="w-6 h-6 text-white" />
+        <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
+              <Icons.FileText className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI-Generated Summary</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {isLoadingAI ? 'Generating insights with Gemini...' : 'Automated analysis and insights'}
+              </p>
+            </div>
+            {isLoadingAI && (
+              <div className="w-6 h-6 border-2 border-[#BFDBFE] border-t-[#1E3A8A] rounded-full animate-spin"></div>
+            )}
           </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI-Generated Summary</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {isLoadingAI ? 'Generating insights with Gemini...' : 'Automated analysis and insights'}
-            </p>
-          </div>
-          {isLoadingAI && (
-            <div className="w-6 h-6 border-2 border-[#BFDBFE] border-t-[#1E3A8A] rounded-full animate-spin"></div>
+
+          {isLoadingAI ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 animate-pulse">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Quality Assessment */}
+              <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                <div className="flex items-start gap-3">
+                  <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {aiSummary?.qualityAssessment || `The uploaded FASTA file contains ${totalSequences} high-quality sequences with an average length of ${avgLength} base pairs. The GC content of ${gcPercentage.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nucleotide Composition */}
+              <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                <div className="flex items-start gap-3">
+                  <Icons.Activity className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {aiSummary?.compositionAnalysis || `The nucleotide distribution shows balanced representation across all bases: Adenine (${nucleotideDistribution.A.toFixed(1)}%), Thymine (${nucleotideDistribution.T.toFixed(1)}%), Guanine (${nucleotideDistribution.G.toFixed(1)}%), and Cytosine (${nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ORF Analysis */}
+              <div className="p-4 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
+                <div className="flex items-start gap-3">
+                  <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Open Reading Frame Analysis</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {aiSummary?.orfAnalysis || `${totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions. The longest ORF spans ${longestSeq.toLocaleString()} base pairs, which may represent a significant functional gene. Further analysis is recommended to identify potential gene functions and protein products.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recommendations */}
+              <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                <div className="flex items-start gap-3">
+                  <Icons.AlertCircle className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Recommendations</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {aiSummary?.recommendations || `All sequences have been successfully parsed and analyzed. The metadata includes sequence names, lengths, GC percentages, nucleotide counts (A, T, G, C), and ORF detection. For more detailed analysis, we recommend performing BLAST searches against reference databases and conducting phylogenetic analysis to determine evolutionary relationships.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-
-        {isLoadingAI ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 animate-pulse">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Quality Assessment */}
-            <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-              <div className="flex items-start gap-3">
-                <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Sequence Quality Assessment</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {aiSummary?.qualityAssessment || `The uploaded FASTA file contains ${totalSequences} high-quality sequences with an average length of ${avgLength} base pairs. The GC content of ${gcPercentage.toFixed(1)}% falls within the optimal range for most organisms, suggesting good sequence quality and potential biological relevance.`}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Nucleotide Composition */}
-            <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-              <div className="flex items-start gap-3">
-                <Icons.Activity className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA] flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Nucleotide Composition</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {aiSummary?.compositionAnalysis || `The nucleotide distribution shows balanced representation across all bases: Adenine (${nucleotideDistribution.A.toFixed(1)}%), Thymine (${nucleotideDistribution.T.toFixed(1)}%), Guanine (${nucleotideDistribution.G.toFixed(1)}%), and Cytosine (${nucleotideDistribution.C.toFixed(1)}%). This balanced composition indicates a diverse genomic region without significant bias.`}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ORF Analysis */}
-            <div className="p-4 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
-              <div className="flex items-start gap-3">
-                <Icons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Open Reading Frame Analysis</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {aiSummary?.orfAnalysis || `${totalORFs} potential open reading frames (ORFs) were detected in the sequences, suggesting multiple protein-coding regions. The longest ORF spans ${longestSeq.toLocaleString()} base pairs, which may represent a significant functional gene. Further analysis is recommended to identify potential gene functions and protein products.`}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Recommendations */}
-            <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-              <div className="flex items-start gap-3">
-                <Icons.AlertCircle className="w-5 h-5 text-[#1E3A8A] dark:text-[#60A5FA] flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Recommendations</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {aiSummary?.recommendations || `All sequences have been successfully parsed and analyzed. The metadata includes sequence names, lengths, GC percentages, nucleotide counts (A, T, G, C), and ORF detection. For more detailed analysis, we recommend performing BLAST searches against reference databases and conducting phylogenetic analysis to determine evolutionary relationships.`}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
       )}
 
       {/* Detailed Metrics - only show when we have sequences */}
       {parsedSequences.length > 0 && (
-      <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
-            <Icons.BarChart className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Detailed Metrics</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Complete statistical breakdown</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Sequence Statistics</h4>
-            {[
-              { label: 'Total Sequences', value: totalSequences.toString() },
-              { label: 'Average Length', value: `${avgLength} bp` },
-              { label: 'Longest Sequence', value: `${longestSeq.toLocaleString()} bp` },
-              { label: 'Shortest Sequence', value: `${shortestSeq} bp` },
-              { label: 'Total Base Pairs', value: `${totalLength.toLocaleString()} bp` },
-            ].map((item, index) => (
-              <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}</span>
-              </div>
-            ))}
+        <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
+              <Icons.BarChart className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Detailed Metrics</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Complete statistical breakdown</p>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Composition Analysis</h4>
-            {[
-              { label: 'GC Content', value: `${gcPercentage.toFixed(1)}%` },
-              { label: 'AT Content', value: `${(100 - gcPercentage).toFixed(1)}%` },
-              { label: 'Adenine (A)', value: `${nucleotideDistribution.A.toFixed(1)}%` },
-              { label: 'Thymine (T)', value: `${nucleotideDistribution.T.toFixed(1)}%` },
-              { label: 'Guanine (G)', value: `${nucleotideDistribution.G.toFixed(1)}%` },
-              { label: 'Cytosine (C)', value: `${nucleotideDistribution.C.toFixed(1)}%` },
-            ].map((item, index) => (
-              <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}</span>
-              </div>
-            ))}
+          <div className="responsive-grid-2">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Sequence Statistics</h4>
+              {[
+                { label: 'Total Sequences', value: totalSequences.toString() },
+                { label: 'Average Length', value: `${avgLength} bp` },
+                { label: 'Longest Sequence', value: `${longestSeq.toLocaleString()} bp` },
+                { label: 'Shortest Sequence', value: `${shortestSeq} bp` },
+                { label: 'Total Base Pairs', value: `${totalLength.toLocaleString()} bp` },
+              ].map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Composition Analysis</h4>
+              {[
+                { label: 'GC Content', value: `${gcPercentage.toFixed(1)}%` },
+                { label: 'AT Content', value: `${(100 - gcPercentage).toFixed(1)}%` },
+                { label: 'Adenine (A)', value: `${nucleotideDistribution.A.toFixed(1)}%` },
+                { label: 'Thymine (T)', value: `${nucleotideDistribution.T.toFixed(1)}%` },
+                { label: 'Guanine (G)', value: `${nucleotideDistribution.G.toFixed(1)}%` },
+                { label: 'Cytosine (C)', value: `${nucleotideDistribution.C.toFixed(1)}%` },
+              ].map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Individual Sequence Analysis Section */}
       {parsedSequences.length > 0 && (
-        <div className="p-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+        <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
@@ -460,7 +460,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Individual Sequence Analysis</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredSequences.length === parsedSequences.length 
+                  {filteredSequences.length === parsedSequences.length
                     ? `Detailed analytics for each of the ${parsedSequences.length} sequences`
                     : `Showing ${filteredSequences.length} of ${parsedSequences.length} sequences`
                   }
@@ -470,7 +470,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
           </div>
 
           {/* Search and Filter Bar */}
-          <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+          <div className="responsive-filter-bar bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 mb-6">
             {/* Search Input */}
             <div className="flex-1 relative">
               <Icons.Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -554,7 +554,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                 const seqLength = seq.sequenceLength || seq.length || 0;
                 const seqGC = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
                 const seqOrfs = seq.orfs || [];
-              
+
                 return (
                   <motion.div
                     key={seq.id || originalIndex}
@@ -577,7 +577,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                             <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
                               {seq.sequenceName || seq.name || seq.header || `Sequence ${originalIndex + 1}`}
                             </h4>
-                            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            <div className="responsive-seq-meta text-sm text-gray-500 dark:text-gray-400 mt-1">
                               <span>{seqLength.toLocaleString()} bp</span>
                               <span>GC: {seqGC.toFixed(1)}%</span>
                               <span>{seqOrfs.length} ORFs</span>
@@ -593,134 +593,134 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                       </div>
                     </motion.div>
 
-                  {/* Expanded Content */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-                          {/* Quick Stats */}
-                          <div className="grid grid-cols-4 gap-4 mb-6">
-                            <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequence Length</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-white">{seqLength.toLocaleString()} bp</p>
-                            </div>
-                            <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">GC Content</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-white">{seqGC.toFixed(1)}%</p>
-                            </div>
-                            <div className="p-3 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">ORFs Detected</p>
-                              <div className="flex items-center gap-1">
-                                <Icons.CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">{seqOrfs.length}</p>
+                    {/* Expanded Content */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                            {/* Quick Stats */}
+                            <div className="responsive-stats-grid mb-6">
+                              <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequence Length</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{seqLength.toLocaleString()} bp</p>
                               </div>
-                            </div>
-                            <div className="p-3 rounded-lg bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100/50 dark:border-amber-800/50">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">AT Content</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-white">{(100 - seqGC).toFixed(1)}%</p>
-                            </div>
-                          </div>
-
-                          {/* Charts Row */}
-                          <div className="grid grid-cols-2 gap-6">
-                            {/* Nucleotide Distribution Chart */}
-                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Nucleotide Distribution</h5>
-                              <div className="w-full mb-3" style={{ height: '144px' }}>
-                                <BarChart key={`bar-${seq.id || index}`} data={seqNucleotideData} minHeight={120} />
+                              <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">GC Content</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{seqGC.toFixed(1)}%</p>
                               </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {seqNucleotideData.map((item) => (
-                                  <div key={item.name} className="text-center">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.name}</span>
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{item.value.toFixed(1)}%</p>
-                                    <p className="text-xs text-gray-500">{item.count.toLocaleString()}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* GC Content Chart */}
-                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">GC/AT Ratio</h5>
-                              <div className="flex items-center gap-4">
-                                <div className="h-36 w-36 flex-shrink-0">
-                                  <PieChart key={`pie-${seq.id || index}`} data={seqGCData} />
+                              <div className="p-3 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">ORFs Detected</p>
+                                <div className="flex items-center gap-1">
+                                  <Icons.CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                  <p className="text-lg font-bold text-gray-900 dark:text-white">{seqOrfs.length}</p>
                                 </div>
-                                <div className="flex-1 space-y-3">
-                                  {seqGCData.map((item) => (
-                                    <div key={item.name} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                                      <div className="flex items-center justify-between mb-1">
+                              </div>
+                              <div className="p-3 rounded-lg bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100/50 dark:border-amber-800/50">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">AT Content</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{(100 - seqGC).toFixed(1)}%</p>
+                              </div>
+                            </div>
+
+                            {/* Charts Row */}
+                            <div className="responsive-grid-2">
+                              {/* Nucleotide Distribution Chart */}
+                              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Nucleotide Distribution</h5>
+                                <div className="w-full mb-3" style={{ height: '144px' }}>
+                                  <BarChart key={`bar-${seq.id || index}`} data={seqNucleotideData} minHeight={120} />
+                                </div>
+                                <div className="responsive-nucleotide-labels">
+                                  {seqNucleotideData.map((item) => (
+                                    <div key={item.name} className="text-center">
+                                      <div className="flex items-center justify-center gap-1">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                                         <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.name}</span>
-                                        <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
                                       </div>
-                                      <p className="text-lg font-bold text-gray-900 dark:text-white">{item.value}%</p>
+                                      <p className="text-sm font-bold text-gray-900 dark:text-white">{item.value.toFixed(1)}%</p>
+                                      <p className="text-xs text-gray-500">{item.count.toLocaleString()}</p>
                                     </div>
                                   ))}
                                 </div>
                               </div>
-                            </div>
-                          </div>
 
-                          {/* ORF Details (if any) */}
-                          {seqOrfs.length > 0 && (
-                            <div className="mt-6 p-4 rounded-lg bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
-                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                <Icons.CheckCircle className="w-4 h-4 text-green-600" />
-                                Open Reading Frames ({seqOrfs.length} detected)
-                              </h5>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {seqOrfs.slice(0, 6).map((orf, orfIndex) => (
-                                  <div key={orfIndex} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                                    <div className="flex items-center justify-between mb-1">
-                                      <span className="text-xs font-semibold text-[#1E3A8A] dark:text-[#60A5FA]">ORF {orfIndex + 1}</span>
-                                      <span className="text-xs text-gray-500">{orf.length} bp</span>
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Position: {orf.start} - {orf.end}
-                                    </p>
+                              {/* GC Content Chart */}
+                              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">GC/AT Ratio</h5>
+                                <div className="responsive-pie-row">
+                                  <div className="h-36 w-36 flex-shrink-0">
+                                    <PieChart key={`pie-${seq.id || index}`} data={seqGCData} />
                                   </div>
-                                ))}
+                                  <div className="flex-1 space-y-3">
+                                    {seqGCData.map((item) => (
+                                      <div key={item.name} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.name}</span>
+                                          <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+                                        </div>
+                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{item.value}%</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                              {seqOrfs.length > 6 && (
-                                <p className="text-xs text-gray-500 mt-3 text-center">
-                                  + {seqOrfs.length - 6} more ORFs
-                                </p>
-                              )}
                             </div>
-                          )}
 
-                          {/* Annotate Button */}
-                          {seq._id && (
-                            <div className="mt-6 flex justify-center">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setAnnotatingSequence(seq);
-                                }}
-                                className="px-4 py-2 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 text-[#1E3A8A] dark:text-[#60A5FA] rounded-lg hover:bg-[#BFDBFE] dark:hover:bg-[#1E3A8A]/50 transition-colors flex items-center gap-2 text-sm font-medium"
-                              >
-                                <Icons.Tag className="w-4 h-4" />
-                                Annotate Sequence
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })
+                            {/* ORF Details (if any) */}
+                            {seqOrfs.length > 0 && (
+                              <div className="mt-6 p-4 rounded-lg bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
+                                <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                  <Icons.CheckCircle className="w-4 h-4 text-green-600" />
+                                  Open Reading Frames ({seqOrfs.length} detected)
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {seqOrfs.slice(0, 6).map((orf, orfIndex) => (
+                                    <div key={orfIndex} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-semibold text-[#1E3A8A] dark:text-[#60A5FA]">ORF {orfIndex + 1}</span>
+                                        <span className="text-xs text-gray-500">{orf.length} bp</span>
+                                      </div>
+                                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                                        Position: {orf.start} - {orf.end}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                                {seqOrfs.length > 6 && (
+                                  <p className="text-xs text-gray-500 mt-3 text-center">
+                                    + {seqOrfs.length - 6} more ORFs
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Annotate Button */}
+                            {seq._id && (
+                              <div className="mt-6 flex justify-center">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAnnotatingSequence(seq);
+                                  }}
+                                  className="px-4 py-2 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 text-[#1E3A8A] dark:text-[#60A5FA] rounded-lg hover:bg-[#BFDBFE] dark:hover:bg-[#1E3A8A]/50 transition-colors flex items-center gap-2 text-sm font-medium"
+                                >
+                                  <Icons.Tag className="w-4 h-4" />
+                                  Annotate Sequence
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })
             )}
           </div>
         </div>

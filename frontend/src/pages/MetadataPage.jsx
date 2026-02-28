@@ -246,7 +246,7 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
         <AnimatedPage animation="slide-up">
             {/* Header with Title, File Selector and Generate Report */}
             <motion.div
-                className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 w-full"
+                className="responsive-metadata-header"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 style={{ position: 'relative', zIndex: 20 }}

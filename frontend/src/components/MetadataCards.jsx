@@ -14,17 +14,17 @@ export function MetadataCards({ parsedSequences = [] }) {
   // Filter and sort sequences
   const filteredSequences = useMemo(() => {
     let filtered = parsedSequences;
-    
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(seq => 
+      filtered = filtered.filter(seq =>
         (seq.name || '').toLowerCase().includes(query) ||
         (seq.sequenceName || '').toLowerCase().includes(query) ||
         (seq.description || '').toLowerCase().includes(query)
       );
     }
-    
+
     // Apply sorting
     if (sortBy !== 'default') {
       filtered = [...filtered].sort((a, b) => {
@@ -46,10 +46,10 @@ export function MetadataCards({ parsedSequences = [] }) {
         }
       });
     }
-    
+
     return filtered;
   }, [parsedSequences, searchQuery, sortBy]);
-  
+
   const stats = parsedSequences.length > 0
     ? calculateAggregateStats(parsedSequences)
     : null;
@@ -130,10 +130,10 @@ export function MetadataCards({ parsedSequences = [] }) {
     <div className="space-y-6">
       {/* Empty State - No Sequences Loaded */}
       {parsedSequences.length === 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-16 px-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+          className="flex flex-col items-center justify-center py-12 px-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
         >
           <div className="w-20 h-20 rounded-full bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 flex items-center justify-center mb-6">
             <Icons.Database className="w-10 h-10 text-[#1E3A8A] dark:text-[#60A5FA]" />
@@ -142,7 +142,7 @@ export function MetadataCards({ parsedSequences = [] }) {
           <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
             Upload a FASTA file from the Dashboard to view sequence metadata, statistics, and codon frequency analysis.
           </p>
-          <div className="flex gap-3">
+          <div className="responsive-empty-buttons">
             <motion.a
               href="/dashboard"
               className="px-6 py-3 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
@@ -184,7 +184,7 @@ export function MetadataCards({ parsedSequences = [] }) {
       )}
 
       {/* Top Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="responsive-stats-grid">
         <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
@@ -209,7 +209,7 @@ export function MetadataCards({ parsedSequences = [] }) {
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{gcPercentage.toFixed(1)}%</p>
         </div>
 
-        <motion.div 
+        <motion.div
           className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:border-[#BFDBFE] dark:hover:border-[#1E3A8A]/50 hover:shadow-md transition-all"
           onClick={scrollToSequences}
           whileHover={{ scale: 1.02 }}
@@ -242,9 +242,9 @@ export function MetadataCards({ parsedSequences = [] }) {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-2 gap-6" key={parsedSequences.length > 0 ? parsedSequences[0]?.timestamp : 'empty'}>
+      <div className="responsive-grid-2" key={parsedSequences.length > 0 ? parsedSequences[0]?.timestamp : 'empty'}>
         {/* Nucleotide Distribution */}
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+        <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Nucleotide Distribution</h3>
@@ -260,7 +260,7 @@ export function MetadataCards({ parsedSequences = [] }) {
           </div>
 
           {/* Data Labels - matching image design */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="responsive-nucleotide-labels">
             {nucleotideData.map((item, index) => (
               <motion.div
                 key={item.name}
@@ -283,7 +283,7 @@ export function MetadataCards({ parsedSequences = [] }) {
         </div>
 
         {/* GC Content Analysis */}
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+        <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">GC Content Analysis</h3>
@@ -294,7 +294,7 @@ export function MetadataCards({ parsedSequences = [] }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="responsive-pie-row">
             <div className="h-48 w-48 flex-shrink-0">
               <PieChart data={gcData} />
             </div>
@@ -315,7 +315,7 @@ export function MetadataCards({ parsedSequences = [] }) {
       </div>
 
       {/* Detailed Stats */}
-      <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+      <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
             <Icons.Activity className="w-5 h-5 text-white" />
@@ -326,7 +326,7 @@ export function MetadataCards({ parsedSequences = [] }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="responsive-grid-3">
           <div className="p-4 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Average Sequence Length</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">{avgLength} bp</p>
@@ -359,7 +359,7 @@ export function MetadataCards({ parsedSequences = [] }) {
 
       {/* Individual Sequence Analysis Section */}
       {parsedSequences.length > 0 && (
-        <div ref={individualSequencesRef} className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+        <div ref={individualSequencesRef} className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           {/* Header with Search and Filter */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
@@ -369,14 +369,14 @@ export function MetadataCards({ parsedSequences = [] }) {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Individual Sequence Analysis</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredSequences.length === parsedSequences.length 
+                  {filteredSequences.length === parsedSequences.length
                     ? `Detailed analytics for each of the ${parsedSequences.length} sequences`
                     : `Showing ${filteredSequences.length} of ${parsedSequences.length} sequences`
                   }
                 </p>
               </div>
             </div>
-            
+
             {/* Search and Filter Controls */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Search Input */}
@@ -398,7 +398,7 @@ export function MetadataCards({ parsedSequences = [] }) {
                   </button>
                 )}
               </div>
-              
+
               {/* Sort Dropdown */}
               <select
                 value={sortBy}
@@ -413,7 +413,7 @@ export function MetadataCards({ parsedSequences = [] }) {
                 <option value="gc-asc">GC Content (Low to High)</option>
                 <option value="orfs">ORFs (Most First)</option>
               </select>
-              
+
               {/* Expand/Collapse All */}
               <button
                 onClick={() => setExpandedSequence(expandedSequence === 'all' ? null : 'all')}
@@ -447,185 +447,185 @@ export function MetadataCards({ parsedSequences = [] }) {
               </button>
             </div>
           ) : (
-          <div className="space-y-4">
-            {filteredSequences.map((seq, index) => {
-              const originalIndex = parsedSequences.indexOf(seq);
-              const isExpanded = expandedSequence === 'all' || expandedSequence === originalIndex;
-              const seqNucleotideData = getSequenceNucleotideData(seq);
-              const seqGCData = getSequenceGCData(seq);
-              const seqLength = seq.sequenceLength || seq.length || 0;
-              const seqGC = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
-              const seqOrfs = seq.orfs || [];
-              
-              return (
-                <motion.div
-                  key={seq.id || originalIndex}
-                  className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  {/* Sequence Header - Always visible */}
+            <div className="space-y-4">
+              {filteredSequences.map((seq, index) => {
+                const originalIndex = parsedSequences.indexOf(seq);
+                const isExpanded = expandedSequence === 'all' || expandedSequence === originalIndex;
+                const seqNucleotideData = getSequenceNucleotideData(seq);
+                const seqGCData = getSequenceGCData(seq);
+                const seqLength = seq.sequenceLength || seq.length || 0;
+                const seqGC = seq.gcPercentage || seq.gcContent || seq.gcPercent || 0;
+                const seqOrfs = seq.orfs || [];
+
+                return (
                   <motion.div
-                    className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-[#EFF6FF] dark:bg-[#1E3A8A]/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                    onClick={() => setExpandedSequence(isExpanded && expandedSequence !== 'all' ? null : originalIndex)}
+                    key={seq.id || originalIndex}
+                    className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
-                          {originalIndex + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
-                            {seq.sequenceName || seq.name || `Sequence ${originalIndex + 1}`}
-                          </h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            <span>{seqLength.toLocaleString()} bp</span>
-                            <span>GC: {seqGC.toFixed(1)}%</span>
-                            <span>{seqOrfs.length} ORFs</span>
+                    {/* Sequence Header - Always visible */}
+                    <motion.div
+                      className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-[#EFF6FF] dark:bg-[#1E3A8A]/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      onClick={() => setExpandedSequence(isExpanded && expandedSequence !== 'all' ? null : originalIndex)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
+                            {originalIndex + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
+                              {seq.sequenceName || seq.name || `Sequence ${originalIndex + 1}`}
+                            </h4>
+                            <div className="responsive-seq-meta text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              <span>{seqLength.toLocaleString()} bp</span>
+                              <span>GC: {seqGC.toFixed(1)}%</span>
+                              <span>{seqOrfs.length} ORFs</span>
+                            </div>
                           </div>
                         </div>
+                        <motion.div
+                          animate={{ rotate: isExpanded ? 90 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Icons.ChevronRight className="w-5 h-5 text-gray-400" />
+                        </motion.div>
                       </div>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 90 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Icons.ChevronRight className="w-5 h-5 text-gray-400" />
-                      </motion.div>
-                    </div>
-                  </motion.div>
+                    </motion.div>
 
-                  {/* Expanded Content */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-                          {/* Quick Stats */}
-                          <div className="grid grid-cols-4 gap-4 mb-6">
-                            <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequence Length</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-white">{seqLength.toLocaleString()} bp</p>
-                            </div>
-                            <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">GC Content</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-white">{seqGC.toFixed(1)}%</p>
-                            </div>
-                            <div className="p-3 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">ORFs Detected</p>
-                              <div className="flex items-center gap-1">
-                                <Icons.CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">{seqOrfs.length}</p>
+                    {/* Expanded Content */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                            {/* Quick Stats */}
+                            <div className="responsive-stats-grid mb-6">
+                              <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Sequence Length</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{seqLength.toLocaleString()} bp</p>
                               </div>
-                            </div>
-                            <div className="p-3 rounded-lg bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100/50 dark:border-amber-800/50">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">AT Content</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-white">{(100 - seqGC).toFixed(1)}%</p>
-                            </div>
-                          </div>
-
-                          {/* Charts Row */}
-                          <div className="grid grid-cols-2 gap-6">
-                            {/* Nucleotide Distribution Chart */}
-                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Nucleotide Distribution</h5>
-                              <div className="w-full mb-3" style={{ height: '144px' }}>
-                                <BarChart key={`bar-${seq.id || originalIndex}`} data={seqNucleotideData} minHeight={120} />
+                              <div className="p-3 rounded-lg bg-[#EFF6FF]/50 dark:bg-[#1E3A8A]/10 border border-[#BFDBFE]/50 dark:border-[#1E3A8A]/30">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">GC Content</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{seqGC.toFixed(1)}%</p>
                               </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {seqNucleotideData.map((item) => (
-                                  <div key={item.name} className="text-center">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.name}</span>
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{item.value.toFixed(1)}%</p>
-                                    <p className="text-xs text-gray-500">{item.count.toLocaleString()}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* GC Content Chart */}
-                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">GC/AT Ratio</h5>
-                              <div className="flex items-center gap-4">
-                                <div className="h-36 w-36 flex-shrink-0">
-                                  <PieChart key={`pie-${seq.id || originalIndex}`} data={seqGCData} />
+                              <div className="p-3 rounded-lg bg-green-50/50 dark:bg-green-900/20 border border-green-100/50 dark:border-green-800/50">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">ORFs Detected</p>
+                                <div className="flex items-center gap-1">
+                                  <Icons.CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                  <p className="text-lg font-bold text-gray-900 dark:text-white">{seqOrfs.length}</p>
                                 </div>
-                                <div className="flex-1 space-y-3">
-                                  {seqGCData.map((item) => (
-                                    <div key={item.name} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                                      <div className="flex items-center justify-between mb-1">
+                              </div>
+                              <div className="p-3 rounded-lg bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100/50 dark:border-amber-800/50">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">AT Content</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{(100 - seqGC).toFixed(1)}%</p>
+                              </div>
+                            </div>
+
+                            {/* Charts Row */}
+                            <div className="responsive-grid-2">
+                              {/* Nucleotide Distribution Chart */}
+                              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Nucleotide Distribution</h5>
+                                <div className="w-full mb-3" style={{ height: '144px' }}>
+                                  <BarChart key={`bar-${seq.id || originalIndex}`} data={seqNucleotideData} minHeight={120} />
+                                </div>
+                                <div className="responsive-nucleotide-labels">
+                                  {seqNucleotideData.map((item) => (
+                                    <div key={item.name} className="text-center">
+                                      <div className="flex items-center justify-center gap-1">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                                         <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.name}</span>
-                                        <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
                                       </div>
-                                      <p className="text-lg font-bold text-gray-900 dark:text-white">{item.value}%</p>
+                                      <p className="text-sm font-bold text-gray-900 dark:text-white">{item.value.toFixed(1)}%</p>
+                                      <p className="text-xs text-gray-500">{item.count.toLocaleString()}</p>
                                     </div>
                                   ))}
                                 </div>
                               </div>
-                            </div>
-                          </div>
 
-                          {/* ORF Details (if any) */}
-                          {seqOrfs.length > 0 && (
-                            <div className="mt-6 p-4 rounded-lg bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
-                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                <Icons.CheckCircle className="w-4 h-4 text-green-600" />
-                                Open Reading Frames ({seqOrfs.length} detected)
-                              </h5>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {seqOrfs.slice(0, 6).map((orf, orfIndex) => (
-                                  <div key={orfIndex} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                                    <div className="flex items-center justify-between mb-1">
-                                      <span className="text-xs font-semibold text-[#1E3A8A] dark:text-[#60A5FA]">ORF {orfIndex + 1}</span>
-                                      <span className="text-xs text-gray-500">{orf.length} bp</span>
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Position: {orf.start} - {orf.end}
-                                    </p>
+                              {/* GC Content Chart */}
+                              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">GC/AT Ratio</h5>
+                                <div className="responsive-pie-row">
+                                  <div className="h-36 w-36 flex-shrink-0">
+                                    <PieChart key={`pie-${seq.id || originalIndex}`} data={seqGCData} />
                                   </div>
-                                ))}
+                                  <div className="flex-1 space-y-3">
+                                    {seqGCData.map((item) => (
+                                      <div key={item.name} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.name}</span>
+                                          <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+                                        </div>
+                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{item.value}%</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                              {seqOrfs.length > 6 && (
-                                <p className="text-xs text-gray-500 mt-3 text-center">
-                                  + {seqOrfs.length - 6} more ORFs
-                                </p>
-                              )}
                             </div>
-                          )}
 
-                          {/* Codon Frequency Analysis */}
-                          {seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0 ? (
-                            <div className="mt-6">
-                              <CodonFrequency 
-                                codonFrequency={seq.codonFrequency} 
-                                codonStats={seq.codonStats}
-                                sequenceName={seq.sequenceName || seq.name}
-                              />
-                            </div>
-                          ) : (
-                            <div className="mt-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-                              <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                ⚠️ Codon frequency data not available for this sequence.
-                                {seq.rawSequence ? ` (Sequence length: ${seq.rawSequence.length} bp)` : ' (No raw sequence data)'}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </div>
+                            {/* ORF Details (if any) */}
+                            {seqOrfs.length > 0 && (
+                              <div className="mt-6 p-4 rounded-lg bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
+                                <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                  <Icons.CheckCircle className="w-4 h-4 text-green-600" />
+                                  Open Reading Frames ({seqOrfs.length} detected)
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {seqOrfs.slice(0, 6).map((orf, orfIndex) => (
+                                    <div key={orfIndex} className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-semibold text-[#1E3A8A] dark:text-[#60A5FA]">ORF {orfIndex + 1}</span>
+                                        <span className="text-xs text-gray-500">{orf.length} bp</span>
+                                      </div>
+                                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                                        Position: {orf.start} - {orf.end}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                                {seqOrfs.length > 6 && (
+                                  <p className="text-xs text-gray-500 mt-3 text-center">
+                                    + {seqOrfs.length - 6} more ORFs
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Codon Frequency Analysis */}
+                            {seq.codonFrequency && Object.keys(seq.codonFrequency).length > 0 ? (
+                              <div className="mt-6">
+                                <CodonFrequency
+                                  codonFrequency={seq.codonFrequency}
+                                  codonStats={seq.codonStats}
+                                  sequenceName={seq.sequenceName || seq.name}
+                                />
+                              </div>
+                            ) : (
+                              <div className="mt-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                                  ⚠️ Codon frequency data not available for this sequence.
+                                  {seq.rawSequence ? ` (Sequence length: ${seq.rawSequence.length} bp)` : ' (No raw sequence data)'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
