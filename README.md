@@ -12,7 +12,7 @@ A modern, full-stack bioinformatics application for FASTA file analysis, sequenc
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org)
 [![Vite](https://img.shields.io/badge/Vite-6.3-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev)
 
-[Demo](#-demo) • [Features](#-features) • [Screenshots](#-screenshots) • [Installation](#-quick-start) • [API](#-api-reference-18-endpoints) • [Contributing](#-contributing)
+[Demo](#-https://symbio-insight-app-2.onrender.com • [Features](#-features) • [Screenshots](#-screenshots) • [Installation](#-quick-start) • [API](#-api-reference-18-endpoints) • [Contributing](#-contributing)
 ## 🧬 Features
 
 <details>
