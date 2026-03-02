@@ -6,6 +6,8 @@
 
 A modern, full-stack bioinformatics application for FASTA file analysis, sequence comparison, AI-powered insights, and comprehensive report generation.
 
+🌐 **Live Demo:** [https://symbio-insight-app-2.onrender.com](https://symbio-insight-app-2.onrender.com)
+
 [![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](https://github.com/yourusername/symbio-insight-app)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Node](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge)](https://nodejs.org)
