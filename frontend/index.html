@@ -16,12 +16,25 @@
       <!-- Blocking script: apply dark mode BEFORE React renders to prevent theme flash -->
       <script>
         (function() {
-          var stored = localStorage.getItem('darkMode');
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (stored === 'true' || (stored === null && prefersDark)) {
+          try {
+            var stored = localStorage.getItem('darkMode');
+            var preferenceSet = localStorage.getItem('themePreferenceSet') === 'true';
+
+            // Default to dark unless user has explicitly chosen a theme in this version.
+            if (!preferenceSet) {
+              document.documentElement.classList.add('dark');
+              localStorage.setItem('darkMode', 'true');
+              return;
+            }
+
+            if (stored === 'false') {
+              document.documentElement.classList.remove('dark');
+            } else {
+              document.documentElement.classList.add('dark');
+            }
+          } catch (e) {
+            // If localStorage is unavailable, fail safe to dark mode.
             document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
           }
         })();
       </script>

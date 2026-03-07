@@ -9,7 +9,6 @@ import { useScrollAnimation } from '../hooks/useScrollAnimation.js';
 import { animeAnimations } from '../utils/animations.js';
 import { useNotifications } from '../context/NotificationContext';
 import { Card3D, Button3D, Floating3D, Icon3D } from './3DComponents';
-import { calculateTilt } from '../utils/3dMotion';
 
 export function UploadSection({ onUploadComplete }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -21,13 +20,12 @@ export function UploadSection({ onUploadComplete }) {
   const [showReview, setShowReview] = useState(false);
   const [showTextInput, setShowTextInput] = useState(false);
   const [sequenceText, setSequenceText] = useState('');
-  const [uploadBoxTilt, setUploadBoxTilt] = useState({ rotateX: 0, rotateY: 0 });
 
   // Notifications
   const { notifyUploadComplete, notifyAnalysisComplete } = useNotifications();
 
   const uploadBoxRef = useScrollAnimation('scale-up', 0);
-  const dragBoxRef = useRef(null);
+  const reviewSectionRef = useRef(null);
   const dragDepthRef = useRef(0);
 
   const isValidFastaFile = (file) => /\.(fasta|fa)$/i.test(file?.name || '');
@@ -40,6 +38,18 @@ export function UploadSection({ onUploadComplete }) {
       }
     }
   }, [error]);
+
+  // Bring review actions into view right after successful parse.
+  useEffect(() => {
+    if (showReview && reviewSectionRef.current) {
+      requestAnimationFrame(() => {
+        reviewSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      });
+    }
+  }, [showReview]);
 
   // Prevent browser from opening dropped files in the current tab.
   useEffect(() => {
@@ -68,12 +78,6 @@ export function UploadSection({ onUploadComplete }) {
       e.dataTransfer.dropEffect = 'copy';
     }
     setIsDragging(true);
-
-    // Calculate tilt based on drag position
-    if (dragBoxRef.current) {
-      const tilt = calculateTilt(e, dragBoxRef.current, 5);
-      setUploadBoxTilt(tilt);
-    }
   };
 
   const handleDragLeave = (e) => {
@@ -81,7 +85,6 @@ export function UploadSection({ onUploadComplete }) {
     dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
     if (dragDepthRef.current === 0) {
       setIsDragging(false);
-      setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
     }
   };
 
@@ -89,7 +92,6 @@ export function UploadSection({ onUploadComplete }) {
     e.preventDefault();
     dragDepthRef.current = 0;
     setIsDragging(false);
-    setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
 
     const files = Array.from(e.dataTransfer.files || []);
     if (files.length === 0) {
@@ -342,8 +344,7 @@ export function UploadSection({ onUploadComplete }) {
           glowColor="rgba(30, 58, 138, 0.3)"
           maxTilt={3}
         >
-          <motion.div
-            ref={dragBoxRef}
+          <div
             className={`relative border-2 border-dashed rounded-xl responsive-upload-zone transition-all duration-300 ${isDragging
               ? 'border-[#1E3A8A] bg-[#EFF6FF]'
               : 'border-gray-300 dark:border-gray-600 hover:border-[#2563EB]'
@@ -355,23 +356,6 @@ export function UploadSection({ onUploadComplete }) {
             role="region"
             aria-label="Drag and drop zone for FASTA files"
             aria-describedby="upload-instructions"
-            style={{
-              transformStyle: 'preserve-3d',
-              perspective: '1000px'
-            }}
-            animate={{
-              rotateX: uploadBoxTilt.rotateX,
-              rotateY: uploadBoxTilt.rotateY,
-              scale: isDragging ? 1.02 : 1,
-              boxShadow: isDragging
-                ? '0 30px 60px -15px rgba(139, 92, 246, 0.5)'
-                : '0 0px 0px rgba(0, 0, 0, 0)'
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 150,
-              damping: 15
-            }}
           >
             <input
               type="file"
@@ -391,29 +375,13 @@ export function UploadSection({ onUploadComplete }) {
             <div className="pointer-events-none flex flex-col items-center">
               <Floating3D delay={0} duration={2.5} intensity={8}>
                 <Icon3D rotationDegrees={isDragging ? 0 : 20}>
-                  <motion.div
+                  <div
                     className="responsive-upload-icon rounded-2xl flex items-center justify-center shadow-2xl relative"
                     style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB, #1E3A8A)' }}
-                    animate={{
-                      scale: isDragging ? 1.15 : 1,
-                      rotate: isDragging ? [0, 5, -5, 0] : 0
-                    }}
-                    transition={{
-                      duration: isDragging ? 0.5 : 0,
-                      rotate: { repeat: isDragging ? Infinity : 0 }
-                    }}
                     aria-hidden="true"
                   >
-                    <motion.div
-                      className="absolute inset-0 rounded-2xl bg-[#2563EB] blur-2xl"
-                      animate={{
-                        opacity: isDragging ? [0.5, 0.8, 0.5] : 0.3,
-                        scale: isDragging ? [1, 1.2, 1] : 1
-                      }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    />
                     <Icons.Upload className="upload-icon-inner text-white relative z-10" aria-hidden="true" />
-                  </motion.div>
+                  </div>
                 </Icon3D>
               </Floating3D>
 
@@ -437,7 +405,7 @@ export function UploadSection({ onUploadComplete }) {
                 </span>
               </motion.div>
             </div>
-          </motion.div>
+          </div>
         </Card3D>
 
         {/* Text Input Toggle */}
@@ -547,6 +515,7 @@ export function UploadSection({ onUploadComplete }) {
         <AnimatePresence>
           {showReview && uploadedFile && parsedData && (
             <motion.div
+              ref={reviewSectionRef}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}

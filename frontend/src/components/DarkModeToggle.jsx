@@ -1,5 +1,5 @@
 import { Icons } from './Icons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const SunIcon = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,25 +14,10 @@ const MoonIcon = ({ className = "w-5 h-5" }) => (
 );
 
 export function DarkModeToggle() {
-  // Initialize from DOM — the blocking script in index.html already applied the correct class
+  // Initialize from DOM — index.html applies dark mode by default on first load.
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
-
-  useEffect(() => {
-    // Listen for system theme changes (e.g. user switches OS dark mode while app is open)
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      // Only auto-switch if user hasn't manually set a preference
-      const stored = localStorage.getItem('darkMode');
-      if (stored === null) {
-        setIsDark(e.matches);
-        applyTheme(e.matches);
-      }
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
 
   const applyTheme = (dark) => {
     if (dark) {
@@ -46,6 +31,7 @@ export function DarkModeToggle() {
     const newDark = !isDark;
     setIsDark(newDark);
     localStorage.setItem('darkMode', String(newDark));
+    localStorage.setItem('themePreferenceSet', 'true');
     applyTheme(newDark);
   };
 
