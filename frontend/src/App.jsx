@@ -29,7 +29,7 @@ const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 
 // Loading spinner for lazy-loaded components
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F9FF' }}>
+  <div className="min-h-screen flex items-center justify-center bg-[#F6F9FF] dark:bg-gray-950">
     <div className="flex flex-col items-center gap-4">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: '#1E3A8A' }}></div>
       <p className="text-sm" style={{ color: '#64748B' }}>Loading...</p>
@@ -79,13 +79,13 @@ function MainLayout({ parsedSequences, setParsedSequences, selectedFile, setSele
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F6F9FF' }}>
+    <div className="flex h-screen overflow-hidden min-w-0 bg-[#F6F9FF] dark:bg-gray-950">
       <SkipLink targetId="main-content" />
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
         <TopBar />
         <ScrollProgressBar progress={scrollProgress} />
-        <main id="main-content" className="flex-1 overflow-y-auto responsive-pad" tabIndex="-1" role="main" aria-label="Main content">
+        <main id="main-content" className="flex-1 overflow-y-auto responsive-pad min-w-0" tabIndex="-1" role="main" aria-label="Main content">
           <Outlet />
         </main>
         {showRightPanel && <RightPanel onClose={() => setShowRightPanel(false)} />}
@@ -159,7 +159,7 @@ function RootRedirect() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F9FF' }}>
+      <div className="min-h-screen flex items-center justify-center bg-[#F6F9FF] dark:bg-gray-950">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: '#1E3A8A' }}></div>
       </div>
     );

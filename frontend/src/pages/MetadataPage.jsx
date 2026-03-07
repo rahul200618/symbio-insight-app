@@ -244,26 +244,27 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
 
     return (
         <AnimatedPage animation="slide-up">
-            {/* Header with Title, File Selector and Generate Report */}
-            <motion.div
-                className="responsive-metadata-header"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{ position: 'relative', zIndex: 20 }}
-            >
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Sequence Metadata
-                    </h2>
-                    <div className="flex items-center gap-2 mt-1 relative">
+            <div className="metadata-page-shell">
+                {/* Header with Title, File Selector and Generate Report */}
+                <motion.div
+                    className="responsive-metadata-header metadata-header-stable"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ position: 'relative', zIndex: 20 }}
+                >
+                    <div className="metadata-header-left min-w-0">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            Sequence Metadata
+                        </h2>
+                        <div className="metadata-file-row flex items-center gap-2 mt-1 relative min-w-0 flex-wrap">
                         {/* File Selector */}
-                        <div className="relative">
+                        <div className="relative min-w-0">
                             <button
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-[#1E3A8A] transition-colors py-1 pl-1 pr-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-[#1E3A8A] transition-colors py-1 pl-1 pr-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 min-w-0 max-w-full"
                             >
                                 <Icons.File className="w-4 h-4" />
-                                <span className="font-medium truncate max-w-[200px]">{currentFileName}</span>
+                                <span className="font-medium truncate max-w-[180px] sm:max-w-[220px] lg:max-w-[260px]">{currentFileName}</span>
                                 <Icons.ChevronRight className={`w-3 h-3 transition-transform ${dropdownOpen ? 'rotate-90' : ''}`} />
                             </button>
 
@@ -338,39 +339,40 @@ export function MetadataPage({ parsedSequences, selectedFile, onFileSelect }) {
                                 {validParsedSequences.length} sequence{validParsedSequences.length !== 1 ? 's' : ''} loaded
                             </p>
                         )}
+                        </div>
                     </div>
-                </div>
 
-                {/* Generate Report Button - Always visible */}
-                <motion.button
-                    onClick={handleGenerateReport}
-                    disabled={generatingReport}
-                    className="responsive-btn-full px-6 py-3 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
-                    style={{ background: generatingReport ? '#64748B' : 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
-                    whileHover={{ scale: generatingReport ? 1 : 1.05, y: generatingReport ? 0 : -2 }}
-                    whileTap={{ scale: generatingReport ? 1 : 0.95 }}
-                >
-                    {generatingReport ? (
-                        <>
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                            >
-                                <Icons.Loader className="w-4 h-4" />
-                            </motion.div>
-                            Generating...
-                        </>
-                    ) : (
-                        <>
-                            <Icons.FileText className="w-4 h-4" />
-                            Generate Report
-                        </>
-                    )}
-                </motion.button>
-            </motion.div>
+                    {/* Generate Report Button - Always visible */}
+                    <motion.button
+                        onClick={handleGenerateReport}
+                        disabled={generatingReport}
+                        className="responsive-btn-full metadata-report-btn px-6 py-3 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+                        style={{ background: generatingReport ? '#64748B' : 'linear-gradient(135deg, #1E3A8A, #2563EB)' }}
+                        whileHover={{ scale: generatingReport ? 1 : 1.05, y: generatingReport ? 0 : -2 }}
+                        whileTap={{ scale: generatingReport ? 1 : 0.95 }}
+                    >
+                        {generatingReport ? (
+                            <>
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                >
+                                    <Icons.Loader className="w-4 h-4" />
+                                </motion.div>
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <Icons.FileText className="w-4 h-4" />
+                                Generate Report
+                            </>
+                        )}
+                    </motion.button>
+                </motion.div>
 
-            {/* Metadata Cards */}
-            <MetadataCards parsedSequences={validParsedSequences || []} />
+                {/* Metadata Cards */}
+                <MetadataCards parsedSequences={validParsedSequences || []} />
+            </div>
         </AnimatedPage>
     );
 }

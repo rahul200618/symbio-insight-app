@@ -126,9 +126,16 @@ export function Button3D({
 }) {
   const variants = {
     primary: 'text-white',
-    secondary: 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 text-white',
-    success: 'bg-gradient-to-br from-green-500 via-emerald-600 to-green-700 text-white',
-    danger: 'bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white'
+    secondary: 'text-white',
+    success: 'text-white',
+    danger: 'text-white'
+  };
+
+  const variantStyles = {
+    primary: { background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' },
+    secondary: { background: 'linear-gradient(135deg, #4B5563, #374151)' },
+    success: { background: 'linear-gradient(135deg, #22C55E, #15803D)' },
+    danger: { background: 'linear-gradient(135deg, #EF4444, #B91C1C)' }
   };
 
   return (
@@ -137,7 +144,7 @@ export function Button3D({
       style={{
         transformStyle: 'preserve-3d',
         transform: 'translateZ(0)',
-        ...(variant === 'primary' && { background: 'linear-gradient(135deg, #1E3A8A, #2563EB)' })
+        ...(variantStyles[variant] || variantStyles.primary)
       }}
       initial="rest"
       whileHover="hover"

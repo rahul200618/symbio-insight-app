@@ -1,9 +1,44 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useRef, useState, useMemo } from 'react';
 import { Icons } from './Icons';
-import { BarChart, PieChart } from './Charts';
+import { PieChart } from './Charts';
 import { CodonFrequency } from './CodonFrequency';
 import { calculateAggregateStats } from '../utils/fastaParser.js';
+
+function NucleotideBars({ data = [] }) {
+  return (
+    <div className="space-y-3" role="img" aria-label="Nucleotide distribution chart">
+      {data.map((item) => {
+        const value = Number(item?.value) || 0;
+        const percent = Math.max(0, Math.min(value, 100));
+        const barWidth = percent > 0 ? `${Math.max(percent, 2)}%` : '0%';
+
+        return (
+          <div key={item.name}>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{item.name}</span>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {value.toFixed(1)}% ({(item.count || 0).toLocaleString()})
+              </span>
+            </div>
+            <div className="h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: item.color }}
+                initial={{ width: 0 }}
+                animate={{ width: barWidth }}
+                transition={{ type: 'spring', stiffness: 160, damping: 22 }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function MetadataCards({ parsedSequences = [] }) {
   const [expandedSequence, setExpandedSequence] = useState(null);
@@ -56,16 +91,16 @@ export function MetadataCards({ parsedSequences = [] }) {
 
   const nucleotideData = stats
     ? [
-      { name: 'A', value: stats.nucleotideDistribution.A, count: stats.nucleotideCounts.A, color: '#38bdf8' },
-      { name: 'T', value: stats.nucleotideDistribution.T, count: stats.nucleotideCounts.T, color: '#22d3ee' },
-      { name: 'G', value: stats.nucleotideDistribution.G, count: stats.nucleotideCounts.G, color: '#06b6d4' },
-      { name: 'C', value: stats.nucleotideDistribution.C, count: stats.nucleotideCounts.C, color: '#0ea5e9' },
+      { name: 'A', value: stats.nucleotideDistribution.A, count: stats.nucleotideCounts.A, color: '#ef4444' },
+      { name: 'T', value: stats.nucleotideDistribution.T, count: stats.nucleotideCounts.T, color: '#f59e0b' },
+      { name: 'G', value: stats.nucleotideDistribution.G, count: stats.nucleotideCounts.G, color: '#22c55e' },
+      { name: 'C', value: stats.nucleotideDistribution.C, count: stats.nucleotideCounts.C, color: '#3b82f6' },
     ]
     : [
-      { name: 'A', value: 0, count: 0, color: '#38bdf8' },
-      { name: 'T', value: 0, count: 0, color: '#22d3ee' },
-      { name: 'G', value: 0, count: 0, color: '#06b6d4' },
-      { name: 'C', value: 0, count: 0, color: '#0ea5e9' },
+      { name: 'A', value: 0, count: 0, color: '#ef4444' },
+      { name: 'T', value: 0, count: 0, color: '#f59e0b' },
+      { name: 'G', value: 0, count: 0, color: '#22c55e' },
+      { name: 'C', value: 0, count: 0, color: '#3b82f6' },
     ];
 
   const gcPercentage = stats ? stats.avgGC : 0;
@@ -107,10 +142,10 @@ export function MetadataCards({ parsedSequences = [] }) {
     const C = counts.C || 0;
     const total = A + T + G + C;
     return [
-      { name: 'A', value: total > 0 ? (A / total) * 100 : 0, count: A, color: '#38bdf8' },
-      { name: 'T', value: total > 0 ? (T / total) * 100 : 0, count: T, color: '#22d3ee' },
-      { name: 'G', value: total > 0 ? (G / total) * 100 : 0, count: G, color: '#06b6d4' },
-      { name: 'C', value: total > 0 ? (C / total) * 100 : 0, count: C, color: '#0ea5e9' },
+      { name: 'A', value: total > 0 ? (A / total) * 100 : 0, count: A, color: '#ef4444' },
+      { name: 'T', value: total > 0 ? (T / total) * 100 : 0, count: T, color: '#f59e0b' },
+      { name: 'G', value: total > 0 ? (G / total) * 100 : 0, count: G, color: '#22c55e' },
+      { name: 'C', value: total > 0 ? (C / total) * 100 : 0, count: C, color: '#3b82f6' },
     ];
   };
 
@@ -127,7 +162,7 @@ export function MetadataCards({ parsedSequences = [] }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Empty State - No Sequences Loaded */}
       {parsedSequences.length === 0 && (
         <motion.div
@@ -242,7 +277,7 @@ export function MetadataCards({ parsedSequences = [] }) {
       </div>
 
       {/* Charts Row */}
-      <div className="responsive-grid-2" key={parsedSequences.length > 0 ? parsedSequences[0]?.timestamp : 'empty'}>
+      <div className="responsive-grid-2">
         {/* Nucleotide Distribution */}
         <div className="responsive-section-pad bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
@@ -255,8 +290,8 @@ export function MetadataCards({ parsedSequences = [] }) {
             </div>
           </div>
 
-          <div className="w-full h-48 mb-4">
-            <BarChart key={JSON.stringify(nucleotideData)} data={nucleotideData} />
+          <div className="w-full mb-4">
+            <NucleotideBars data={nucleotideData} />
           </div>
 
           {/* Data Labels - matching image design */}
@@ -470,13 +505,16 @@ export function MetadataCards({ parsedSequences = [] }) {
                       className={`p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-[#EFF6FF] dark:bg-[#1E3A8A]/20' : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                       onClick={() => setExpandedSequence(isExpanded && expandedSequence !== 'all' ? null : originalIndex)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
                           <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: 'linear-gradient(to bottom right, #1E3A8A, #2563EB)' }}>
                             {originalIndex + 1}
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
+                          <div className="min-w-0 flex-1">
+                            <h4
+                              className="font-semibold text-gray-900 dark:text-white truncate max-w-full"
+                              title={seq.sequenceName || seq.name || `Sequence ${originalIndex + 1}`}
+                            >
                               {seq.sequenceName || seq.name || `Sequence ${originalIndex + 1}`}
                             </h4>
                             <div className="responsive-seq-meta text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -486,7 +524,7 @@ export function MetadataCards({ parsedSequences = [] }) {
                             </div>
                           </div>
                         </div>
-                        <motion.div
+                        <motion.div className="flex-shrink-0"
                           animate={{ rotate: isExpanded ? 90 : 0 }}
                           transition={{ duration: 0.2 }}
                         >
@@ -534,8 +572,8 @@ export function MetadataCards({ parsedSequences = [] }) {
                               {/* Nucleotide Distribution Chart */}
                               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                                 <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Nucleotide Distribution</h5>
-                                <div className="w-full mb-3" style={{ height: '144px' }}>
-                                  <BarChart key={`bar-${seq.id || originalIndex}`} data={seqNucleotideData} minHeight={120} />
+                                <div className="w-full mb-3">
+                                  <NucleotideBars data={seqNucleotideData} />
                                 </div>
                                 <div className="responsive-nucleotide-labels">
                                   {seqNucleotideData.map((item) => (

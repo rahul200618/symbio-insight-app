@@ -93,7 +93,7 @@ export function MetadataSlide() {
                 </div>
 
                 <div className="w-full h-48 mb-4">
-                  <BarChart data={nucleotideData} />
+                  <BarChart data={nucleotideData} maxScaleValue={100} />
                 </div>
 
                 <div className="grid grid-cols-4 gap-3">

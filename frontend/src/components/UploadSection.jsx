@@ -28,6 +28,9 @@ export function UploadSection({ onUploadComplete }) {
 
   const uploadBoxRef = useScrollAnimation('scale-up', 0);
   const dragBoxRef = useRef(null);
+  const dragDepthRef = useRef(0);
+
+  const isValidFastaFile = (file) => /\.(fasta|fa)$/i.test(file?.name || '');
 
   useEffect(() => {
     if (error) {
@@ -38,8 +41,32 @@ export function UploadSection({ onUploadComplete }) {
     }
   }, [error]);
 
+  // Prevent browser from opening dropped files in the current tab.
+  useEffect(() => {
+    const preventWindowDropNavigation = (e) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener('dragover', preventWindowDropNavigation);
+    window.addEventListener('drop', preventWindowDropNavigation);
+
+    return () => {
+      window.removeEventListener('dragover', preventWindowDropNavigation);
+      window.removeEventListener('drop', preventWindowDropNavigation);
+    };
+  }, []);
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    dragDepthRef.current += 1;
+    setIsDragging(true);
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
     setIsDragging(true);
 
     // Calculate tilt based on drag position
@@ -49,19 +76,29 @@ export function UploadSection({ onUploadComplete }) {
     }
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-    setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) {
+      setIsDragging(false);
+      setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    dragDepthRef.current = 0;
     setIsDragging(false);
     setUploadBoxTilt({ rotateX: 0, rotateY: 0 });
 
-    const file = e.dataTransfer.files[0];
-    if (file && (file.name.endsWith('.fasta') || file.name.endsWith('.fa'))) {
-      processFile(file);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length === 0) {
+      return;
+    }
+
+    const hasValidFile = files.some((file) => isValidFastaFile(file));
+    if (hasValidFile) {
+      processFiles(files);
     } else {
       setError('Please upload a valid .fasta or .fa file');
       toast.error('Please upload a valid .fasta or .fa file');
@@ -69,44 +106,78 @@ export function UploadSection({ onUploadComplete }) {
   };
 
   const handleFileSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      processFiles(files);
     }
   };
 
-  const processFile = async (file) => {
+  const processFiles = async (incomingFiles) => {
     setError(null);
     setIsUploading(true);
     setShowReview(false);
 
     try {
-      const text = await file.text();
+      const allFiles = Array.from(incomingFiles || []);
+      const validFiles = allFiles.filter((file) => isValidFastaFile(file));
+
+      if (validFiles.length === 0) {
+        throw new Error('Please upload at least one valid .fasta or .fa file');
+      }
+
+      if (validFiles.length !== allFiles.length) {
+        toast.warning(`Skipped ${allFiles.length - validFiles.length} invalid file(s). Only .fasta/.fa are supported.`);
+      }
+
+      const aggregatedSequences = [];
+      const fileSummaries = [];
+      let totalSizeBytes = 0;
+
+      for (const file of validFiles) {
+        const text = await file.text();
+        const sequences = parseFastaFile(text);
+
+        if (sequences.length === 0) {
+          throw new Error(`No valid sequences found in file: ${file.name}`);
+        }
+
+        aggregatedSequences.push(...sequences);
+        totalSizeBytes += file.size;
+        fileSummaries.push({
+          name: file.name,
+          sizeBytes: file.size,
+          size: (file.size / 1024).toFixed(2) + ' KB',
+          sequenceCount: sequences.length,
+          file,
+        });
+      }
+
       setIsUploading(false);
       setIsParsing(true);
 
-      const sequences = parseFastaFile(text);
-
-      if (sequences.length === 0) {
-        throw new Error('No valid sequences found in file');
-      }
-
-      const stats = calculateAggregateStats(sequences);
+      const stats = calculateAggregateStats(aggregatedSequences);
+      const displayName = validFiles.length === 1 ? validFiles[0].name : `${validFiles.length} files selected`;
 
       setUploadedFile({
-        name: file.name,
-        size: (file.size / 1024).toFixed(2) + ' KB',
-        sizeBytes: file.size,
-        sequences: sequences.length,
+        name: displayName,
+        size: (totalSizeBytes / 1024).toFixed(2) + ' KB',
+        sizeBytes: totalSizeBytes,
+        sequences: aggregatedSequences.length,
         stats,
-        file: file, // Store the file object for backend upload
+        file: validFiles.length === 1 ? validFiles[0] : null,
+        files: validFiles,
+        fileSummaries,
       });
 
-      setParsedData(sequences);
+      setParsedData(aggregatedSequences);
       setIsParsing(false);
       setShowReview(true); // Show review UI with accept/reject
 
-      toast.success(`Parsed ${sequences.length} sequence(s) successfully`);
+      toast.success(
+        validFiles.length === 1
+          ? `Parsed ${aggregatedSequences.length} sequence(s) successfully`
+          : `Parsed ${aggregatedSequences.length} sequence(s) from ${validFiles.length} files successfully`
+      );
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -174,14 +245,27 @@ export function UploadSection({ onUploadComplete }) {
 
       let createdSequences = [];
 
-      if (uploadedFile.file) {
-        // File upload flow -> persists to /api/sequences/upload
-        toast.loading('Uploading to server...', { id: 'upload-backend' });
+      if (uploadedFile.files && uploadedFile.files.length > 0) {
+        // File upload flow -> persists each file via /api/sequences/upload
+        toast.loading(
+          uploadedFile.files.length > 1
+            ? `Uploading ${uploadedFile.files.length} files to server...`
+            : 'Uploading to server...',
+          { id: 'upload-backend' }
+        );
 
-        const result = await uploadSequenceFile(uploadedFile.file, parser);
-        createdSequences = Array.isArray(result) ? result : [result];
+        for (const file of uploadedFile.files) {
+          const result = await uploadSequenceFile(file, parser);
+          const normalized = Array.isArray(result) ? result : [result];
+          createdSequences.push(...normalized);
+        }
 
-        toast.success('File uploaded successfully!', { id: 'upload-backend' });
+        toast.success(
+          uploadedFile.files.length > 1
+            ? `${uploadedFile.files.length} files uploaded successfully!`
+            : 'File uploaded successfully!',
+          { id: 'upload-backend' }
+        );
         notifyUploadComplete(uploadedFile.name, createdSequences.length || parsedData.length);
       } else if (sequenceText.trim()) {
         // Pasted FASTA flow -> persists via POST /api/sequences
@@ -264,6 +348,7 @@ export function UploadSection({ onUploadComplete }) {
               ? 'border-[#1E3A8A] bg-[#EFF6FF]'
               : 'border-gray-300 dark:border-gray-600 hover:border-[#2563EB]'
               }`}
+            onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -290,8 +375,13 @@ export function UploadSection({ onUploadComplete }) {
           >
             <input
               type="file"
+              multiple
               accept=".fasta,.fa"
               onChange={handleFileSelect}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               disabled={showReview}
               aria-label="Choose FASTA file to upload"
@@ -343,7 +433,7 @@ export function UploadSection({ onUploadComplete }) {
               >
                 <Icons.File className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Accepts .fasta or .fa files
+                  Accepts .fasta or .fa files (single or multiple)
                 </span>
               </motion.div>
             </div>

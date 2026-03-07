@@ -1,25 +1,35 @@
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 
-export function BarChart({ data, minHeight = 120 }) {
-  const maxValue = Math.max(...data.map(d => d.value)) || 100; // Prevent division by zero
+export function BarChart({ data = [], minHeight = 120, maxScaleValue }) {
+  const safeData = Array.isArray(data)
+    ? data.map((item) => ({
+      ...item,
+      value: Number(item?.value) || 0,
+      count: Number(item?.count) || 0,
+      name: item?.name || '',
+    }))
+    : [];
+
+  const inferredMax = safeData.length > 0 ? Math.max(...safeData.map(d => d.value), 0) : 0;
+  const scaleMax = Number(maxScaleValue) > 0 ? Number(maxScaleValue) : (inferredMax || 100);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(false);
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
-  }, [JSON.stringify(data)]);
+  }, [JSON.stringify(safeData)]);
 
   return (
     <div className="w-full h-full flex items-end justify-between gap-3 px-2" style={{ minHeight: `${minHeight}px` }}>
-      {data.map((item, index) => {
-        const height = (item.value / maxValue) * 100;
+      {safeData.map((item, index) => {
+        const height = Math.max(0, Math.min((item.value / scaleMax) * 100, 100));
         return (
           <div key={`${item.name}-${index}`} className="flex-1 flex flex-col items-center h-full justify-end group" style={{ minHeight: `${minHeight}px` }}>
             <div className="w-full relative flex items-end h-full" style={{ minHeight: `${minHeight - 24}px` }}>
               <motion.div
-                className="w-full rounded-t-lg shadow-sm group-hover:opacity-90 transition-opacity"
+                className="w-4/5 mx-auto rounded-t-lg shadow-sm group-hover:opacity-90 transition-opacity"
                 style={{
                   backgroundColor: item.color,
                   minHeight: item.value > 0 ? '8px' : '0px',

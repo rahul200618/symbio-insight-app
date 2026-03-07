@@ -204,6 +204,14 @@
     line-height: inherit;
   }
 
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   hr {
     height: 0;
     color: inherit;
@@ -464,6 +472,134 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+    cursor: default;
+  }
+
+  a,
+  button,
+  [role="button"],
+  summary,
+  label,
+  select {
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  :root {
+    --ui-accent-rgb: 37, 99, 235;
+    --ui-accent-strong-rgb: 30, 58, 138;
+    --ui-focus-rgb: 212, 175, 55;
+  }
+
+  @keyframes ui-gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @keyframes ui-soft-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--ui-accent-rgb), 0.25);
+    }
+
+    70% {
+      box-shadow: 0 0 0 10px rgba(var(--ui-accent-rgb), 0);
+    }
+  }
+
+  button,
+  a,
+  [role="button"],
+  .cursor-pointer {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-position 0.35s ease, filter 0.2s ease;
+    will-change: transform;
+  }
+
+  button:hover,
+  a:hover,
+  [role="button"]:hover,
+  .cursor-pointer:hover {
+    transform: translateY(-1px);
+    filter: saturate(1.06);
+  }
+
+  button:active,
+  a:active,
+  [role="button"]:active,
+  .cursor-pointer:active {
+    transform: translateY(0);
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid rgba(var(--ui-focus-rgb), 0.8);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"],
+  .cursor-pointer {
+    box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.06);
+  }
+
+  .dark button:not(:disabled),
+  .dark [role="button"],
+  .dark .cursor-pointer {
+    box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.2);
+  }
+
+  button:not(:disabled):hover,
+  [role="button"]:hover,
+  .cursor-pointer:hover {
+    box-shadow: 0 8px 24px rgba(var(--ui-accent-rgb), 0.16);
+  }
+
+  .dark button:not(:disabled):hover,
+  .dark [role="button"]:hover,
+  .dark .cursor-pointer:hover {
+    box-shadow: 0 10px 26px rgba(var(--ui-accent-rgb), 0.25);
+    border-color: rgba(var(--ui-accent-rgb), 0.45);
+  }
+
+  button:not(:disabled):hover,
+  [role="button"]:hover {
+    background-image: linear-gradient(120deg, rgba(var(--ui-accent-rgb), 0.08), rgba(var(--ui-accent-strong-rgb), 0.08), rgba(var(--ui-accent-rgb), 0.08));
+    background-size: 220% 220%;
+    animation: ui-gradient-shift 1.4s linear infinite;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    animation: ui-soft-pulse 1.6s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button,
+    a,
+    [role="button"],
+    .cursor-pointer,
+    input,
+    select,
+    textarea {
+      transition: none;
+      animation: none;
+      transform: none !important;
+    }
   }
 
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) h1 {
@@ -2864,6 +3000,9 @@ html {
   position: fixed;
   top: 0;
   left: 0;
+  width: min(80vw, 20rem);
+  min-width: min(80vw, 20rem);
+  max-width: 20rem;
   z-index: 50;
   transform: translateX(-100%);
   transition: transform 300ms ease-in-out;
@@ -2884,6 +3023,9 @@ html {
 @media (min-width: 1024px) {
   .sidebar-mobile {
     position: relative;
+    width: 16rem;
+    min-width: 16rem;
+    max-width: 16rem;
     z-index: auto;
     transform: none !important;
   }
@@ -3422,5 +3564,79 @@ html {
     flex-direction: row;
     width: auto;
     max-width: none;
+  }
+}
+
+/* --- Metadata Page Sizing (Laptop/Desktop) --- */
+.metadata-page-shell {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#main-content {
+  scrollbar-gutter: stable;
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .metadata-page-shell .responsive-metadata-header {
+    margin-bottom: 1rem;
+  }
+
+  .metadata-page-shell .responsive-section-pad {
+    padding: 1.25rem;
+  }
+
+  .metadata-page-shell .responsive-stats-grid {
+    gap: 0.875rem;
+  }
+
+  .metadata-page-shell .responsive-grid-2 {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .metadata-page-shell {
+    max-width: 1320px;
+  }
+}
+
+.metadata-header-stable {
+  overflow: visible;
+  width: 100%;
+}
+
+.metadata-header-left {
+  flex: 1 1 auto;
+  max-width: 100%;
+}
+
+.metadata-file-row {
+  width: 100%;
+}
+
+.metadata-report-btn {
+  flex: 0 0 auto;
+}
+
+@media (min-width: 768px) {
+  .metadata-header-stable {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .metadata-header-left {
+    flex: 1 1 560px;
+    min-width: 0;
+  }
+
+  .metadata-file-row {
+    flex-wrap: wrap;
+  }
+
+  .metadata-report-btn {
+    margin-left: auto;
   }
 }

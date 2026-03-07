@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Icons } from './Icons';
 import { BarChart, PieChart } from './Charts';
 import { calculateAggregateStats } from '../utils/fastaParser.js';
-import { generatePDFReport, downloadHTMLReport } from '../utils/reportGenerator.js';
 import { generatePDFReport as generateBackendPDF } from '../utils/sequenceApi.js';
 import { generateSequenceAnalysis } from '../utils/aiService.js';
 import { toast } from 'sonner';
@@ -98,6 +97,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
       } catch (backendError) {
         // Fallback to client-side PDF generation if backend fails
         console.log('Backend PDF failed, using client-side generation:', backendError);
+        const { generatePDFReport } = await import('../utils/reportGenerator.js');
         await generatePDFReport(parsedSequences, {
           includeCharts: true,
           includeRawSequence: false,
@@ -116,13 +116,14 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
     }
   };
 
-  const handleDownloadHTML = () => {
+  const handleDownloadHTML = async () => {
     if (parsedSequences.length === 0) {
       toast.error('No sequences available to generate report');
       return;
     }
 
     try {
+      const { downloadHTMLReport } = await import('../utils/reportGenerator.js');
       downloadHTMLReport(parsedSequences, {
         includeCharts: true,
         includeRawSequence: false,
@@ -156,10 +157,10 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
     const counts = seq.nucleotideCounts || { A: 0, T: 0, G: 0, C: 0 };
     const total = counts.A + counts.T + counts.G + counts.C;
     return [
-      { name: 'A', value: total > 0 ? (counts.A / total) * 100 : 0, count: counts.A, color: '#38bdf8' },
-      { name: 'T', value: total > 0 ? (counts.T / total) * 100 : 0, count: counts.T, color: '#22d3ee' },
-      { name: 'G', value: total > 0 ? (counts.G / total) * 100 : 0, count: counts.G, color: '#06b6d4' },
-      { name: 'C', value: total > 0 ? (counts.C / total) * 100 : 0, count: counts.C, color: '#0ea5e9' },
+      { name: 'A', value: total > 0 ? (counts.A / total) * 100 : 0, count: counts.A, color: '#ef4444' },
+      { name: 'T', value: total > 0 ? (counts.T / total) * 100 : 0, count: counts.T, color: '#f59e0b' },
+      { name: 'G', value: total > 0 ? (counts.G / total) * 100 : 0, count: counts.G, color: '#22c55e' },
+      { name: 'C', value: total > 0 ? (counts.C / total) * 100 : 0, count: counts.C, color: '#3b82f6' },
     ];
   };
 
@@ -633,7 +634,7 @@ export function ReportViewer({ parsedSequences = [], isLoading = false }) {
                               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                                 <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Nucleotide Distribution</h5>
                                 <div className="w-full mb-3" style={{ height: '144px' }}>
-                                  <BarChart key={`bar-${seq.id || index}`} data={seqNucleotideData} minHeight={120} />
+                                  <BarChart key={`bar-${seq.id || index}`} data={seqNucleotideData} minHeight={120} maxScaleValue={100} />
                                 </div>
                                 <div className="responsive-nucleotide-labels">
                                   {seqNucleotideData.map((item) => (

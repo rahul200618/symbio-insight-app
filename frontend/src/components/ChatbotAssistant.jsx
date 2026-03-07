@@ -698,6 +698,8 @@ Which file would you like to explore?`
   // Handle dragging
   const handleMouseDown = (e) => {
     if (isFullscreen) return;
+    if (e.target.closest('button')) return;
+    e.preventDefault();
     const rect = chatRef.current?.getBoundingClientRect();
     if (rect) {
       setDragOffset({
@@ -746,6 +748,27 @@ Which file would you like to explore?`
       };
     }
   }, [isDragging, isResizing, dragOffset, size]);
+
+  // Lock page scroll and allow Escape to exit while chat is fullscreen.
+  useEffect(() => {
+    if (!(isOpen && isFullscreen)) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, isFullscreen]);
 
   // Save chat history to localStorage whenever messages change
   useEffect(() => {
@@ -1084,6 +1107,14 @@ Which file would you like to explore?`
         </button>
       )}
 
+      {/* Fullscreen Backdrop */}
+      {isOpen && isFullscreen && (
+        <div
+          className="fixed inset-0 z-[70] bg-gray-950/70 backdrop-blur-[2px]"
+          aria-hidden="true"
+        />
+      )}
+
       {/* Chat Window */}
       {isOpen && (
         <div 
@@ -1091,9 +1122,13 @@ Which file would you like to explore?`
           role="dialog"
           aria-modal="true"
           aria-label="DNA Assistant chatbot"
-          className={`fixed bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200 dark:border-gray-800 transition-colors duration-300 ${isDragging ? 'cursor-grabbing select-none' : ''}`}
+          className={`fixed bg-white dark:bg-gray-900 shadow-2xl flex flex-col z-[80] border border-gray-200 dark:border-gray-800 transition-colors duration-300 overflow-hidden min-h-0 cursor-default select-none ${isFullscreen ? 'rounded-none' : 'rounded-2xl'} ${isDragging ? 'cursor-grabbing' : ''}`}
           style={isFullscreen ? {
-            inset: '16px'
+            inset: 0,
+            width: '100vw',
+            height: '100dvh',
+            maxWidth: '100vw',
+            maxHeight: '100dvh'
           } : {
             left: position.x !== null ? `${position.x}px` : 'auto',
             top: position.y !== null ? `${position.y}px` : 'auto',
@@ -1105,7 +1140,7 @@ Which file would you like to explore?`
         >
           {/* Header - Draggable */}
           <div 
-            className={`p-4 rounded-t-2xl flex items-center justify-between ${!isFullscreen ? 'cursor-grab' : ''}`}
+            className={`p-4 flex items-center justify-between ${isFullscreen ? 'rounded-none' : 'rounded-t-2xl'} ${!isFullscreen ? 'cursor-grab' : ''}`}
             style={{ background: 'linear-gradient(to right, #1E3A8A, #2563EB)' }}
             onMouseDown={handleMouseDown}
           >
@@ -1213,7 +1248,7 @@ Which file would you like to explore?`
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-gray-900">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -1227,7 +1262,7 @@ Which file would you like to explore?`
                       }`}
                     style={message.role === 'user' ? { background: 'linear-gradient(to right, #1E3A8A, #2563EB)' } : undefined}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap select-text">{message.content}</p>
                     
                     {/* Inline Chart */}
                     {message.chart && (
@@ -1293,7 +1328,7 @@ Which file would you like to explore?`
 
 {/* Quick Actions */}
           {messages.length <= 2 && (
-            <div className="px-4 pb-2 bg-gray-50 dark:bg-gray-800/50">
+            <div className="px-4 pb-2 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
               <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 font-medium">⚡ Quick Actions:</p>
               <div className="flex flex-wrap gap-2 mb-3">
                 {quickActions.map((action, i) => (
@@ -1322,7 +1357,7 @@ Which file would you like to explore?`
           )}
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="flex gap-2">
               <input
                 ref={inputRef}
@@ -1331,7 +1366,7 @@ Which file would you like to explore?`
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask anything or say 'go to report'..."
-                className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
+                className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent select-text"
                 disabled={isLoading}
               />
               <button

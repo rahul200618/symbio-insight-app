@@ -218,7 +218,7 @@ export default function AdminDashboardPage() {
                             </h3>
                             <div className="space-y-3">
                                 {stats.recent?.users?.map((user, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 bg-[#DBEAFE] dark:bg-[#1E3A8A]/30 rounded-full flex items-center justify-center text-[#1E3A8A] dark:text-[#60A5FA] font-medium">
                                                 {user.name?.charAt(0) || '?'}
@@ -227,12 +227,12 @@ export default function AdminDashboardPage() {
                                                 <div className="font-medium text-gray-900 dark:text-white text-sm">
                                                     {user.name}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-gray-500 dark:text-gray-300">
                                                     {user.email}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="text-xs text-gray-400">
+                                        <div className="text-xs text-gray-400 dark:text-gray-300">
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </div>
                                     </div>
@@ -247,16 +247,16 @@ export default function AdminDashboardPage() {
                             </h3>
                             <div className="space-y-3">
                                 {stats.recent?.sequences?.map((seq, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
                                         <div>
                                             <div className="font-medium text-gray-900 dark:text-white text-sm">
                                                 {seq.name}
                                             </div>
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-xs text-gray-500 dark:text-gray-300">
                                                 {seq.length?.toLocaleString()} bp • GC: {seq.gcContent?.toFixed(1)}%
                                             </div>
                                         </div>
-                                        <div className="text-xs text-gray-400">
+                                        <div className="text-xs text-gray-400 dark:text-gray-300">
                                             {new Date(seq.createdAt).toLocaleDateString()}
                                         </div>
                                     </div>
