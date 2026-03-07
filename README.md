@@ -12,7 +12,14 @@ A modern, full-stack bioinformatics application for FASTA file analysis, sequenc
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org)
 [![Vite](https://img.shields.io/badge/Vite-6.3-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev)
 
-[Demo](#-https://symbio-insight-app-2.onrender.com • [Features](#-features) • [Screenshots](#-screenshots) • [Installation](#-quick-start) • [API](#-api-reference-18-endpoints) • [Contributing](#-contributing)
+[Live Frontend](https://symbio-insight-app-2.onrender.com) • [Live Backend](https://symbio-insight-app.onrender.com) • [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) • [Features](#-features) • [Installation](#-quick-start) • [API](#-api-reference-18-endpoints) • [Contributing](#-contributing)
+
+## 🌐 Live Deployment
+
+- **Render Frontend:** https://symbio-insight-app-2.onrender.com
+- **Render Backend:** https://symbio-insight-app.onrender.com
+- **MongoDB Atlas:** https://www.mongodb.com/cloud/atlas
+
 ## 🧬 Features
 
 <details>
@@ -518,12 +525,12 @@ JWT_EXPIRE=7d
 DATABASE_URL=postgresql://user:pass@host:5432/symbio
 GEMINI_API_KEY=your-gemini-api-key
 SENDGRID_API_KEY=your-sendgrid-key
-FRONTEND_URL=https://your-domain.com
+FRONTEND_URL=https://symbio-insight-app-2.onrender.com
 ```
 
 **Frontend (.env)**
 ```
-VITE_API_URL=https://api.your-domain.com/api
+VITE_API_URL=https://symbio-insight-app.onrender.com/api
 VITE_APP_NAME=Symbio-NLM
 ```
 

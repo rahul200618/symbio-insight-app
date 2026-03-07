@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 async function checkDatabase() {
   try {
-    const uri = 'mongodb+srv://rahula_db_user:7GriQMhzQhv2f5aY@cluster0.hqbn9ok.mongodb.net/symbio?retryWrites=true&w=majority';
+    const uri = process.env.MONGODB_ATLAS_URI || process.env.MONGODB_URI;
+
+    if (!uri) {
+      throw new Error('MongoDB URI not found. Set MONGODB_ATLAS_URI or MONGODB_URI in backend/.env');
+    }
     
     await mongoose.connect(uri, {
       maxPoolSize: 10,
